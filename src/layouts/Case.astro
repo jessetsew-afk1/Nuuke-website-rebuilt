@@ -1,0 +1,222 @@
+---
+// Shared shell for every case study: brand-tinted page, hero, concept notice,
+// a sticky chapter rail that tracks reading progress, sources and the next project.
+import Base from './Base.astro';
+import ProjectCover from '../components/ProjectCover.astro';
+import { nextOf, type Project } from '../data/projects';
+
+export type Chapter = { id: string; label: string };
+export type Source = { label: string; url: string };
+
+interface Props {
+  project: Project;
+  chapters: Chapter[];
+  sources: Source[];
+  meta: { label: string; value: string }[];
+}
+const { project: p, chapters, sources, meta } = Astro.props;
+const next = nextOf(p.slug);
+---
+
+<Base title={p.brand + ' — concept case study'} description={p.summary} accent={p.accent}>
+  <article class="case" style={`--a:${p.accent};--b:${p.accent2};--a-ink:${p.ink}`}>
+    <!-- HERO -->
+    <header class="case-hero">
+      <div class="case-hero-bg" aria-hidden="true"></div>
+      <div class="container case-hero-grid">
+        <div class="case-hero-copy">
+          <nav class="crumbs t-label" aria-label="Breadcrumb"><a href="/works">Works</a> / {p.disciplineLabel}</nav>
+          <h1 class="t-h1 case-title" data-split>{p.brand}</h1>
+          <p class="t-lead case-sub" data-reveal>{p.title.split('—')[1]?.trim() ?? p.title}</p>
+          <div class="case-chips" data-reveal style="--delay:.15s">
+            <span class="chip chip--accent">{p.disciplineLabel}</span>
+            {p.tags.map((t) => <span class="chip">{t}</span>)}
+          </div>
+        </div>
+        <div class="case-hero-visual" data-reveal style="--delay:.2s">
+          <slot name="hero">
+            <ProjectCover project={p} />
+          </slot>
+        </div>
+      </div>
+      <div class="container">
+        <dl class="case-meta" data-stagger="0.06">
+          {
+            meta.map((m) => (
+              <div>
+                <dt class="t-label">{m.label}</dt>
+                <dd>{m.value}</dd>
+              </div>
+            ))
+          }
+        </dl>
+        <aside class="concept-note" data-reveal>
+          <strong>Concept project.</strong> NUUKE created this as an independent exploration. It was not commissioned by, and is not affiliated with, {p.brand}. Brand facts come from public sources listed at the end; the research, flows, wireframes, prototypes and 3D are our own work. No results are claimed.
+        </aside>
+      </div>
+    </header>
+
+    <!-- CHAPTER RAIL -->
+    <nav class="rail" aria-label="Case study chapters" data-rail>
+      <div class="rail-track"><span class="rail-fill" data-rail-fill></span></div>
+      <ol role="list">
+        {
+          chapters.map((c, i) => (
+            <li>
+              <a href={`#${c.id}`} data-rail-link={c.id}>
+                <span class="t-num">{String(i + 1).padStart(2, '0')}</span>
+                <span class="rail-label">{c.label}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+
+    <div class="case-body">
+      <slot />
+    </div>
+
+    <!-- SOURCES -->
+    <section class="section-tight container sources" aria-labelledby="sources-title">
+      <h2 id="sources-title" class="t-label">Sources for brand facts</h2>
+      <ul role="list">
+        {sources.map((s) => <li><a href={s.url} target="_blank" rel="noopener">{s.label} ↗</a></li>)}
+      </ul>
+    </section>
+
+    <!-- NEXT -->
+    <a class="next" href={`/works/${next.slug}`} style={`--n:${next.accent}`}>
+      <span class="t-label">Next case study</span>
+      <span class="next-title">{next.brand}</span>
+      <span class="t-lead">{next.disciplineLabel} · {next.summary}</span>
+      <span class="next-arrow" aria-hidden="true">→</span>
+    </a>
+  </article>
+</Base>
+
+<script>
+  // Rail: highlight the chapter in view and fill the progress bar.
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-rail-link]')];
+  const fill = document.querySelector<HTMLElement>('[data-rail-fill]');
+  const rail = document.querySelector<HTMLElement>('[data-rail]');
+  const sections = links.map((l) => document.getElementById(l.dataset.railLink!)).filter(Boolean) as HTMLElement[];
+  const onScroll = () => {
+    const mid = window.innerHeight * 0.4;
+    let active = 0;
+    sections.forEach((s, i) => {
+      if (s.getBoundingClientRect().top < mid) active = i;
+    });
+    links.forEach((l, i) => l.classList.toggle('is-active', i === active));
+    const first = sections[0]?.getBoundingClientRect().top ?? 0;
+    const lastEl = sections[sections.length - 1];
+    const end = lastEl ? lastEl.getBoundingClientRect().bottom : 1;
+    const total = end - first;
+    const prog = Math.min(1, Math.max(0, (mid - first) / Math.max(1, total)));
+    if (fill) fill.style.transform = `scaleY(${prog})`;
+    rail?.classList.toggle('is-visible', first < window.innerHeight * 0.8 && end > window.innerHeight * 0.3);
+  };
+  window.addEventListener('scroll', () => requestAnimationFrame(onScroll), { passive: true });
+  onScroll();
+</script>
+
+<style>
+  .case-hero { position: relative; padding-top: 9rem; padding-bottom: var(--s-8); overflow: hidden; }
+  .case-hero-bg {
+    position: absolute;
+    inset: -20% -10% 0;
+    background:
+      radial-gradient(50% 50% at 75% 30%, color-mix(in srgb, var(--a) 26%, transparent), transparent 70%),
+      radial-gradient(40% 40% at 10% 80%, color-mix(in srgb, var(--b) 18%, transparent), transparent 70%);
+    filter: blur(20px);
+    pointer-events: none;
+  }
+  .case-hero-grid { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-8); align-items: center; }
+  .case-hero-copy { display: grid; gap: var(--s-5); }
+  .crumbs a { color: var(--ink-2); }
+  .crumbs a:hover { color: var(--ink); }
+  .case-title { font-size: clamp(3rem, 1rem + 8vw, 8.5rem); }
+  .case-sub { font-size: var(--fs-xl); color: var(--ink); line-height: 1.3; max-width: 24ch; }
+  .case-chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+  .case-meta {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--s-5);
+    margin-top: var(--s-8);
+    padding-top: var(--s-5);
+    border-top: 1px solid var(--line);
+  }
+  .case-meta dd { margin-top: var(--s-2); color: var(--ink); }
+  .concept-note {
+    margin-top: var(--s-6);
+    padding: var(--s-4) var(--s-5);
+    border-radius: var(--r-md);
+    border: 1px dashed color-mix(in srgb, var(--a) 55%, transparent);
+    background: color-mix(in srgb, var(--a) 7%, transparent);
+    color: var(--ink-2);
+    font-size: var(--fs-sm);
+    max-width: 90ch;
+  }
+  .concept-note strong { color: var(--ink); }
+  @media (max-width: 900px) {
+    .case-hero-grid { grid-template-columns: 1fr; }
+    .case-meta { grid-template-columns: 1fr 1fr; }
+  }
+
+  .rail {
+    position: fixed;
+    left: 10px;
+    top: 50%;
+    transform: translate(-12px, -50%);
+    z-index: 30;
+    display: flex;
+    gap: 6px;
+    padding: 10px 8px;
+    border-radius: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--dur-2), transform var(--dur-2) var(--ease-out), background var(--dur-2);
+  }
+  .rail.is-visible { opacity: 1; transform: translate(0, -50%); pointer-events: auto; }
+  .rail:hover { background: rgb(12 12 15 / 0.92); box-shadow: 0 0 0 1px var(--line); }
+  .rail-track { width: 2px; background: var(--line); border-radius: 2px; position: relative; }
+  .rail-fill { position: absolute; inset: 0; background: var(--a); transform-origin: top; transform: scaleY(0); border-radius: 2px; }
+  .rail ol { list-style: none; padding: 0; display: grid; gap: 2px; }
+  .rail a { display: flex; gap: var(--s-2); align-items: center; padding: 3px 4px; border-radius: 6px; font-family: var(--font-ui); font-size: 0.7rem; color: var(--muted); }
+  .rail-label { max-width: 0; overflow: hidden; white-space: nowrap; opacity: 0; transition: max-width var(--dur-2) var(--ease-out), opacity var(--dur-2); }
+  .rail:hover .rail-label { max-width: 160px; opacity: 1; }
+  .rail a.is-active { color: var(--ink); }
+  .rail a.is-active .t-num { color: var(--a); }
+  @media (max-width: 1279px) { .rail { display: none; } }
+  @media (min-width: 1280px) { .case-body :global(.container) { padding-left: max(var(--gutter), 76px); } }
+
+  .sources ul { list-style: none; padding: 0; margin-top: var(--s-4); display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-5); font-size: var(--fs-sm); }
+  .sources a { color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
+  .sources a:hover { color: var(--ink); }
+
+  .next {
+    position: relative;
+    display: grid;
+    gap: var(--s-3);
+    padding: var(--section) var(--gutter);
+    border-top: 1px solid var(--line);
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .next::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(60% 80% at 50% 100%, color-mix(in srgb, var(--n) 30%, transparent), transparent 70%);
+    opacity: 0.4;
+    transition: opacity var(--dur-3);
+    z-index: -1;
+  }
+  .next:hover::before { opacity: 1; }
+  .next-title { font-family: var(--font-display); font-weight: 900; font-size: var(--fs-mega); line-height: 0.9; letter-spacing: -0.06em; transition: transform var(--dur-3) var(--ease-out); }
+  .next:hover .next-title { transform: translateX(2vw); }
+  .next .t-lead { max-width: 60ch; }
+  .next-arrow { position: absolute; right: var(--gutter); top: 50%; font-size: var(--fs-3xl); transition: transform var(--dur-2) var(--ease-out); }
+  .next:hover .next-arrow { transform: translateX(10px); }
+</style>

@@ -1,0 +1,64 @@
+---
+// "The brand / the problem / our goal" opener with sourced facts.
+interface Props {
+  story: string;
+  facts: { k: string; v: string }[];
+  problems: { title: string; text: string }[];
+  goal: string;
+}
+const { story, facts, problems, goal } = Astro.props;
+---
+
+<div class="brief">
+  <div class="brief-story">
+    <p class="t-lead" data-reveal set:html={story} />
+    <dl class="facts" data-stagger="0.06">
+      {
+        facts.map((f) => (
+          <div class="fact">
+            <dt class="t-num">{f.v}</dt>
+            <dd class="t-small">{f.k}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+  <div class="brief-problems">
+    <p class="t-label">Design problems we chose</p>
+    <ol role="list" data-stagger="0.1">
+      {
+        problems.map((p, i) => (
+          <li class="problem card">
+            <span class="t-num problem-n">0{i + 1}</span>
+            <h3 class="t-h4">{p.title}</h3>
+            <p class="t-body">{p.text}</p>
+          </li>
+        ))
+      }
+    </ol>
+    <div class="goal" data-reveal>
+      <p class="t-label">Our goal</p>
+      <p class="goal-text">{goal}</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .brief { display: grid; grid-template-columns: 1fr 1.1fr; gap: var(--s-8); align-items: start; }
+  .brief-story { position: sticky; top: 110px; display: grid; gap: var(--s-6); }
+  .facts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
+  .fact { padding: var(--s-4) 0; border-top: 1px solid var(--line); }
+  .fact dt { font-size: var(--fs-2xl); font-weight: 700; color: var(--ink); line-height: 1.05; }
+  .fact dd { margin-top: var(--s-1); }
+  .brief-problems { display: grid; gap: var(--s-5); }
+  .brief-problems ol { list-style: none; padding: 0; display: grid; gap: var(--s-4); }
+  .problem { display: grid; gap: var(--s-2); }
+  .problem-n { color: var(--a, var(--accent)); font-weight: 700; }
+  .goal { padding: var(--s-6); border-radius: var(--r-lg); background: var(--a); color: var(--a-ink, #111); }
+  .goal .t-label { color: inherit; opacity: 0.7; }
+  .goal-text { margin-top: var(--s-3); font-family: var(--font-display); font-weight: 800; font-size: var(--fs-xl); line-height: 1.2; letter-spacing: -0.02em; }
+  @media (max-width: 900px) {
+    .brief { grid-template-columns: 1fr; }
+    .brief-story { position: static; }
+  }
+</style>

@@ -1,0 +1,75 @@
+---
+import { nav, services, site } from '../data/site';
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <img src="/brand/logo-white.webp" alt="NUUKE" width="401" height="90" loading="lazy" />
+      <p class="t-lead">{site.footerLine}</p>
+    </div>
+    <div class="footer-col">
+      <p class="t-label">Explore</p>
+      <ul role="list">{nav.map((n) => <li><a href={n.href}>{n.label}</a></li>)}</ul>
+    </div>
+    <div class="footer-col">
+      <p class="t-label">Services</p>
+      <ul role="list">{services.map((s) => <li><a href={`/services/${s.slug}`}>{s.title}</a></li>)}</ul>
+    </div>
+    <div class="footer-col">
+      <p class="t-label">Contact</p>
+      <ul role="list">
+        <li><a href={site.phoneHref}>{site.phone}</a></li>
+        <li><a href={`mailto:${site.email}`}>{site.email}</a></li>
+        <li class="t-small">{site.address}</li>
+        {site.reviews.map((r) => <li><a href={r.href} target="_blank" rel="noopener">Reviews on {r.name} ↗</a></li>)}
+      </ul>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <p>© {year} NUUKE. All rights reserved.</p>
+    <a href="/privacy-policy">Privacy policy</a>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--line);
+    background: linear-gradient(180deg, transparent, rgb(255 255 255 / 0.02));
+    padding-top: var(--s-9);
+    padding-bottom: var(--safe-bottom);
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr repeat(3, 1fr);
+    gap: var(--s-7);
+  }
+  .footer-brand img { width: min(320px, 70%); margin-bottom: var(--s-5); }
+  .footer-brand .t-lead { max-width: 22ch; }
+  .footer-col ul { list-style: none; padding: 0; margin-top: var(--s-4); display: grid; gap: var(--s-3); }
+  .footer-col a { color: var(--ink-2); transition: color var(--dur-1); }
+  .footer-col a:hover { color: var(--ink); }
+  .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--s-4);
+    flex-wrap: wrap;
+    margin-top: var(--s-9);
+    padding-top: var(--s-5);
+    border-top: 1px solid var(--line);
+    font-family: var(--font-ui);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .footer-bottom a:hover { color: var(--ink); }
+  @media (max-width: 900px) {
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .footer-brand { grid-column: 1 / -1; }
+  }
+  @media (max-width: 480px) {
+    .footer-grid { grid-template-columns: 1fr; }
+  }
+</style>

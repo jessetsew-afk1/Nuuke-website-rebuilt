@@ -1,0 +1,489 @@
+---
+import Case from '../../layouts/Case.astro';
+import Chapter from '../../components/case/Chapter.astro';
+import Brief from '../../components/case/Brief.astro';
+import Personas from '../../components/case/Personas.astro';
+import JourneyMap from '../../components/case/JourneyMap.astro';
+import FlowMap from '../../components/case/FlowMap.astro';
+import ScreenStack from '../../components/case/ScreenStack.astro';
+import Prototype from '../../components/case/Prototype.astro';
+import DesignSystem from '../../components/case/DesignSystem.astro';
+import Metrics from '../../components/case/Metrics.astro';
+import { bySlug } from '../../data/projects';
+import { riseLayers } from '../../data/cases/rise';
+
+const p = bySlug('rise-science');
+const chapters = [
+  { id: 'brief', label: 'Brief' },
+  { id: 'research', label: 'Research' },
+  { id: 'journey', label: 'Journey' },
+  { id: 'flow', label: 'User flow' },
+  { id: 'layers', label: '3D wireframe' },
+  { id: 'prototype', label: 'Prototype' },
+  { id: 'beyond', label: 'Beyond the phone' },
+  { id: 'system', label: 'Design system' },
+  { id: 'measure', label: 'Measure' },
+];
+const sources = [
+  { label: 'Built In Chicago — app launch & funding', url: 'https://www.builtinchicago.org/articles/rise-science-app-launch-15m-funding' },
+  { label: 'Crunchbase News — $15.5M raise', url: 'https://news.crunchbase.com/health-wellness-biotech/get-out-of-sleep-debt-rise-science-secures-15-5m-for-app-to-boost-energy-levels/' },
+  { label: 'Northwestern McCormick — founders', url: 'https://www.mccormick.northwestern.edu/magazine/fall-2021/rise-shine/' },
+  { label: 'Rise Science — about', url: 'https://www.risescience.com/about-us' },
+  { label: 'Apple Design Awards 2023', url: 'https://developer.apple.com/design/awards/2023/' },
+  { label: 'IDEO — sleep system for athletes', url: 'https://www.ideo.com/works/a-game-changing-approach-to-sleep-for-athletes' },
+];
+const meta = [
+  { label: 'Brand', value: 'Rise Science, Chicago' },
+  { label: 'Discipline', value: 'Mobile app · UX/UI' },
+  { label: 'Our role', value: 'Research, flows, prototype, UI system' },
+  { label: 'Timeline (concept)', value: '4-week design sprint' },
+];
+const personas = [
+  { name: 'Deep-work Dana', meta: '31 · product manager', quote: 'I want my hardest work in my sharpest hours — and no 3pm crash.', goals: ['Know when her focus peaks', 'Block calendar time automatically', 'One glance, not a dashboard'], pains: ['Charts she has to interpret', 'Guilt-trip sleep scores', 'Too many notifications'], color: '#ffb27a' },
+  { name: 'New-parent Marcus', meta: '36 · two kids under 4', quote: 'Eight hours is a fantasy. Tell me how to survive on what I get.', goals: ['Realistic sleep-debt targets', 'Nap timing that actually helps', 'Wins he can feel this week'], pains: ['Apps that assume he controls his sleep', 'Red warning colours', 'Long onboarding'], color: '#7b61ff' },
+  { name: 'Night-owl Priya', meta: '22 · grad student', quote: 'My body clock is late. I need a plan, not a lecture.', goals: ['Shift bedtime gradually', 'Light & caffeine timing', 'Progress she can see'], pains: ['Morning-person defaults', 'Judgemental copy', 'Losing streaks'], color: '#3ee6b0' },
+];
+const stages = [
+  { label: 'Wake', doing: 'Snoozes twice, checks phone in bed.', feeling: 'Groggy, unsure if it was a “good” night.', score: -1, opportunity: 'Name the grogginess window (≈90 min) so it reads as normal biology, not failure.' },
+  { label: 'Morning', doing: 'Second coffee, starts on email.', feeling: 'Okay, but wasting peak focus on admin.', score: 0.3, opportunity: 'Surface “Peak in 42m” and offer to block focus time in the calendar.' },
+  { label: 'Afternoon', doing: 'Hits the 3pm dip, reaches for coffee #3.', feeling: 'Drained, frustrated.', score: -1.6, opportunity: 'Pre-warn the dip and suggest a walk or 20-min nap instead of late caffeine.' },
+  { label: 'Evening', doing: 'Scrolls in bed with bright screens.', feeling: 'Wired but tired.', score: -0.5, opportunity: 'A gentle “dim the lights” nudge timed to their Melatonin Window.' },
+  { label: 'Bedtime', doing: 'Goes to sleep inside the window.', feeling: 'In control, calm.', score: 1.2, opportunity: 'Smart alarm + one line of feedback tomorrow: debt went down.' },
+  { label: 'Next day', doing: 'Sees debt drop from 3h 20m to 2h 40m.', feeling: 'Motivated — it’s working.', score: 1.8, opportunity: 'Celebrate progress, not perfection. Keep the streak forgiving.' },
+];
+const nodes = [
+  { id: 'welcome', label: 'Welcome', x: 90, y: 90, kind: 'start' as const },
+  { id: 'quiz', label: 'Sleep quiz', x: 270, y: 90 },
+  { id: 'need', label: 'Your sleep need', x: 450, y: 90 },
+  { id: 'home', label: 'Energy (home)', x: 640, y: 210, kind: 'key' as const },
+  { id: 'dip', label: 'Dip details', x: 840, y: 90 },
+  { id: 'debt', label: 'Sleep debt', x: 840, y: 210 },
+  { id: 'habits', label: 'Habits', x: 840, y: 330 },
+  { id: 'bedtime', label: 'Bedtime', x: 1010, y: 210 },
+  { id: 'alarm', label: 'Smart alarm', x: 1010, y: 330, kind: 'end' as const },
+  { id: 'progress', label: 'Progress', x: 450, y: 330 },
+  { id: 'learn', label: 'Learn', x: 270, y: 330 },
+];
+const edges = [
+  { from: 'welcome', to: 'quiz' }, { from: 'quiz', to: 'need' }, { from: 'need', to: 'home' }, { from: 'home', to: 'dip', label: 'tap curve' },
+  { from: 'home', to: 'debt' }, { from: 'home', to: 'habits' }, { from: 'debt', to: 'bedtime' }, { from: 'bedtime', to: 'alarm' },
+  { from: 'home', to: 'progress' }, { from: 'home', to: 'learn' },
+];
+const tasks = [
+  { label: 'Get set up and see your sleep need', screen: 'need' },
+  { label: 'Find your next energy peak', screen: 'home' },
+  { label: 'Understand the afternoon dip', screen: 'dip' },
+  { label: 'Check your sleep debt', screen: 'debt' },
+  { label: 'Turn on the caffeine cut-off', screen: 'habits' },
+  { label: 'Plan tonight’s bedtime', screen: 'bedtime' },
+  { label: 'Set a smart alarm', screen: 'alarm' },
+];
+const curve = 'M 10 150 C 45 150, 55 40, 100 30 S 150 120, 180 120 S 235 20, 270 35 S 320 110, 345 125';
+const bars = [4.1, 3.8, 3.9, 3.5, 3.6, 3.2, 3.4, 3.0, 3.3, 3.1, 2.9, 3.4, 3.3, 3.2];
+---
+
+<Case project={p} chapters={chapters} sources={sources} meta={meta}>
+  <Chapter id="brief" n="01" label="The brief" title="An energy app that people read in two seconds.">
+    <Brief
+      story="Rise Science grew out of sleep coaching for pro teams like the Chicago Bulls, then launched the RISE app in 2021. It sells <strong>energy</strong>, not sleep scores: it models two levers — <em>sleep debt</em> and <em>circadian rhythm</em> — to show when you’ll peak and dip each day."
+      facts={[
+        { v: '2015', k: 'Founded in Chicago (Northwestern alumni)' },
+        { v: '$15.5M', k: 'Raised by the 2021 launch' },
+        { v: 'ADA ’23', k: 'Apple Design Awards finalist' },
+        { v: '10M+', k: 'Users, as reported by Rise' },
+      ]}
+      problems={[
+        { title: 'Make invisible biology legible', text: 'The energy curve is the product. It has to read in under two seconds — on the home screen, lock screen and wrist.' },
+        { title: 'Debt without guilt', text: '“Sleep debt” can feel like a scolding. Parents and shift-workers need it to motivate, not shame.' },
+        { title: 'From insight to action', text: '20+ timed habits is a lot. Turn them into one calm plan with a single “next best action”.' },
+      ]}
+      goal="One home screen that answers: how will I feel today, and what’s the one thing to do next?"
+    />
+  </Chapter>
+
+  <Chapter id="research" n="02" label="Research" title="Three people, three very different nights." intro="We built personas from Rise’s public audience — knowledge workers, parents and students — then stress-tested every screen against them.">
+    <Personas personas={personas} />
+  </Chapter>
+
+  <Chapter id="journey" n="03" label="Journey map" title="Where a day goes wrong — and where the app can help." intro="Hover or tap each moment to see what the user is doing, how they feel, and the design opportunity we found.">
+    <JourneyMap stages={stages} />
+  </Chapter>
+
+  <Chapter id="flow" n="04" label="User flow" title="Eleven screens. One loop that repeats every day." intro="Onboarding happens once; the daily loop is <strong>Energy → action → bedtime → alarm</strong>. Tap any screen to jump to it in the live prototype.">
+    <FlowMap nodes={nodes} edges={edges} width={1100} height={420} />
+  </Chapter>
+
+  <Chapter id="layers" n="05" label="3D wireframe" title="Take the home screen apart, layer by layer." intro="Every screen is built in five layers. Scroll and the exploded view assembles into the final UI — drag to look around it.">
+    <ScreenStack layers={riseLayers} accent={p.accent} />
+  </Chapter>
+
+  <Chapter id="prototype" n="06" label="Prototype" title="Tap through it. Then switch to the wireframe." intro="This is the real prototype we’d put in front of users. Follow the journey on the left, and flip between <strong>Sketch</strong>, <strong>Wireframe</strong> and <strong>Hi-fi</strong> to see how each screen evolved.">
+    <Prototype title="RISE daily loop" start="welcome" tasks={tasks} note="Seven tasks, eleven screens. Everything glowing is tappable.">
+      <!-- Welcome -->
+      <section class="scr rs rs-welcome" data-screen="welcome" data-title="Welcome">
+        <div class="rs-orb img" aria-hidden="true"></div>
+        <div class="rs-pad rs-bottom">
+          <p class="t rs-kicker">RISE</p>
+          <h4 class="t rs-h1">Know your energy, not just your sleep.</h4>
+          <p class="t rs-p">Science-backed predictions of when you’ll peak and dip — every day.</p>
+          <button class="btn rs-cta" data-go="quiz"><span class="t">Get started</span></button>
+        </div>
+      </section>
+
+      <!-- Quiz -->
+      <section class="scr rs" data-screen="quiz" data-title="Onboarding quiz">
+        <div class="rs-pad rs-top">
+          <div class="rs-progress ui"><span style="width:60%"></span></div>
+          <p class="t rs-kicker">Question 3 of 5</p>
+          <h4 class="t rs-h2">When do you usually wake up on workdays?</h4>
+          <div class="rs-options">
+            {['Before 6:00', '6:00 – 7:00', '7:00 – 8:00', 'After 8:00'].map((o, i) => (
+              <button class:list={['ui', 'rs-option', { 'is-on': i === 1 }]} data-toggle><span class="t">{o}</span><span class="ico rs-radio" /></button>
+            ))}
+          </div>
+        </div>
+        <div class="rs-pad rs-bottom">
+          <button class="btn rs-cta" data-go="need"><span class="t">Continue</span></button>
+        </div>
+      </section>
+
+      <!-- Sleep need -->
+      <section class="scr rs" data-screen="need" data-title="Your sleep need">
+        <div class="rs-pad rs-top rs-center">
+          <p class="t rs-kicker">Your sleep need</p>
+          <p class="t rs-giant">8h 10m</p>
+          <p class="t rs-p">Not everyone needs 8 hours. Yours is genetic, like height. We’ll plan your days around it.</p>
+          <div class="ui rs-card rs-need-bars">
+            <span class="t">You</span><div class="rs-bar img"><i style="width:82%"></i></div>
+            <span class="t">Average</span><div class="rs-bar img"><i style="width:70%;opacity:.5"></i></div>
+          </div>
+        </div>
+        <div class="rs-pad rs-bottom">
+          <button class="btn rs-cta" data-go="home"><span class="t">See my energy</span></button>
+        </div>
+      </section>
+
+      <!-- Home / Energy -->
+      <section class="scr rs" data-screen="home" data-title="Energy (home)">
+        <div class="rs-scroll" data-scroll>
+          <div class="rs-pad rs-top">
+            <p class="t rs-kicker">Energy · Tuesday</p>
+            <h4 class="t rs-h1">Peak in 42m</h4>
+            <button class="ui rs-pill" data-go="debt"><span class="t">Sleep debt 3h 20m · on track</span> <span class="t">›</span></button>
+            <div class="ui rs-curve-card">
+              <svg viewBox="0 0 355 170" class="img rs-curve" aria-label="Energy curve">
+                <defs>
+                  <linearGradient id="rs-grad" x1="0" x2="1"><stop offset="0" stop-color="#7b61ff" /><stop offset=".3" stop-color="#ffb27a" /><stop offset=".52" stop-color="#7b61ff" /><stop offset=".78" stop-color="#ffb27a" /><stop offset="1" stop-color="#7b61ff" /></linearGradient>
+                  <linearGradient id="rs-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb27a" stop-opacity=".3" /><stop offset="1" stop-color="#ffb27a" stop-opacity="0" /></linearGradient>
+                </defs>
+                <path d={`${curve} L 345 170 L 10 170 Z`} fill="url(#rs-fill)" />
+                <path d={curve} fill="none" stroke="url(#rs-grad)" stroke-width="6" stroke-linecap="round" />
+                <line x1="78" x2="78" y1="10" y2="165" stroke="#fff" stroke-opacity=".3" stroke-dasharray="3 4" />
+                <circle cx="78" cy="52" r="7" fill="#fff" class="rs-now" />
+              </svg>
+              <div class="rs-curve-labels"><span class="t">6a</span><span class="t">12p</span><span class="t">6p</span><span class="t">12a</span></div>
+              <button class="rs-hit" style="left:42%;width:22%" data-go="dip" data-sheet aria-label="Afternoon dip details"></button>
+            </div>
+            <p class="t rs-kicker rs-mt">Next up</p>
+            <button class="ui rs-row" data-go="habits">
+              <span class="ico rs-dot" style="background:#ffb27a"></span>
+              <span><span class="t rs-row-t">Caffeine cut-off</span><br /><span class="t rs-row-s">2:15 pm · in 3h 05m</span></span>
+              <span class="t">›</span>
+            </button>
+            <div class="rs-grid2">
+              <button class="ui rs-tile" data-go="bedtime"><span class="t rs-row-s">Melatonin window</span><span class="t rs-tile-n">10:05 pm</span></button>
+              <button class="ui rs-tile" data-go="dip" data-sheet><span class="t rs-row-s">Afternoon dip</span><span class="t rs-tile-n">2:30 pm</span></button>
+            </div>
+            <button class="ui rs-row" data-go="learn">
+              <span class="ico rs-dot" style="background:#7b61ff"></span>
+              <span><span class="t rs-row-t">Why your 3pm dip happens</span><br /><span class="t rs-row-s">2-min read</span></span>
+              <span class="t">›</span>
+            </button>
+          </div>
+        </div>
+        <nav class="rs-tabs ui">
+          <button class="is-on" data-go="home"><span class="ico"></span><span class="t">Energy</span></button>
+          <button data-go="debt"><span class="ico"></span><span class="t">Sleep</span></button>
+          <button data-go="habits"><span class="ico"></span><span class="t">Habits</span></button>
+          <button data-go="progress"><span class="ico"></span><span class="t">Progress</span></button>
+        </nav>
+      </section>
+
+      <!-- Dip sheet -->
+      <section class="scr rs rs-sheet-scr" data-screen="dip" data-title="Afternoon dip (sheet)">
+        <div class="rs-sheet ui">
+          <div class="rs-grabber"></div>
+          <p class="t rs-kicker">2:30 – 4:00 pm</p>
+          <h4 class="t rs-h2">Afternoon dip</h4>
+          <p class="t rs-p">Your circadian rhythm naturally drops after lunch. It’s biology, not laziness.</p>
+          <div class="ui rs-card"><p class="t rs-row-t">Do</p><p class="t rs-row-s">Easy tasks, a 10-min walk outside, or a 20-min nap before 3:30.</p></div>
+          <div class="ui rs-card"><p class="t rs-row-t">Avoid</p><p class="t rs-row-s">Coffee after 2:15 pm — it will push tonight’s bedtime later.</p></div>
+          <button class="btn rs-cta" data-back><span class="t">Got it</span></button>
+        </div>
+      </section>
+
+      <!-- Debt -->
+      <section class="scr rs" data-screen="debt" data-title="Sleep debt">
+        <div class="rs-scroll" data-scroll>
+          <div class="rs-pad rs-top">
+            <button class="rs-back t" data-back>‹ Back</button>
+            <p class="t rs-kicker">Sleep debt · last 14 nights</p>
+            <div class="rs-ring img">
+              <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" stroke="#2a2552" stroke-width="12" fill="none" /><circle cx="60" cy="60" r="50" stroke="#ffb27a" stroke-width="12" fill="none" stroke-dasharray="314" stroke-dashoffset="105" stroke-linecap="round" transform="rotate(-90 60 60)" /></svg>
+              <span class="t rs-ring-n">3h 20m</span>
+              <span class="t rs-ring-s">Target: under 5h</span>
+            </div>
+            <div class="ui rs-card">
+              <div class="rs-bars img">{bars.map((b) => <i style={`height:${b * 20}%`}></i>)}</div>
+              <p class="t rs-row-s">Down 50 min this week. Keep going.</p>
+            </div>
+            <p class="t rs-kicker rs-mt">How did you feel today?</p>
+            <div class="rs-emojis">
+              {['😴', '😐', '🙂', '⚡️'].map((e, i) => <button class:list={['ui', 'rs-emoji', { 'is-on': i === 2 }]} data-toggle>{e}</button>)}
+            </div>
+            <button class="btn rs-cta rs-mt" data-go="bedtime"><span class="t">Plan tonight</span></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Habits -->
+      <section class="scr rs" data-screen="habits" data-title="Habits & reminders">
+        <div class="rs-scroll" data-scroll>
+          <div class="rs-pad rs-top">
+            <button class="rs-back t" data-back>‹ Back</button>
+            <h4 class="t rs-h2">Today’s habits</h4>
+            <p class="t rs-p">Timed to your body clock. Turn on the ones you want nudges for.</p>
+            {[
+              ['☀️', 'Morning light', '7:40 am · 10 min outside', true],
+              ['☕️', 'Caffeine cut-off', '2:15 pm', false],
+              ['🚶', 'Afternoon walk', '2:45 pm', false],
+              ['💡', 'Dim the lights', '8:35 pm', true],
+              ['🌙', 'Wind down', '9:05 pm', true],
+            ].map(([i, t, s, on]) => (
+              <div class="ui rs-row rs-habit">
+                <span class="ico rs-emoji-ico">{i}</span>
+                <span><span class="t rs-row-t">{t}</span><br /><span class="t rs-row-s">{s}</span></span>
+                <button class:list={['rs-switch', 'ui', { 'is-on': on }]} data-toggle aria-label={`Toggle ${t}`}><i></i></button>
+              </div>
+            ))}
+            <button class="btn rs-cta rs-mt" data-go="home"><span class="t">Done</span></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bedtime -->
+      <section class="scr rs rs-night" data-screen="bedtime" data-title="Bedtime">
+        <div class="rs-pad rs-top rs-center">
+          <button class="rs-back t" data-back>‹ Back</button>
+          <p class="t rs-kicker">Melatonin window opens in</p>
+          <p class="t rs-giant">2h 14m</p>
+          <p class="t rs-p">10:05 – 11:05 pm is your easiest time to fall asleep tonight.</p>
+          <div class="rs-grid2">
+            <div class="ui rs-tile"><span class="t rs-row-s">Wind-down</span><span class="t rs-tile-n">Rain · 20m</span></div>
+            <div class="ui rs-tile"><span class="t rs-row-s">Breathing</span><span class="t rs-tile-n">4-7-8</span></div>
+          </div>
+        </div>
+        <div class="rs-pad rs-bottom">
+          <button class="btn rs-cta" data-go="alarm" data-sheet><span class="t">Set smart alarm</span></button>
+        </div>
+      </section>
+
+      <!-- Alarm sheet -->
+      <section class="scr rs rs-sheet-scr" data-screen="alarm" data-title="Smart alarm (sheet)">
+        <div class="rs-sheet ui">
+          <div class="rs-grabber"></div>
+          <h4 class="t rs-h2">Smart alarm</h4>
+          <p class="t rs-p">We’ll wake you at the lightest moment in your window.</p>
+          <div class="rs-alarm"><span class="t rs-tile-n">6:45</span><span class="t">–</span><span class="t rs-tile-n">7:15</span></div>
+          <div class="ui rs-row"><span><span class="t rs-row-t">Gentle sunrise sound</span></span><button class="rs-switch ui is-on" data-toggle aria-label="Toggle sound"><i></i></button></div>
+          <button class="btn rs-cta" data-go="home"><span class="t">Save · sleep well</span></button>
+        </div>
+      </section>
+
+      <!-- Progress -->
+      <section class="scr rs" data-screen="progress" data-title="Progress">
+        <div class="rs-pad rs-top">
+          <button class="rs-back t" data-back>‹ Back</button>
+          <h4 class="t rs-h2">This month</h4>
+          <div class="ui rs-card">
+            <p class="t rs-row-s">Average sleep debt</p>
+            <svg viewBox="0 0 300 120" class="img"><polyline points="0,30 40,40 80,35 120,55 160,60 200,70 240,78 300,90" fill="none" stroke="#ffb27a" stroke-width="4" stroke-linecap="round" /></svg>
+            <p class="t rs-row-t">From 4h 40m → 3h 10m</p>
+          </div>
+          <div class="ui rs-card"><p class="t rs-row-s">Nights in your Melatonin Window</p><p class="t rs-tile-n">18 / 30</p></div>
+          <p class="t rs-p rs-small">Sample data for this concept.</p>
+        </div>
+      </section>
+
+      <!-- Learn -->
+      <section class="scr rs" data-screen="learn" data-title="Learn">
+        <div class="rs-scroll" data-scroll>
+          <div class="rs-learn-hero img"></div>
+          <div class="rs-pad">
+            <button class="rs-back t" data-back>‹ Back</button>
+            <p class="t rs-kicker">Science · 2 min</p>
+            <h4 class="t rs-h2">Why your 3pm dip happens</h4>
+            <p class="t rs-p">Two systems drive your energy: sleep pressure, which builds every hour you’re awake, and your circadian rhythm, a roughly 24-hour clock. In the early afternoon the clock’s alerting signal briefly dips while pressure keeps rising — so you feel it.</p>
+            <p class="t rs-p">The fix isn’t more coffee. Light, movement or a short nap before 3:30 pm lifts you without stealing tonight’s sleep.</p>
+          </div>
+        </div>
+      </section>
+    </Prototype>
+  </Chapter>
+
+  <Chapter id="beyond" n="07" label="Beyond the phone" title="The curve, wherever you glance." intro="Most check-ins happen without opening the app. We designed the energy curve to work as a lock-screen widget, a Live Activity before bed, and a watch complication.">
+    <div class="beyond" data-stagger="0.12">
+      <div class="lock">
+        <p class="lock-time">9:41</p>
+        <p class="lock-date">Tuesday 1 October</p>
+        <div class="lock-widget">
+          <span class="lw-t">⚡ Peak in 42m</span>
+          <svg viewBox="0 0 200 50"><path d="M0 40 C 25 40, 30 8, 55 6 S 85 32, 100 32 S 130 4, 150 10 S 185 30, 200 34" fill="none" stroke="#ffb27a" stroke-width="4" stroke-linecap="round" /><circle cx="44" cy="12" r="5" fill="#fff" /></svg>
+        </div>
+        <div class="lock-live">
+          <span>🌙</span>
+          <div><b>Melatonin window</b><br />opens in 2h 14m</div>
+          <span class="lock-live-n">10:05</span>
+        </div>
+      </div>
+      <div class="watch">
+        <div class="watch-face">
+          <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="48" stroke="#2a2552" stroke-width="10" fill="none" /><circle cx="60" cy="60" r="48" stroke="#ffb27a" stroke-width="10" fill="none" stroke-dasharray="301" stroke-dashoffset="90" stroke-linecap="round" transform="rotate(-90 60 60)" /></svg>
+          <span class="watch-n">42m</span>
+          <span class="watch-s">to peak</span>
+        </div>
+      </div>
+      <div class="beyond-notes">
+        <p class="t-label">Glanceable rules</p>
+        <ul role="list">
+          <li><strong>One number.</strong> Time-to-next-peak beats any score.</li>
+          <li><strong>Warm = energy, violet = rest.</strong> The colours carry meaning everywhere.</li>
+          <li><strong>No red.</strong> Debt is shown as progress toward a target, never as an alarm.</li>
+        </ul>
+      </div>
+    </div>
+  </Chapter>
+
+  <Chapter id="system" n="08" label="Design system" title="Night-sky calm, with a warm pulse of energy.">
+    <DesignSystem
+      colors={[
+        { name: 'Night', hex: '#14122B', use: 'Base background' },
+        { name: 'Dusk', hex: '#241F50', use: 'Cards & surfaces' },
+        { name: 'Peak', hex: '#FFB27A', use: 'Energy highs, CTAs on dark' },
+        { name: 'Rest', hex: '#7B61FF', use: 'Dips, primary buttons' },
+        { name: 'Mist', hex: '#B9B3E8', use: 'Secondary text' },
+        { name: 'Calm', hex: '#3EE6B0', use: 'Positive progress' },
+      ]}
+      type={[
+        { role: 'Display / numbers', sample: 'Peak in 42m', spec: 'Montserrat 800 · 40/44', style: 'font-family:Montserrat;font-weight:800;font-size:2.5rem;letter-spacing:-0.03em' },
+        { role: 'Title', sample: 'Afternoon dip', spec: 'Montserrat 700 · 26/30', style: 'font-family:Montserrat;font-weight:700;font-size:1.6rem' },
+        { role: 'Body', sample: 'It’s biology, not laziness.', spec: 'Inter 400 · 16/24', style: 'font-family:Inter;font-size:1rem' },
+        { role: 'Label', sample: 'ENERGY · TUESDAY', spec: 'Inter 500 · 12/16 · +0.14em', style: 'font-family:Inter;font-weight:500;font-size:.75rem;letter-spacing:.14em' },
+      ]}
+      note="Brand colours are our working approximation of RISE’s night-mode UI, not official values."
+    />
+  </Chapter>
+
+  <Chapter id="measure" n="09" label="Measure" title="How we’d know it worked.">
+    <Metrics
+      metrics={[
+        { name: 'Time to first insight', hypothesis: 'New users see their first energy peak in under 90 seconds.', how: 'Onboarding funnel timing, install → home screen.' },
+        { name: 'Daily glances', hypothesis: 'Widget and watch views outnumber app opens 3:1.', how: 'Widget timeline reloads vs. app sessions.' },
+        { name: 'Habit adoption', hypothesis: 'Users with the caffeine cut-off on hit their Melatonin Window more often.', how: 'Cohort comparison over 14 nights.' },
+        { name: 'Week-4 retention', hypothesis: 'Guilt-free debt framing keeps parents and shift-workers engaged.', how: 'Retention by persona segment, A/B on debt copy.' },
+      ]}
+    />
+  </Chapter>
+</Case>
+
+<style>
+  /* ---------- RISE app screens ---------- */
+  .rs { background: #14122b; color: #fff; font-family: Inter, system-ui, sans-serif; }
+  .rs-scroll { position: absolute; inset: 0 0 86px; }
+  .rs-pad { padding: 0 24px; }
+  .rs-top { padding-top: 70px; display: grid; gap: 14px; }
+  .rs-bottom { position: absolute; left: 0; right: 0; bottom: 46px; display: grid; gap: 14px; }
+  .rs-center { text-align: center; justify-items: center; }
+  .rs-kicker { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #b9b3e8; font-weight: 500; }
+  .rs-h1 { font-family: Montserrat, sans-serif; font-size: 36px; line-height: 1.05; font-weight: 800; letter-spacing: -0.03em; }
+  .rs-h2 { font-family: Montserrat, sans-serif; font-size: 26px; line-height: 1.12; font-weight: 700; letter-spacing: -0.02em; }
+  .rs-p { font-size: 15px; line-height: 1.5; color: #cfcaf0; }
+  .rs-small { font-size: 12px; opacity: 0.7; }
+  .rs-giant { font-family: Montserrat, sans-serif; font-size: 72px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; background: linear-gradient(90deg, #ffb27a, #ff8ab3); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .rs-mt { margin-top: 10px; }
+  .rs-cta { width: 100%; height: 56px; border-radius: 18px; background: #7b61ff; color: #fff; font-weight: 700; font-size: 16px; display: grid; place-items: center; }
+  .rs-welcome { background: radial-gradient(120% 70% at 50% 15%, #3a2d7a, #14122b 60%); }
+  .rs-orb { position: absolute; left: 50%; top: 150px; width: 220px; height: 220px; margin-left: -110px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #ffd9b8, #ffb27a 40%, #ff7a8a 70%, transparent 72%); box-shadow: 0 0 120px 30px rgb(255 178 122 / 0.35); animation: rs-breathe 4s ease-in-out infinite; }
+  @keyframes rs-breathe { 50% { transform: scale(1.06); } }
+  .rs-progress { height: 6px; border-radius: 3px; background: #2a2552; overflow: hidden; }
+  .rs-progress span { display: block; height: 100%; background: #ffb27a; border-radius: 3px; }
+  .rs-options { display: grid; gap: 10px; margin-top: 10px; }
+  .rs-option { display: flex; justify-content: space-between; align-items: center; height: 60px; padding: 0 18px; border-radius: 16px; background: #1d1940; border: 1.5px solid #2f2a5e; color: #fff; font-size: 16px; text-align: left; }
+  .rs-option.is-on { border-color: #ffb27a; background: #2a2148; }
+  .rs-radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #5b5596; }
+  .rs-option.is-on .rs-radio { border: 6px solid #ffb27a; }
+  .rs-card { padding: 16px; border-radius: 18px; background: #1d1940; display: grid; gap: 8px; text-align: left; width: 100%; }
+  .rs-need-bars { grid-template-columns: 70px 1fr; align-items: center; font-size: 13px; color: #cfcaf0; margin-top: 18px; }
+  .rs-bar { height: 10px; border-radius: 5px; background: #2a2552; }
+  .rs-bar i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, #7b61ff, #ffb27a); }
+  .rs-pill { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 99px; background: #241f50; color: #cfcaf0; font-size: 13px; width: 100%; }
+  .rs-curve-card { position: relative; padding: 14px 10px 10px; border-radius: 22px; background: #1d1940; }
+  .rs-curve { width: 100%; height: auto; }
+  .rs-now { animation: rs-breathe 2.4s ease-in-out infinite; transform-origin: 78px 52px; }
+  .rs-curve-labels { display: flex; justify-content: space-between; padding: 4px 8px 0; font-size: 11px; color: #8d87c2; }
+  .rs-hit { position: absolute; top: 10px; height: 150px; border-radius: 14px; }
+  .rs-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 18px; background: #1d1940; color: #fff; text-align: left; width: 100%; }
+  .rs-row-t { font-weight: 700; font-size: 15px; }
+  .rs-row-s { font-size: 13px; color: #b9b3e8; }
+  .rs-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .rs-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+  .rs-tile { display: grid; gap: 4px; padding: 14px 16px; border-radius: 18px; background: #1d1940; text-align: left; color: #fff; }
+  .rs-tile-n { font-family: Montserrat, sans-serif; font-weight: 800; font-size: 20px; }
+  .rs-tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 86px; padding: 10px 12px 26px; display: grid; grid-template-columns: repeat(4, 1fr); background: #100e24; border-top: 1px solid #241f50; }
+  .rs-tabs button { display: grid; justify-items: center; gap: 4px; color: #8d87c2; font-size: 11px; }
+  .rs-tabs .ico { width: 22px; height: 22px; border-radius: 7px; background: #2f2a5e; }
+  .rs-tabs .is-on { color: #ffb27a; }
+  .rs-tabs .is-on .ico { background: #ffb27a; }
+  .rs-sheet-scr { background: rgb(8 7 20 / 0.6); }
+  .rs-sheet { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 24px 40px; border-radius: 30px 30px 0 0; background: #1d1940; display: grid; gap: 14px; }
+  .rs-grabber { width: 40px; height: 5px; border-radius: 3px; background: #4a4486; justify-self: center; }
+  .rs-back { justify-self: start; color: #b9b3e8; font-size: 15px; }
+  .rs-ring { position: relative; width: 220px; height: 220px; justify-self: center; display: grid; place-items: center; }
+  .rs-ring svg { position: absolute; inset: 0; }
+  .rs-ring-n { font-family: Montserrat, sans-serif; font-weight: 800; font-size: 40px; margin-top: -14px; }
+  .rs-ring-s { position: absolute; top: 132px; font-size: 13px; color: #b9b3e8; }
+  .rs-bars { display: flex; align-items: flex-end; gap: 6px; height: 90px; }
+  .rs-bars i { flex: 1; border-radius: 4px; background: linear-gradient(#ffb27a, #7b61ff); }
+  .rs-emojis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .rs-emoji { height: 56px; border-radius: 16px; background: #1d1940; font-size: 24px; border: 1.5px solid transparent; }
+  .rs-emoji.is-on { border-color: #ffb27a; background: #2a2148; }
+  .rs-habit { grid-template-columns: auto 1fr auto; }
+  .rs-emoji-ico { font-size: 22px; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 12px; background: #241f50; }
+  .rs-switch { width: 52px; height: 32px; border-radius: 16px; background: #3a3470; position: relative; transition: background 0.25s; }
+  .rs-switch i { position: absolute; left: 3px; top: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  .rs-switch.is-on { background: #7b61ff; }
+  .rs-switch.is-on i { transform: translateX(20px); }
+  .rs-night { background: radial-gradient(100% 60% at 50% 0%, #2b1f5e, #0d0b1e 70%); }
+  .rs-alarm { display: flex; justify-content: center; align-items: baseline; gap: 12px; font-size: 22px; color: #b9b3e8; }
+  .rs-alarm .rs-tile-n { font-size: 48px; color: #fff; }
+  .rs-learn-hero { height: 240px; background: radial-gradient(60% 80% at 30% 40%, #ffb27a, transparent 60%), radial-gradient(60% 80% at 80% 60%, #7b61ff, transparent 60%), #241f50; }
+  .rs-learn-hero + .rs-pad { padding-top: 18px; display: grid; gap: 12px; }
+
+  /* ---------- Beyond the phone ---------- */
+  .beyond { display: grid; grid-template-columns: 1fr auto 1fr; gap: var(--s-7); align-items: center; }
+  .lock { width: min(340px, 100%); aspect-ratio: 9 / 17; justify-self: center; border-radius: 46px; padding: 40px 18px; background: radial-gradient(120% 80% at 50% 0%, #4a3a96, #14122b 60%); box-shadow: 0 0 0 10px #1a1a1f, 0 40px 100px -20px rgb(0 0 0 / 0.8); display: grid; align-content: start; justify-items: center; gap: 8px; color: #fff; }
+  .lock-time { font-family: var(--font-display); font-weight: 700; font-size: 4.2rem; line-height: 1; letter-spacing: -0.03em; }
+  .lock-date { font-size: 0.95rem; opacity: 0.8; }
+  .lock-widget { margin-top: 18px; width: 100%; padding: 12px 14px; border-radius: 20px; background: rgb(255 255 255 / 0.12); backdrop-filter: blur(10px); display: grid; gap: 6px; }
+  .lw-t { font-weight: 700; font-size: 0.9rem; }
+  .lock-live { margin-top: auto; width: 100%; display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 14px; border-radius: 22px; background: rgb(0 0 0 / 0.55); font-size: 0.82rem; line-height: 1.35; }
+  .lock-live-n { font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; color: #ffb27a; }
+  .watch { justify-self: center; padding: 14px; border-radius: 54px; background: linear-gradient(145deg, #3a3a42, #121216); box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.8); }
+  .watch-face { position: relative; width: 190px; height: 230px; border-radius: 44px; background: #000; display: grid; place-items: center; }
+  .watch-face svg { position: absolute; width: 160px; height: 160px; }
+  .watch-n { font-family: var(--font-display); font-weight: 800; font-size: 2.2rem; color: #fff; margin-top: -12px; }
+  .watch-s { position: absolute; top: 132px; font-size: 0.78rem; color: #b9b3e8; }
+  .beyond-notes ul { list-style: none; padding: 0; display: grid; gap: var(--s-4); margin-top: var(--s-4); color: var(--ink-2); }
+  .beyond-notes strong { color: var(--ink); }
+  @media (max-width: 1000px) { .beyond { grid-template-columns: 1fr; } }
+</style>

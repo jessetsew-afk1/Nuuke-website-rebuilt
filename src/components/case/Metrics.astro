@@ -1,0 +1,29 @@
+---
+// "What we'd measure" — success metrics with the hypothesis behind each. No invented results.
+interface Props {
+  metrics: { name: string; hypothesis: string; how: string }[];
+}
+const { metrics } = Astro.props;
+---
+
+<div class="metrics" data-stagger="0.08">
+  {
+    metrics.map((m, i) => (
+      <article class="metric card">
+        <span class="t-num metric-n">KPI {String(i + 1).padStart(2, '0')}</span>
+        <h3 class="t-h4">{m.name}</h3>
+        <p class="t-body"><strong>We expect:</strong> {m.hypothesis}</p>
+        <p class="t-small"><strong>How we’d measure:</strong> {m.how}</p>
+      </article>
+    ))
+  }
+</div>
+<p class="t-small metrics-note">These are the success measures we would agree with the client before launch. As a concept project, no results are claimed.</p>
+
+<style>
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--s-4); }
+  .metric { display: grid; gap: var(--s-3); align-content: start; }
+  .metric-n { color: var(--a, var(--accent)); font-size: var(--fs-sm); font-weight: 700; }
+  .metric strong { color: var(--ink); font-weight: 600; }
+  .metrics-note { margin-top: var(--s-4); }
+</style>

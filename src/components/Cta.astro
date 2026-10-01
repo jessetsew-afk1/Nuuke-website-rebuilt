@@ -1,0 +1,60 @@
+---
+interface Props {
+  title?: string;
+  text?: string;
+}
+const { title = 'Say Hello!', text = 'Tell us what you’re building. We reply within one business day with next steps, a rough timeline and the team you’d work with.' } = Astro.props;
+const letters = [...title];
+---
+
+<section class="cta section" aria-labelledby="cta-title">
+  <div class="cta-glow" aria-hidden="true"></div>
+  <div class="container cta-inner">
+    <p class="t-label" data-reveal>Got a project?</p>
+    <h2 id="cta-title" class="t-mega cta-title" aria-label={title}>
+      {letters.map((l, i) => <span class="cta-letter" aria-hidden="true" style={`--i:${i}`}>{l === ' ' ? ' ' : l}</span>)}
+    </h2>
+    <p class="t-lead measure center" data-reveal style="--delay:.2s">{text}</p>
+    <div class="cta-actions" data-reveal style="--delay:.3s">
+      <a class="btn btn--accent" href="/contact">Start a project <span class="btn-icon" aria-hidden="true">↗</span></a>
+      <a class="btn btn--ghost" href="/works">See our work <span class="btn-icon" aria-hidden="true">→</span></a>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { gsap, reducedMotion } from '../scripts/motion';
+  document.querySelectorAll<HTMLElement>('.cta').forEach((cta) => {
+    const letters = cta.querySelectorAll('.cta-letter');
+    if (reducedMotion) return;
+    gsap.fromTo(
+      letters,
+      { yPercent: -140, rotate: () => gsap.utils.random(-35, 35), opacity: 0 },
+      {
+        yPercent: 0,
+        rotate: 0,
+        opacity: 1,
+        ease: 'bounce.out',
+        duration: 1.3,
+        stagger: { each: 0.06, from: 'random' },
+        scrollTrigger: { trigger: cta, start: 'top 70%', once: true },
+      },
+    );
+  });
+</script>
+
+<style>
+  .cta { overflow: hidden; text-align: center; }
+  .cta-inner { position: relative; display: grid; justify-items: center; gap: var(--s-6); }
+  .cta-title { display: flex; justify-content: center; flex-wrap: wrap; text-transform: none; letter-spacing: -0.06em; }
+  .cta-letter { display: inline-block; }
+  .cta-actions { display: flex; gap: var(--s-4); flex-wrap: wrap; justify-content: center; }
+  .cta-glow {
+    position: absolute;
+    inset: 20% 10% 0;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 28%, transparent), transparent);
+    filter: blur(40px);
+    opacity: 0.6;
+    pointer-events: none;
+  }
+</style>

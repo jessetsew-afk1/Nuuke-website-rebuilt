@@ -1,0 +1,98 @@
+---
+// Emotional journey map. The curve draws itself on scroll; tap a stage for the insight and the opportunity.
+export type Stage = { label: string; doing: string; feeling: string; score: number; opportunity: string };
+interface Props {
+  stages: Stage[];
+}
+const { stages } = Astro.props;
+const W = 1000;
+const H = 260;
+const pad = 40;
+const x = (i: number) => pad + (i * (W - pad * 2)) / Math.max(1, stages.length - 1);
+const y = (s: number) => H / 2 - (s / 2) * (H / 2 - 30);
+const pts = stages.map((s, i) => [x(i), y(s.score)] as const);
+let d = `M ${pts[0][0]} ${pts[0][1]}`;
+for (let i = 1; i < pts.length; i++) {
+  const [x0, y0] = pts[i - 1];
+  const [x1, y1] = pts[i];
+  const cx = (x0 + x1) / 2;
+  d += ` C ${cx} ${y0}, ${cx} ${y1}, ${x1} ${y1}`;
+}
+const face = (s: number) => (s >= 1.5 ? '😄' : s >= 0.5 ? '🙂' : s > -0.5 ? '😐' : s > -1.5 ? '😕' : '😣');
+---
+
+<div class="journey" data-journey>
+  <div class="journey-scroll">
+    <svg viewBox={`0 0 ${W} ${H}`} class="journey-svg" role="img" aria-label="Emotional journey across the stages">
+      <line x1={pad} x2={W - pad} y1={H / 2} y2={H / 2} class="j-axis" />
+      <text x={pad} y="18" class="j-axis-label">Delight</text>
+      <text x={pad} y={H - 6} class="j-axis-label">Frustration</text>
+      <path d={d} class="j-curve" pathLength="1" data-journey-curve />
+      {
+        pts.map(([px, py], i) => (
+          <g class="j-node" data-journey-node={i} tabindex="0" role="button" aria-label={`${stages[i].label}: ${stages[i].feeling}`}>
+            <circle cx={px} cy={py} r="18" />
+            <text x={px} y={py + 6} text-anchor="middle" class="j-emoji">{face(stages[i].score)}</text>
+          </g>
+        ))
+      }
+    </svg>
+    <ol class="journey-labels" role="list" style={`--n:${stages.length}`}>
+      {stages.map((s, i) => <li><button type="button" data-journey-tab={i}>{s.label}</button></li>)}
+    </ol>
+  </div>
+  {
+    stages.map((s, i) => (
+      <div class="journey-panel card" data-journey-panel={i} hidden={i !== 0}>
+        <p class="t-label">Stage {i + 1} · {s.label}</p>
+        <div class="journey-cols">
+          <div><p class="t-label">Doing</p><p>{s.doing}</p></div>
+          <div><p class="t-label">Feeling</p><p>{face(s.score)} {s.feeling}</p></div>
+          <div class="journey-opp"><p class="t-label">Opportunity</p><p>{s.opportunity}</p></div>
+        </div>
+      </div>
+    ))
+  }
+</div>
+
+<script>
+  import { gsap, reducedMotion } from '../../scripts/motion';
+  document.querySelectorAll<HTMLElement>('[data-journey]').forEach((root) => {
+    const curve = root.querySelector<SVGPathElement>('[data-journey-curve]');
+    if (curve && !reducedMotion) {
+      gsap.fromTo(curve, { strokeDashoffset: 1 }, { strokeDashoffset: 0, ease: 'none', scrollTrigger: { trigger: root, start: 'top 75%', end: 'center 45%', scrub: 0.6 } });
+    }
+    const select = (i: number) => {
+      root.querySelectorAll<HTMLElement>('[data-journey-panel]').forEach((p) => (p.hidden = p.dataset.journeyPanel !== String(i)));
+      root.querySelectorAll('[data-journey-node]').forEach((n) => n.classList.toggle('is-active', n.getAttribute('data-journey-node') === String(i)));
+      root.querySelectorAll('[data-journey-tab]').forEach((n) => n.classList.toggle('is-active', n.getAttribute('data-journey-tab') === String(i)));
+    };
+    root.querySelectorAll<HTMLElement>('[data-journey-node],[data-journey-tab]').forEach((n) => {
+      const i = Number(n.dataset.journeyNode ?? n.dataset.journeyTab);
+      n.addEventListener('click', () => select(i));
+      n.addEventListener('mouseenter', () => select(i));
+      n.addEventListener('keydown', (e) => (e.key === 'Enter' || e.key === ' ') && select(i));
+    });
+    select(0);
+  });
+</script>
+
+<style>
+  .journey { display: grid; gap: var(--s-5); }
+  .journey-scroll { overflow-x: auto; padding-bottom: var(--s-2); }
+  .journey-svg { min-width: 680px; width: 100%; height: auto; overflow: visible; }
+  .j-axis { stroke: var(--line-strong); stroke-dasharray: 4 6; }
+  .j-axis-label { fill: var(--muted); font: 500 12px var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; }
+  .j-curve { fill: none; stroke: var(--a, var(--accent)); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1; }
+  .j-node { cursor: pointer; outline: none; }
+  .j-node circle { fill: var(--surface-2); stroke: var(--line-strong); stroke-width: 2; transition: fill var(--dur-1), stroke var(--dur-1), r var(--dur-2); }
+  .j-node.is-active circle, .j-node:hover circle, .j-node:focus-visible circle { fill: var(--a, var(--accent)); stroke: var(--ink); }
+  .j-emoji { font-size: 18px; pointer-events: none; }
+  .journey-labels { list-style: none; padding: 0 20px; display: grid; grid-template-columns: repeat(var(--n), 1fr); min-width: 680px; }
+  .journey-labels button { width: 100%; padding: var(--s-2); font-family: var(--font-ui); font-size: var(--fs-sm); color: var(--muted); border-radius: var(--r-sm); }
+  .journey-labels button.is-active { color: var(--ink); background: rgb(255 255 255 / 0.06); }
+  .journey-cols { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: var(--s-5); margin-top: var(--s-4); color: var(--ink-2); }
+  .journey-cols .t-label { margin-bottom: var(--s-2); }
+  .journey-opp { padding-left: var(--s-5); border-left: 2px solid var(--a, var(--accent)); color: var(--ink); }
+  @media (max-width: 760px) { .journey-cols { grid-template-columns: 1fr; } .journey-opp { padding-left: var(--s-4); } }
+</style>

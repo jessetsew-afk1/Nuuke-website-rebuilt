@@ -1,0 +1,364 @@
+---
+import Base from '../layouts/Base.astro';
+import Cta from '../components/Cta.astro';
+import ProjectCover from '../components/ProjectCover.astro';
+import { projects } from '../data/projects';
+import { services } from '../data/site';
+
+const manifesto = 'Our work doesn’t just look good, it works hard. For your goals, your growth, and your long-term brand value.';
+const steps = [
+  { n: '01', t: 'Discover', d: 'Workshops, user interviews and competitor teardown. We find the one problem worth solving first.', k: ['Research', 'Personas', 'Journey maps'] },
+  { n: '02', t: 'Define', d: 'Flows, information architecture and low-fi wireframes you can react to in days, not weeks.', k: ['User flows', 'IA', 'Wireframes'] },
+  { n: '03', t: 'Design', d: 'Clickable prototypes, UI systems and motion. You tap through the product before a line of code is written.', k: ['Prototypes', 'UI kit', 'Motion'] },
+  { n: '04', t: 'Build', d: 'Native and cross-platform engineering, WebGL and 3D pipelines, tested on real devices.', k: ['iOS / Android', 'WebGL', 'QA'] },
+  { n: '05', t: 'Launch & grow', d: 'Store launch, campaigns and analytics. We measure what changed and keep shipping.', k: ['Launch', 'Campaigns', 'Analytics'] },
+];
+const beliefs = [
+  ['Where lesser agencies take shortcuts,', 'we build foundations.'],
+  ['Where traditional developers focus on features,', 'we focus on outcomes.'],
+  ['Where most apps are built for launch day,', 'ours are built for longevity.'],
+];
+---
+
+<Base title="NUUKE">
+  <!-- HERO -->
+  <section class="hero" data-hero>
+    <canvas class="hero-canvas" data-hero-canvas aria-hidden="true"></canvas>
+    <div class="hero-content container">
+      <p class="t-label hero-kicker" data-reveal>Mobile apps · 3D · Animation · Marketing · AI</p>
+      <h1 class="hero-title" aria-label="Build beyond.">
+        <span class="hero-word" data-hero-word aria-hidden="true">BUILD</span>
+      </h1>
+      <p class="hero-sub" data-reveal style="--delay:.25s">We don’t design for everyone.<br />We design for winners.</p>
+      <div class="hero-actions" data-reveal style="--delay:.4s">
+        <a class="btn" href="/works">Explore the work <span class="btn-icon" aria-hidden="true">↓</span></a>
+        <a class="btn btn--ghost" href="/contact">Start a project <span class="btn-icon" aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+    <div class="scroll-cue" aria-hidden="true"><span></span></div>
+  </section>
+
+  <!-- MANIFESTO -->
+  <section class="section manifesto">
+    <div class="container">
+      <p class="t-label" data-reveal>Built for market leaders</p>
+      <p class="manifesto-text" data-manifesto>
+        {manifesto.split(' ').map((w) => <span class="mw">{w} </span>)}
+      </p>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="section services" aria-labelledby="services-title">
+    <div class="container">
+      <div class="section-head">
+        <h2 id="services-title" class="t-h1" data-split>What we do</h2>
+        <p class="t-lead measure" data-reveal>Four disciplines, one team, zero hand-offs. Strategy, design, engineering and growth sit in the same room — so what we design is what ships.</p>
+      </div>
+      <ul class="svc-list" role="list">
+        {
+          services.map((s) => (
+            <li class="svc" style={`--svc:${s.accent}`} data-reveal>
+              <a href={`/services/${s.slug}`} class="svc-link">
+                <span class="svc-index t-num">/{s.index}</span>
+                <span class="svc-main">
+                  <span class="svc-title">{s.title}</span>
+                  <span class="svc-tag">{s.tagline}</span>
+                </span>
+                <span class="svc-chips">
+                  {s.deliverables.slice(0, 4).map((d) => <span class="chip">{d}</span>)}
+                </span>
+                <span class="svc-arrow" aria-hidden="true">↗</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- WORKS -->
+  <section class="works" aria-labelledby="works-title" id="works">
+    <div class="container works-head">
+      <h2 id="works-title" class="t-mega" data-split>Works</h2>
+      <p class="t-lead measure" data-reveal>Five concept case studies. Tap through real prototypes, spin the 3D, and follow every step from first sketch to launch.</p>
+    </div>
+    {
+      projects.map((p, i) => (
+        <article class="work" style={`--a:${p.accent};--b:${p.accent2}`} data-work>
+          <div class="work-marquee" aria-hidden="true">
+            <div class="work-track" data-work-track>
+              {Array.from({ length: 6 }).map(() => (
+                <span>{p.brand}<i>✦</i></span>
+              ))}
+            </div>
+          </div>
+          <a class="work-card" href={`/works/${p.slug}`} data-work-card>
+            <ProjectCover project={p} />
+            <div class="work-meta">
+              <div class="work-chips">
+                <span class="chip chip--accent">{p.disciplineLabel}</span>
+                <span class="chip">Concept</span>
+              </div>
+              <h3 class="t-h4">{p.title}</h3>
+              <p class="t-small">{p.summary}</p>
+              <span class="work-cta">View case study →</span>
+            </div>
+          </a>
+          <span class="work-num t-num" aria-hidden="true">0{i + 1}</span>
+        </article>
+      ))
+    }
+  </section>
+
+  <!-- PROCESS -->
+  <section class="process" aria-labelledby="process-title" data-process>
+    <div class="process-pin">
+      <div class="container process-head">
+        <p class="t-label">How we build</p>
+        <h2 id="process-title" class="t-h2">From napkin to App Store,<br />in five moves.</h2>
+      </div>
+      <div class="process-rail" data-process-rail>
+        {
+          steps.map((s) => (
+            <div class="step card">
+              <span class="step-n t-num">{s.n}</span>
+              <h3 class="t-h3">{s.t}</h3>
+              <p class="t-body">{s.d}</p>
+              <div class="step-chips">{s.k.map((k) => <span class="chip">{k}</span>)}</div>
+            </div>
+          ))
+        }
+      </div>
+      <div class="process-progress" aria-hidden="true"><span data-process-bar></span></div>
+    </div>
+  </section>
+
+  <!-- BELIEFS -->
+  <section class="section beliefs">
+    <div class="container">
+      {
+        beliefs.map(([a, b]) => (
+          <p class="belief" data-reveal>
+            <span>{a}</span> <strong>{b}</strong>
+          </p>
+        ))
+      }
+    </div>
+  </section>
+
+  <Cta />
+</Base>
+
+<script>
+  import { gsap, ScrollTrigger, SplitText, reducedMotion } from '../scripts/motion';
+
+  // Hero 3D: load Three.js only after the headline has painted.
+  const heroCanvas = document.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
+  const hero = document.querySelector<HTMLElement>('[data-hero]');
+  if (heroCanvas && hero) {
+    const start = () => import('../scripts/three/hero').then((m) => m.initHero(heroCanvas, hero)).catch(() => {});
+    'requestIdleCallback' in window ? requestIdleCallback(start, { timeout: 1200 }) : setTimeout(start, 300);
+  }
+
+  // BUILD ⇄ BEYOND headline loop.
+  const word = document.querySelector<HTMLElement>('[data-hero-word]');
+  if (word && !reducedMotion) {
+    const words = ['BUILD', 'BEYOND'];
+    let i = 0;
+    const animateIn = () => {
+      const split = SplitText.create(word, { type: 'chars', charsClass: 'split-char' });
+      return gsap.fromTo(split.chars, { yPercent: 70, opacity: 0, filter: 'blur(14px)' }, { yPercent: 0, opacity: 1, filter: 'blur(0px)', duration: 1, ease: 'expo.out', stagger: 0.045 });
+    };
+    const cycle = () => {
+      const chars = word.querySelectorAll('.split-char');
+      gsap.to(chars, {
+        yPercent: -60,
+        opacity: 0,
+        filter: 'blur(14px)',
+        duration: 0.55,
+        ease: 'power2.in',
+        stagger: 0.03,
+        onComplete: () => {
+          i = (i + 1) % words.length;
+          word.textContent = words[i];
+          animateIn();
+        },
+      });
+    };
+    animateIn();
+    setInterval(() => !document.hidden && cycle(), 3600);
+
+    // Hero copy lifts and fades as you scroll away.
+    gsap.to('.hero-content', { yPercent: -18, opacity: 0, ease: 'none', scrollTrigger: { trigger: '[data-hero]', start: 'top top', end: 'bottom top', scrub: true } });
+  }
+
+  // Manifesto: words light up as you read.
+  const mf = document.querySelector('[data-manifesto]');
+  if (mf && !reducedMotion) {
+    gsap.fromTo(mf.querySelectorAll('.mw'), { opacity: 0.12 }, { opacity: 1, stagger: 0.1, ease: 'none', scrollTrigger: { trigger: mf, start: 'top 80%', end: 'bottom 45%', scrub: 0.5 } });
+  }
+
+  // Works: marquees slide with scroll; cards tilt through 3D space.
+  if (!reducedMotion) {
+    document.querySelectorAll<HTMLElement>('[data-work]').forEach((work, i) => {
+      const track = work.querySelector('[data-work-track]');
+      const card = work.querySelector('[data-work-card]');
+      const dir = i % 2 ? 1 : -1;
+      gsap.fromTo(track, { xPercent: dir > 0 ? -30 : 0 }, { xPercent: dir > 0 ? 0 : -30, ease: 'none', scrollTrigger: { trigger: work, start: 'top bottom', end: 'bottom top', scrub: true } });
+      gsap.fromTo(
+        card,
+        { rotateX: 28, rotateZ: dir * -4, scale: 0.86, y: 80 },
+        { rotateX: -10, rotateZ: dir * 3, scale: 1, y: -40, ease: 'none', scrollTrigger: { trigger: work, start: 'top bottom', end: 'bottom top', scrub: true } },
+      );
+    });
+  }
+
+  // Process: horizontal pinned rail on wide screens.
+  const proc = document.querySelector<HTMLElement>('[data-process]');
+  const rail = document.querySelector<HTMLElement>('[data-process-rail]');
+  const bar = document.querySelector<HTMLElement>('[data-process-bar]');
+  if (proc && rail && !reducedMotion) {
+    const mm = gsap.matchMedia();
+    mm.add('(min-width: 900px)', () => {
+      const distance = () => rail.scrollWidth - window.innerWidth + 64;
+      gsap.to(rail, {
+        x: () => -distance(),
+        ease: 'none',
+        scrollTrigger: {
+          trigger: proc,
+          start: 'top top',
+          end: () => `+=${distance()}`,
+          pin: '.process-pin',
+          scrub: 0.6,
+          invalidateOnRefresh: true,
+          onUpdate: (st) => bar && (bar.style.transform = `scaleX(${st.progress})`),
+        },
+      });
+    });
+    ScrollTrigger.refresh();
+  }
+</script>
+
+<style>
+  /* HERO */
+  .hero { position: relative; min-height: 100svh; display: grid; place-items: center; overflow: hidden; }
+  .hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hero-content { position: relative; z-index: 2; display: grid; justify-items: center; text-align: center; gap: var(--s-5); padding-top: 4rem; }
+  .hero-title { font-size: var(--fs-mega); line-height: 0.86; letter-spacing: -0.06em; font-weight: 900; min-height: 0.9em; }
+  .hero-word { display: inline-block; }
+  .hero-sub { font-size: var(--fs-lg); color: var(--ink-2); line-height: 1.45; }
+  .hero-actions { display: flex; gap: var(--s-3); flex-wrap: wrap; justify-content: center; margin-top: var(--s-3); }
+  .scroll-cue { position: absolute; left: 50%; bottom: calc(var(--nav-h) + 3rem); width: 22px; height: 36px; margin-left: -11px; border: 1.5px solid var(--line-strong); border-radius: 12px; z-index: 2; }
+  .scroll-cue span { position: absolute; left: 50%; top: 7px; width: 3px; height: 7px; margin-left: -1.5px; border-radius: 2px; background: var(--ink); animation: cue 1.8s var(--ease-in-out) infinite; }
+  @keyframes cue { 0% { transform: translateY(0); opacity: 1; } 80% { transform: translateY(12px); opacity: 0; } 100% { opacity: 0; } }
+  @media (max-width: 760px) { .scroll-cue { display: none; } }
+
+  /* MANIFESTO */
+  .manifesto-text { margin-top: var(--s-5); font-family: var(--font-display); font-weight: 800; font-size: var(--fs-3xl); line-height: 1.05; letter-spacing: -0.035em; max-width: 20ch; }
+  .mw { transition: opacity 0.2s; }
+
+  /* SERVICES */
+  .section-head { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-6); align-items: end; margin-bottom: var(--s-8); }
+  @media (max-width: 900px) { .section-head { grid-template-columns: 1fr; } }
+  .svc-list { list-style: none; padding: 0; border-top: 1px solid var(--line); }
+  .svc { border-bottom: 1px solid var(--line); }
+  .svc-link {
+    position: relative;
+    display: grid;
+    grid-template-columns: 4rem 1.4fr 1fr 3rem;
+    gap: var(--s-5);
+    align-items: center;
+    padding-block: var(--s-6);
+    isolation: isolate;
+  }
+  .svc-link::before {
+    content: '';
+    position: absolute;
+    inset: 0 calc(var(--gutter) * -1);
+    background: radial-gradient(60% 120% at 20% 50%, color-mix(in srgb, var(--svc) 22%, transparent), transparent 70%);
+    opacity: 0;
+    transition: opacity var(--dur-2);
+    z-index: -1;
+  }
+  .svc-link:hover::before, .svc-link:focus-visible::before { opacity: 1; }
+  .svc-index { color: var(--muted); font-size: var(--fs-sm); }
+  .svc-main { display: grid; gap: var(--s-2); }
+  .svc-title { font-family: var(--font-display); font-weight: 900; font-size: var(--fs-2xl); letter-spacing: -0.035em; line-height: 1.02; transition: transform var(--dur-2) var(--ease-out), color var(--dur-1); }
+  .svc-link:hover .svc-title { transform: translateX(10px); color: var(--svc); }
+  .svc-tag { color: var(--ink-2); }
+  .svc-chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+  .svc-arrow { font-size: 1.6rem; justify-self: end; transition: transform var(--dur-2) var(--ease-out); }
+  .svc-link:hover .svc-arrow { transform: rotate(45deg); color: var(--svc); }
+  @media (max-width: 900px) {
+    .svc-link { grid-template-columns: 3rem 1fr 2rem; }
+    .svc-chips { grid-column: 2 / -1; }
+  }
+
+  /* WORKS */
+  .works { position: relative; padding-block: var(--section) calc(var(--section) * 0.5); overflow: clip; }
+  .works-head { text-align: center; display: grid; justify-items: center; gap: var(--s-5); margin-bottom: var(--s-8); }
+  .work { position: relative; padding-block: clamp(2rem, 6vw, 6rem); perspective: 1400px; }
+  .work-marquee { position: absolute; inset: 50% 0 auto; transform: translateY(-50%); pointer-events: none; overflow: hidden; }
+  .work-track { display: flex; white-space: nowrap; will-change: transform; }
+  .work-track span {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(4rem, 2rem + 12vw, 14rem);
+    letter-spacing: -0.06em;
+    line-height: 1;
+    padding-right: 0.3em;
+    color: transparent;
+    -webkit-text-stroke: 1.5px color-mix(in srgb, var(--a) 55%, transparent);
+  }
+  .work-track i { font-style: normal; font-size: 0.4em; vertical-align: middle; padding-left: 0.3em; color: var(--a); -webkit-text-stroke: 0; opacity: 0.7; }
+  .work-card {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: var(--s-6);
+    align-items: center;
+    width: min(1100px, calc(100% - 2 * var(--gutter)));
+    margin-inline: auto;
+    padding: var(--s-4);
+    border-radius: calc(var(--r-lg) + 8px);
+    background: rgb(12 12 15 / 0.82);
+    border: 1px solid var(--line);
+    backdrop-filter: blur(14px);
+    transform-style: preserve-3d;
+    will-change: transform;
+    transition: border-color var(--dur-2);
+  }
+  .work-card:hover { border-color: color-mix(in srgb, var(--a) 60%, transparent); }
+  .work-meta { display: grid; gap: var(--s-4); padding: var(--s-4); }
+  .work-chips { display: flex; gap: var(--s-2); flex-wrap: wrap; }
+  .work-chips .chip--accent { --accent: var(--a); }
+  .work-cta { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-sm); color: var(--a); }
+  .work-num { position: absolute; right: var(--gutter); top: 1rem; color: var(--muted); font-size: var(--fs-sm); }
+  @media (max-width: 860px) {
+    .work-card { grid-template-columns: 1fr; }
+  }
+
+  /* PROCESS */
+  .process { position: relative; }
+  .process-pin { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; gap: var(--s-7); padding-block: var(--s-9); overflow: hidden; }
+  .process-rail { display: flex; gap: var(--s-5); padding-inline: var(--gutter); will-change: transform; }
+  .step { flex: 0 0 min(420px, 80vw); display: grid; gap: var(--s-4); align-content: start; min-height: 340px; }
+  .step-n { font-size: var(--fs-3xl); font-weight: 700; color: var(--accent); line-height: 1; }
+  .step-chips { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: auto; }
+  .process-progress { margin-inline: var(--gutter); height: 2px; background: var(--line); }
+  .process-progress span { display: block; height: 100%; background: var(--accent); transform-origin: left; transform: scaleX(0); }
+  @media (max-width: 899px) {
+    .process-rail { flex-direction: column; }
+    .step { flex-basis: auto; min-height: 0; }
+    .process-progress { display: none; }
+  }
+
+  /* BELIEFS */
+  .beliefs .container { display: grid; gap: var(--s-7); }
+  .belief { font-family: var(--font-display); font-size: var(--fs-2xl); line-height: 1.1; letter-spacing: -0.03em; max-width: 26ch; }
+  .belief span { color: var(--muted); font-weight: 500; }
+  .belief strong { font-weight: 900; }
+  .belief:nth-child(2) { margin-left: auto; text-align: right; }
+</style>

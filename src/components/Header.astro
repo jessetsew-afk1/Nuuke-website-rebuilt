@@ -1,0 +1,84 @@
+---
+// Centred logo. Slides away while scrolling down and returns on scroll up,
+// so it never sits on top of headings (a bug on the old site).
+---
+
+<header class="site-header" data-header>
+  <a href="/" class="logo" aria-label="NUUKE home">
+    <img src="/brand/logo-white.webp" alt="NUUKE" width="401" height="90" fetchpriority="high" />
+  </a>
+  <a href="/contact" class="header-cta">Start a project</a>
+</header>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  if (header) {
+    let last = window.scrollY;
+    let ticking = false;
+    const update = () => {
+      const y = window.scrollY;
+      header.classList.toggle('is-scrolled', y > 40);
+      if (y > 160 && y > last + 2) header.classList.add('is-hidden');
+      else if (y < last - 4 || y <= 160) header.classList.remove('is-hidden');
+      last = y;
+      ticking = false;
+    };
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (!ticking) {
+          requestAnimationFrame(update);
+          ticking = true;
+        }
+      },
+      { passive: true },
+    );
+  }
+</script>
+
+<style>
+  .site-header {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 76px;
+    padding-inline: var(--gutter);
+    transition: transform var(--dur-2) var(--ease-out), background var(--dur-2);
+  }
+  .site-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgb(5 5 6 / 0.85), rgb(5 5 6 / 0));
+    opacity: 0;
+    transition: opacity var(--dur-2);
+    pointer-events: none;
+  }
+  .site-header.is-scrolled::before { opacity: 1; }
+  .site-header.is-hidden { transform: translateY(-100%); }
+  .logo { position: relative; display: block; }
+  .logo img { height: 26px; width: auto; }
+  .header-cta {
+    position: absolute;
+    right: var(--gutter);
+    font-family: var(--font-ui);
+    font-size: var(--fs-label);
+    font-weight: 600;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    padding: 0.6rem 1rem;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--line-strong);
+    background: rgb(255 255 255 / 0.04);
+    backdrop-filter: blur(10px);
+    transition: background var(--dur-1), color var(--dur-1);
+  }
+  .header-cta:hover { background: var(--ink); color: var(--bg); }
+  @media (max-width: 640px) {
+    .header-cta { display: none; }
+    .logo img { height: 22px; }
+  }
+</style>

@@ -1,0 +1,157 @@
+---
+// Lightweight, code-drawn cover art for each concept project (no image downloads).
+import type { Project } from '../data/projects';
+interface Props {
+  project: Project;
+  class?: string;
+}
+const { project: p, class: cls } = Astro.props;
+---
+
+<div class:list={['cover', `cover--${p.slug}`, cls]} style={`--a:${p.accent};--b:${p.accent2}`} aria-hidden="true">
+  {
+    p.slug === 'rise-science' && (
+      <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <radialGradient id="rs-bg" cx="70%" cy="20%" r="90%">
+            <stop offset="0" stop-color="#2a2160" />
+            <stop offset="1" stop-color="#0d0b1e" />
+          </radialGradient>
+          <linearGradient id="rs-curve" x1="0" x2="1">
+            <stop offset="0" stop-color="#7b61ff" />
+            <stop offset=".45" stop-color="#ffb27a" />
+            <stop offset=".7" stop-color="#7b61ff" />
+            <stop offset="1" stop-color="#ffb27a" />
+          </linearGradient>
+        </defs>
+        <rect width="800" height="600" fill="url(#rs-bg)" />
+        <circle cx="640" cy="120" r="70" fill="#ffb27a" opacity=".18" />
+        <circle cx="640" cy="120" r="34" fill="#ffb27a" opacity=".5" />
+        <g transform="translate(270 70) rotate(-8 130 230)">
+          <rect width="260" height="520" rx="40" fill="#14122b" stroke="#3a3470" stroke-width="3" />
+          <text x="28" y="70" fill="#a9a3d9" font-family="Inter,sans-serif" font-size="14" letter-spacing="2">ENERGY</text>
+          <text x="28" y="118" fill="#fff" font-family="Montserrat,sans-serif" font-weight="800" font-size="40">Peak in 42m</text>
+          <path d="M20 330 C 60 330, 70 230, 110 220 S 150 300, 175 300 S 215 190, 240 210" fill="none" stroke="url(#rs-curve)" stroke-width="8" stroke-linecap="round" />
+          <circle cx="110" cy="221" r="9" fill="#fff" />
+          <rect x="28" y="380" width="204" height="54" rx="16" fill="#221e48" />
+          <rect x="44" y="398" width="120" height="10" rx="5" fill="#ffb27a" />
+          <rect x="44" y="414" width="80" height="8" rx="4" fill="#6b65a8" />
+          <rect x="28" y="446" width="204" height="44" rx="16" fill="#7b61ff" />
+        </g>
+      </svg>
+    )
+  }
+  {
+    p.slug === 'olio' && (
+      <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+        <rect width="800" height="600" fill="#fff4ea" />
+        <circle cx="140" cy="480" r="220" fill="#ff8a5b" opacity=".25" />
+        <circle cx="690" cy="90" r="160" fill="#8b5cf6" opacity=".2" />
+        <g transform="translate(180 80) rotate(-6 120 220)">
+          <rect width="240" height="480" rx="36" fill="#fff" stroke="#e7dccf" stroke-width="3" />
+          <rect x="20" y="60" width="200" height="16" rx="8" fill="#2b2140" />
+          <g fill="#f3ece4"><rect x="20" y="96" width="96" height="120" rx="16" /><rect x="124" y="96" width="96" height="120" rx="16" /><rect x="20" y="226" width="96" height="120" rx="16" /><rect x="124" y="226" width="96" height="120" rx="16" /></g>
+          <circle cx="68" cy="140" r="26" fill="#ffb547" /><circle cx="172" cy="140" r="26" fill="#7cc36b" /><circle cx="68" cy="270" r="26" fill="#ff8a5b" /><circle cx="172" cy="270" r="26" fill="#e9d36c" />
+          <circle cx="120" cy="430" r="28" fill="#8b5cf6" /><path d="M120 418v24M108 430h24" stroke="#fff" stroke-width="5" stroke-linecap="round" />
+        </g>
+        <g transform="translate(420 120) rotate(7 120 220)">
+          <rect width="240" height="480" rx="36" fill="#efe6da" stroke="#e7dccf" stroke-width="3" />
+          <g stroke="#e0d3c3" stroke-width="10" fill="none"><path d="M0 140 L240 200" /><path d="M60 0 L120 480" /><path d="M0 330 L240 300" /></g>
+          <g fill="#8b5cf6"><path d="M80 170 a18 18 0 1 1 1 0 l-1 22z" /><path d="M170 260 a18 18 0 1 1 1 0 l-1 22z" /></g>
+          <g fill="#ff8a5b"><path d="M130 360 a18 18 0 1 1 1 0 l-1 22z" /></g>
+          <rect x="20" y="380" width="200" height="80" rx="20" fill="#fff" />
+          <rect x="36" y="400" width="110" height="12" rx="6" fill="#2b2140" />
+          <rect x="36" y="420" width="70" height="10" rx="5" fill="#b9aac9" />
+        </g>
+      </svg>
+    )
+  }
+  {
+    p.slug === 'heirloom' && (
+      <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <linearGradient id="hl-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2a26" /><stop offset="1" stop-color="#11110f" /></linearGradient>
+          <radialGradient id="hl-glow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ff9a4a" /><stop offset="1" stop-color="#e2783a" stop-opacity="0" /></radialGradient>
+        </defs>
+        <rect width="800" height="600" fill="url(#hl-sky)" />
+        <circle cx="210" cy="380" r="170" fill="url(#hl-glow)" opacity=".55" />
+        <g>
+          {Array.from({ length: 9 }).map((_, i) => (
+            <g transform={`translate(380 ${470 - i * 42})`}>
+              <path d="M0 0 L170 -60 L340 0 L170 60 Z" fill={i % 2 ? '#e9e4d8' : '#f2efe8'} opacity={0.55 + i * 0.05} />
+              <path d="M0 0 L0 10 L170 70 L170 60 Z" fill="#9b968b" />
+              <path d="M340 0 L340 10 L170 70 L170 60 Z" fill="#7d786e" />
+            </g>
+          ))}
+        </g>
+        <g fill="#f2efe8" opacity=".8">
+          {Array.from({ length: 26 }).map((_, i) => <circle cx={120 + ((i * 97) % 560)} cy={90 + ((i * 53) % 200)} r={i % 3 ? 2 : 3.5} />)}
+        </g>
+        <rect x="150" y="300" width="120" height="170" rx="14" fill="#2f2f2b" stroke="#e2783a" stroke-width="3" />
+        <rect x="175" y="330" width="70" height="90" rx="8" fill="#e2783a" opacity=".85" />
+      </svg>
+    )
+  }
+  {
+    p.slug === 'fellow' && (
+      <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <radialGradient id="fw-bg" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="#2a2621" /><stop offset="1" stop-color="#0c0b0a" /></radialGradient>
+          <linearGradient id="fw-body" x1="0" x2="1"><stop offset="0" stop-color="#121212" /><stop offset=".55" stop-color="#2b2b2b" /><stop offset=".62" stop-color="#5a5a5a" /><stop offset=".7" stop-color="#1c1c1c" /><stop offset="1" stop-color="#0d0d0d" /></linearGradient>
+          <linearGradient id="fw-rim" x1="0" x2="1"><stop offset="0" stop-color="#c98a4e" stop-opacity="0" /><stop offset=".5" stop-color="#f0b77a" /><stop offset="1" stop-color="#c98a4e" stop-opacity="0" /></linearGradient>
+        </defs>
+        <rect width="800" height="600" fill="url(#fw-bg)" />
+        <ellipse cx="400" cy="500" rx="230" ry="26" fill="#000" opacity=".6" />
+        <path d="M250 290 C 190 240, 160 200, 120 190" stroke="#1a1a1a" stroke-width="16" fill="none" stroke-linecap="round" />
+        <path d="M250 290 C 190 240, 160 200, 120 190" stroke="url(#fw-rim)" stroke-width="3" fill="none" />
+        <rect x="270" y="240" width="260" height="240" rx="28" fill="url(#fw-body)" />
+        <rect x="290" y="222" width="220" height="24" rx="10" fill="#1d1d1d" />
+        <rect x="380" y="196" width="40" height="30" rx="10" fill="#151515" />
+        <path d="M530 280 h40 a20 20 0 0 1 20 20 v120 a20 20 0 0 1 -20 20 h-40" stroke="#1a1a1a" stroke-width="22" fill="none" />
+        <path d="M530 280 h40 a20 20 0 0 1 20 20 v120" stroke="url(#fw-rim)" stroke-width="2" fill="none" />
+        <rect x="250" y="480" width="300" height="30" rx="8" fill="#141414" />
+        <circle cx="510" cy="495" r="8" fill="#c98a4e" />
+        <path d="M120 190 C 116 230, 118 300, 122 420" stroke="#d8ecff" stroke-width="2" opacity=".6" fill="none" />
+      </svg>
+    )
+  }
+  {
+    p.slug === 'fishwife' && (
+      <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+        <rect width="800" height="600" fill="#fff6e5" />
+        <g opacity=".25" fill="#2747a8">
+          {Array.from({ length: 40 }).map((_, i) => <circle cx={(i % 8) * 110 + 20} cy={Math.floor(i / 8) * 130 + 30} r="5" />)}
+        </g>
+        {[
+          { x: 110, y: 170, r: -10, c: '#e8452c', f: '#f6c343' },
+          { x: 310, y: 120, r: 4, c: '#2747a8', f: '#f4a6b8' },
+          { x: 510, y: 190, r: 12, c: '#f6c343', f: '#e8452c' },
+        ].map((t) => (
+          <g transform={`translate(${t.x} ${t.y}) rotate(${t.r} 90 150)`}>
+            <rect width="180" height="290" rx="22" fill={t.c} />
+            <rect x="12" y="12" width="156" height="266" rx="16" fill="none" stroke="#fff6e5" stroke-width="3" stroke-dasharray="2 8" stroke-linecap="round" />
+            <ellipse cx="90" cy="140" rx="54" ry="24" fill={t.f} />
+            <path d="M140 140 l26 -20 v40 z" fill={t.f} />
+            <circle cx="62" cy="134" r="5" fill="#14110f" />
+            <rect x="34" y="210" width="112" height="12" rx="6" fill="#fff6e5" />
+            <rect x="54" y="230" width="72" height="8" rx="4" fill="#fff6e5" opacity=".7" />
+            <text x="90" y="70" text-anchor="middle" fill="#fff6e5" font-family="Georgia,serif" font-style="italic" font-size="26">fishwife</text>
+          </g>
+        ))}
+      </svg>
+    )
+  }
+</div>
+
+<style>
+  .cover {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    background: var(--surface);
+    box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.7), 0 0 0 1px rgb(255 255 255 / 0.06);
+  }
+  .cover svg { width: 100%; height: 100%; }
+</style>

@@ -1,0 +1,97 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import PillNav from '../components/PillNav.astro';
+import Footer from '../components/Footer.astro';
+import { site } from '../data/site';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  /** Page accent colour (case studies use the brand colour). */
+  accent?: string;
+  /** Hide the big footer (e.g. on the 404 page). */
+  bare?: boolean;
+  jsonLd?: Record<string, unknown>;
+}
+
+const { title, description = site.description, image = '/og.jpg', accent, bare = false, jsonLd } = Astro.props;
+const fullTitle = title === site.name ? `${site.name} — ${site.tagline}` : `${title} — ${site.name}`;
+const canonical = new URL(Astro.url.pathname.replace(/\/$/, '') || '/', site.url).href;
+const ogImage = new URL(image, site.url).href;
+const org = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: site.name,
+  url: site.url,
+  logo: `${site.url}/apple-touch-icon.png`,
+  telephone: site.phone,
+};
+---
+
+<!doctype html>
+<html lang="en" style={accent ? `--accent:${accent}` : undefined}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#050506" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="preload" href="/fonts/montserrat.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossorigin />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd ?? org)} />
+
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <canvas id="starfield" aria-hidden="true"></canvas>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    {!bare && <Footer />}
+    <PillNav />
+
+    <script>
+      import { initMotion } from '../scripts/motion';
+      import { initStarfield } from '../scripts/starfield';
+      initStarfield(document.getElementById('starfield') as HTMLCanvasElement);
+      initMotion();
+    </script>
+  </body>
+</html>
+
+<style>
+  #starfield {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgb(139 92 255 / 0.08), transparent 70%),
+      radial-gradient(ellipse 60% 50% at 80% 100%, rgb(255 46 136 / 0.06), transparent 70%),
+      var(--bg);
+  }
+</style>

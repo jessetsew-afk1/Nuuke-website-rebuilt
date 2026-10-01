@@ -1,0 +1,373 @@
+---
+/*
+  Tappable phone prototype with a guided task list and a fidelity switch
+  (Sketch → Wireframe → Hi-fi) that re-renders the SAME screens at each stage.
+
+  Authoring screens (pass them in the default slot):
+    <section class="scr" data-screen="home" data-title="Home"> … </section>
+  Inside a screen:
+    data-go="screenId"   tap to navigate (push)
+    data-go="id" data-sheet  open as a bottom sheet (slides up)
+    data-back            go back
+    data-toggle          toggles .is-on on the element (switches, chips)
+    data-scroll          a scrollable area (keeps page scroll from hijacking it)
+  Fidelity classes so wireframe/sketch modes know what each element is:
+    .ui   a container / card      .t    a run of text (becomes a grey bar)
+    .img  an image or illustration .btn  a button       .ico  an icon
+*/
+export type Task = { label: string; screen: string };
+interface Props {
+  id?: string;
+  title: string;
+  start: string;
+  tasks: Task[];
+  note?: string;
+  device?: 'dark' | 'light';
+}
+const { id = 'proto', title, start, tasks, note, device = 'dark' } = Astro.props;
+---
+
+<div class="proto" data-proto={id} data-start={start} id={id}>
+  <div class="proto-side">
+    <p class="t-label">Interactive prototype</p>
+    <h3 class="t-h3">{title}</h3>
+    {note && <p class="t-body">{note}</p>}
+
+    <div class="fid" role="radiogroup" aria-label="Design fidelity">
+      <button type="button" role="radio" aria-checked="false" data-fid="sketch">Sketch</button>
+      <button type="button" role="radio" aria-checked="false" data-fid="wire">Wireframe</button>
+      <button type="button" role="radio" aria-checked="true" data-fid="hifi">Hi-fi</button>
+      <span class="fid-pill" aria-hidden="true"></span>
+    </div>
+    <p class="t-small fid-caption" data-fid-caption>Final UI — fully tappable.</p>
+
+    <div class="tasks">
+      <p class="t-label">Your journey <span data-task-count>0/{tasks.length}</span></p>
+      <ol role="list">
+        {
+          tasks.map((t, i) => (
+            <li>
+              <button type="button" data-task={t.screen} data-task-i={i}>
+                <span class="task-check" aria-hidden="true" />
+                <span>{t.label}</span>
+              </button>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+    <div class="proto-tools">
+      <label class="hint-toggle"><input type="checkbox" data-hints /> Show tap targets</label>
+      <button type="button" class="restart" data-restart>↺ Restart</button>
+    </div>
+  </div>
+
+  <div class="proto-stage" data-stage>
+    <div class="device-wrap" data-device-wrap>
+      <div class:list={['device', `device--${device}`]} data-device>
+        <div class="device-screen fid-hifi" data-viewport>
+          <div class="statusbar" aria-hidden="true"><span>9:41</span><span class="sb-icons">▂▄▆ ◔</span></div>
+          <div class="screens" data-screens>
+            <slot />
+          </div>
+          <div class="home-indicator" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+    <p class="proto-caption t-label" aria-live="polite"><span data-caption>—</span></p>
+  </div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="sketchy">
+    <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="3" result="n" />
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="3.2" />
+  </filter>
+</svg>
+
+<script>
+  const CAPTIONS: Record<string, string> = {
+    sketch: 'Day 2 — paper sketches to agree the flow before any pixels.',
+    wire: 'Week 1 — grey-box wireframes: layout, hierarchy and copy length.',
+    hifi: 'Week 3 — final UI. Every screen here is tappable.',
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-proto]').forEach((root) => {
+    const id = root.dataset.proto!;
+    const start = root.dataset.start!;
+    const viewport = root.querySelector<HTMLElement>('[data-viewport]')!;
+    const screens = [...root.querySelectorAll<HTMLElement>('.scr')];
+    const caption = root.querySelector<HTMLElement>('[data-caption]')!;
+    const taskBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-task]')];
+    const countEl = root.querySelector<HTMLElement>('[data-task-count]');
+    root.querySelectorAll('[data-scroll]').forEach((s) => s.setAttribute('data-lenis-prevent', ''));
+    const done = new Set<number>();
+    const history: string[] = [];
+    let current = '';
+
+    const byId = (s: string) => screens.find((x) => x.dataset.screen === s);
+
+    const show = (next: string, dir: 'push' | 'back' | 'sheet' | 'none' = 'push') => {
+      const to = byId(next);
+      if (!to || next === current) return;
+      const from = byId(current);
+      const wasUnder = to.classList.contains('under');
+      to.classList.remove('leave', 'enter-back', 'enter', 'enter-sheet', 'enter-none', 'under');
+      if (from) {
+        from.classList.remove('is-active');
+        if (dir === 'sheet') {
+          // Keep the screen underneath visible (dimmed) while the sheet is open.
+          from.classList.add('under');
+        } else {
+          from.classList.add('leave');
+          from.dataset.dir = from.dataset.sheet ? 'sheet-out' : dir;
+          setTimeout(() => from.classList.remove('leave'), 520);
+          // Closing a sheet onto another screen: clear anything left underneath.
+          if (from.dataset.sheet) screens.forEach((x) => x !== to && x.classList.remove('under'));
+        }
+        delete from.dataset.sheet;
+      }
+      if (dir === 'sheet') to.dataset.sheet = '1';
+      const anim = wasUnder ? 'enter-none' : dir === 'back' ? 'enter-back' : dir === 'sheet' ? 'enter-sheet' : dir === 'none' ? 'enter-none' : 'enter';
+      to.classList.add('is-active', anim);
+      to.querySelectorAll<HTMLElement>('[data-scroll]').forEach((s) => (s.scrollTop = 0));
+      current = next;
+      caption.textContent = to.dataset.title || next;
+      // Tasks complete when you reach their screen.
+      taskBtns.forEach((b, i) => {
+        if (b.dataset.task === next) {
+          done.add(i);
+          b.classList.add('is-done');
+        }
+        b.classList.toggle('is-here', b.dataset.task === next);
+      });
+      if (countEl) countEl.textContent = `${done.size}/${taskBtns.length}`;
+      if (done.size === taskBtns.length) root.classList.add('all-done');
+      window.dispatchEvent(new CustomEvent('proto:changed', { detail: { target: id, screen: next } }));
+    };
+
+    root.addEventListener('click', (e) => {
+      const el = (e.target as HTMLElement).closest<HTMLElement>('[data-go],[data-back],[data-toggle]');
+      if (!el || !viewport.contains(el)) return;
+      e.preventDefault();
+      if (el.hasAttribute('data-toggle')) {
+        el.classList.toggle('is-on');
+        el.setAttribute('aria-pressed', String(el.classList.contains('is-on')));
+        if (!el.dataset.go) return;
+      }
+      if (el.hasAttribute('data-back')) {
+        const prev = history.pop() || start;
+        show(prev, 'back');
+        return;
+      }
+      const target = el.dataset.go!;
+      history.push(current);
+      show(target, el.hasAttribute('data-sheet') ? 'sheet' : 'push');
+    });
+
+    taskBtns.forEach((b) =>
+      b.addEventListener('click', () => {
+        history.push(current);
+        show(b.dataset.task!, 'push');
+      }),
+    );
+
+    root.querySelector('[data-restart]')?.addEventListener('click', () => {
+      history.length = 0;
+      done.clear();
+      taskBtns.forEach((b) => b.classList.remove('is-done', 'is-here'));
+      root.classList.remove('all-done');
+      if (countEl) countEl.textContent = `0/${taskBtns.length}`;
+      current = '';
+      screens.forEach((s) => s.classList.remove('is-active', 'under'));
+      show(start, 'none');
+    });
+
+    root.querySelector<HTMLInputElement>('[data-hints]')?.addEventListener('change', (e) => {
+      viewport.classList.toggle('show-hints', (e.target as HTMLInputElement).checked);
+    });
+
+    // Fidelity switch.
+    const fidBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-fid]')];
+    const fidCap = root.querySelector<HTMLElement>('[data-fid-caption]');
+    const pill = root.querySelector<HTMLElement>('.fid-pill');
+    const setFid = (f: string) => {
+      viewport.classList.remove('fid-sketch', 'fid-wire', 'fid-hifi');
+      viewport.classList.add('fid-' + f);
+      fidBtns.forEach((b) => b.setAttribute('aria-checked', String(b.dataset.fid === f)));
+      const active = fidBtns.find((b) => b.dataset.fid === f);
+      if (pill && active) {
+        pill.style.width = active.offsetWidth + 'px';
+        pill.style.transform = `translateX(${active.offsetLeft - 4}px)`;
+      }
+      if (fidCap) fidCap.textContent = CAPTIONS[f];
+    };
+    fidBtns.forEach((b) => b.addEventListener('click', () => setFid(b.dataset.fid!)));
+    requestAnimationFrame(() => setFid('hifi'));
+    window.addEventListener('resize', () => setFid(fidBtns.find((b) => b.getAttribute('aria-checked') === 'true')?.dataset.fid || 'hifi'));
+
+    // External control (flow map, wireframe gallery…)
+    window.addEventListener('proto:go', (ev) => {
+      const d = (ev as CustomEvent).detail;
+      if (d.target !== id) return;
+      if (d.fid) setFid(d.fid);
+      history.push(current);
+      show(d.screen, 'push');
+      if (d.scroll) root.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    // Fit the 390×844 device into the available width.
+    const wrap = root.querySelector<HTMLElement>('[data-device-wrap]')!;
+    const device = root.querySelector<HTMLElement>('[data-device]')!;
+    const fit = () => {
+      const avail = Math.min(wrap.parentElement!.clientWidth, 420);
+      const s = Math.min(1, avail / 414);
+      device.style.transform = `scale(${s})`;
+      wrap.style.height = `${868 * s}px`;
+      wrap.style.width = `${414 * s}px`;
+    };
+    fit();
+    new ResizeObserver(fit).observe(wrap.parentElement!);
+
+    // Gentle 3D tilt toward the pointer.
+    if (!window.matchMedia('(hover: none), (prefers-reduced-motion: reduce)').matches) {
+      const stage = root.querySelector<HTMLElement>('[data-stage]')!;
+      stage.addEventListener('pointermove', (e) => {
+        const r = stage.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width - 0.5;
+        const y = (e.clientY - r.top) / r.height - 0.5;
+        wrap.style.transform = `perspective(1400px) rotateY(${x * 10}deg) rotateX(${-y * 8}deg)`;
+      });
+      stage.addEventListener('pointerleave', () => (wrap.style.transform = ''));
+    }
+
+    show(start, 'none');
+  });
+</script>
+
+<style>
+  .proto {
+    display: grid;
+    grid-template-columns: minmax(260px, 0.8fr) 1.2fr;
+    gap: var(--s-8);
+    align-items: center;
+    padding: var(--s-7);
+    border-radius: calc(var(--r-lg) + 8px);
+    border: 1px solid var(--line);
+    background:
+      radial-gradient(60% 70% at 70% 50%, color-mix(in srgb, var(--a, var(--accent)) 16%, transparent), transparent 70%),
+      var(--bg-2);
+    scroll-margin-top: 90px;
+  }
+  .proto-side { display: grid; gap: var(--s-4); align-content: start; }
+  .fid { position: relative; display: inline-flex; padding: 4px; border-radius: var(--r-pill); background: var(--surface-2); border: 1px solid var(--line); justify-self: start; }
+  .fid button { position: relative; z-index: 1; padding: 0.55rem 1rem; border-radius: var(--r-pill); font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 600; color: var(--ink-2); transition: color var(--dur-1); }
+  .fid button[aria-checked='true'] { color: var(--a-ink, #111); }
+  .fid-pill { position: absolute; top: 4px; left: 4px; height: calc(100% - 8px); border-radius: var(--r-pill); background: var(--a, var(--accent)); transition: transform var(--dur-2) var(--ease-out), width var(--dur-2) var(--ease-out); }
+  .fid-caption { min-height: 2.6em; }
+  .tasks ol { list-style: none; padding: 0; margin-top: var(--s-3); display: grid; gap: var(--s-2); }
+  .tasks .t-label span { color: var(--a, var(--accent)); margin-left: var(--s-2); }
+  .tasks button { display: flex; gap: var(--s-3); align-items: center; width: 100%; text-align: left; padding: 0.6rem 0.8rem; border-radius: var(--r-md); border: 1px solid var(--line); color: var(--ink-2); font-size: var(--fs-sm); transition: border-color var(--dur-1), background var(--dur-1), color var(--dur-1); }
+  .tasks button:hover { border-color: var(--line-strong); color: var(--ink); }
+  .tasks button.is-here { border-color: var(--a, var(--accent)); color: var(--ink); background: color-mix(in srgb, var(--a, var(--accent)) 10%, transparent); }
+  .task-check { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--line-strong); display: grid; place-items: center; transition: background var(--dur-1), border-color var(--dur-1); }
+  .tasks button.is-done .task-check { background: var(--a, var(--accent)); border-color: var(--a, var(--accent)); }
+  .tasks button.is-done .task-check::after { content: '✓'; font-size: 11px; color: var(--a-ink, #111); font-weight: 800; }
+  .proto.all-done .tasks .t-label span::after { content: ' · journey complete 🎉'; }
+  .proto-tools { display: flex; justify-content: space-between; align-items: center; gap: var(--s-4); flex-wrap: wrap; }
+  .hint-toggle { display: inline-flex; gap: var(--s-2); align-items: center; font-size: var(--fs-sm); color: var(--ink-2); cursor: pointer; }
+  .hint-toggle input { accent-color: var(--a, var(--accent)); width: 16px; height: 16px; }
+  .restart { font-family: var(--font-ui); font-size: var(--fs-sm); color: var(--ink-2); }
+  .restart:hover { color: var(--ink); }
+
+  .proto-stage { display: grid; justify-items: center; gap: var(--s-4); }
+  .device-wrap { position: relative; transition: transform 0.6s var(--ease-out); transform-style: preserve-3d; }
+  .device {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 414px;
+    height: 868px;
+    padding: 12px;
+    border-radius: 64px;
+    background: linear-gradient(145deg, #3a3a42, #121216 40%, #2a2a30);
+    box-shadow: 0 0 0 2px #050506, 0 50px 120px -30px rgb(0 0 0 / 0.9), 0 0 80px -10px color-mix(in srgb, var(--a, var(--accent)) 35%, transparent);
+    transform-origin: top left;
+  }
+  .device--light { background: linear-gradient(145deg, #f2f2f2, #c9c9cc 40%, #ececee); }
+  .device-screen { position: relative; width: 390px; height: 844px; border-radius: 52px; overflow: hidden; background: #000; isolation: isolate; }
+  .statusbar { position: absolute; inset: 0 0 auto; z-index: 20; height: 50px; display: flex; justify-content: space-between; align-items: center; padding: 6px 34px 0; font: 600 15px var(--font-ui); color: var(--sb, #fff); pointer-events: none; mix-blend-mode: difference; }
+  .sb-icons { font-size: 11px; letter-spacing: 1px; }
+  .statusbar::after { content: ''; position: absolute; left: 50%; top: 11px; width: 120px; height: 34px; margin-left: -60px; border-radius: 20px; background: #000; mix-blend-mode: normal; }
+  .home-indicator { position: absolute; left: 50%; bottom: 8px; width: 134px; height: 5px; margin-left: -67px; border-radius: 3px; background: rgb(128 128 128 / 0.6); z-index: 20; pointer-events: none; }
+  .screens { position: absolute; inset: 0; }
+  .proto-caption { text-align: center; }
+  .proto-caption span { color: var(--ink); }
+
+  @media (max-width: 960px) {
+    .proto { grid-template-columns: 1fr; padding: var(--s-5); gap: var(--s-6); }
+    .proto-stage { order: -1; }
+  }
+</style>
+
+<style is:global>
+  /* Screen mechanics (applies to slotted screens). */
+  .device-screen .scr { position: absolute; inset: 0; overflow: hidden; visibility: hidden; z-index: 1; }
+  .device-screen .scr.is-active { visibility: visible; z-index: 2; }
+  .device-screen .scr.leave { visibility: visible; z-index: 1; animation: scr-out 0.5s var(--ease-out) both; }
+  .device-screen .scr.leave[data-dir='back'] { animation-name: scr-out-back; }
+  .device-screen .scr.leave[data-dir='sheet-out'] { z-index: 3; animation-name: scr-sheet-out; }
+  .device-screen .scr.under { visibility: visible; z-index: 1; filter: brightness(0.5); transition: filter 0.4s; }
+  @keyframes scr-sheet-out { to { transform: translateY(100%); } }
+  .device-screen .scr.enter { animation: scr-in 0.5s var(--ease-out) both; }
+  .device-screen .scr.enter-back { animation: scr-in-back 0.5s var(--ease-out) both; }
+  .device-screen .scr.enter-sheet { animation: scr-sheet 0.55s var(--ease-out) both; }
+  @keyframes scr-in { from { transform: translateX(100%); } to { transform: none; } }
+  @keyframes scr-out { to { transform: translateX(-30%); filter: brightness(0.6); } }
+  @keyframes scr-in-back { from { transform: translateX(-30%); filter: brightness(0.6); } to { transform: none; filter: none; } }
+  @keyframes scr-out-back { to { transform: translateX(100%); } }
+  @keyframes scr-sheet { from { transform: translateY(100%); } to { transform: none; } }
+  .device-screen [data-scroll] { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+  .device-screen [data-scroll]::-webkit-scrollbar { display: none; }
+  .device-screen [data-go], .device-screen [data-back], .device-screen [data-toggle] { cursor: pointer; }
+  .device-screen.show-hints [data-go], .device-screen.show-hints [data-back], .device-screen.show-hints [data-toggle] {
+    outline: 2px solid var(--a, #ff2e88);
+    outline-offset: 2px;
+    animation: hint 1.4s ease-in-out infinite;
+  }
+  @keyframes hint { 50% { outline-color: transparent; } }
+
+  /* ---- Wireframe fidelity ---- */
+  .device-screen.fid-wire .scr, .device-screen.fid-sketch .scr { background: #f4f4f1 !important; }
+  .device-screen.fid-wire .scr *, .device-screen.fid-sketch .scr * {
+    color: transparent !important;
+    background-image: none !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border-color: #bdbdb8 !important;
+    text-shadow: none !important;
+    fill: #d2d2cd !important;
+    stroke: #a9a9a4 !important;
+  }
+  .device-screen.fid-wire .scr .ui, .device-screen.fid-sketch .scr .ui { background-color: #fff !important; outline: 1.5px solid #c9c9c4; }
+  .device-screen.fid-wire .scr .t, .device-screen.fid-sketch .scr .t { background-color: #d9d9d4 !important; border-radius: 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .device-screen.fid-wire .scr .btn, .device-screen.fid-sketch .scr .btn { background-color: #8f8f8a !important; outline: none; }
+  .device-screen.fid-wire .scr .btn .t, .device-screen.fid-sketch .scr .btn .t { background-color: #c7c7c2 !important; }
+  .device-screen.fid-wire .scr .img, .device-screen.fid-sketch .scr .img {
+    background-color: #e7e7e3 !important;
+    background-image: linear-gradient(to top right, transparent calc(50% - 1px), #c4c4bf, transparent calc(50% + 1px)), linear-gradient(to top left, transparent calc(50% - 1px), #c4c4bf, transparent calc(50% + 1px)) !important;
+    outline: 1.5px solid #c4c4bf;
+  }
+  .device-screen.fid-wire .scr .img *, .device-screen.fid-sketch .scr .img * { visibility: hidden; }
+  .device-screen.fid-wire .scr .ico, .device-screen.fid-sketch .scr .ico { background-color: #cfcfca !important; border-radius: 50%; }
+  .device-screen.fid-wire .statusbar, .device-screen.fid-sketch .statusbar { color: #333; mix-blend-mode: normal; }
+
+  /* ---- Sketch fidelity: wireframe + pencil wobble on paper ---- */
+  .device-screen.fid-sketch .scr { background: #fbf7ec !important; filter: url(#sketchy); }
+  .device-screen.fid-sketch .scr .ui { outline: 2px solid #2d2d2d; background-color: transparent !important; border-radius: 10px; }
+  .device-screen.fid-sketch .scr .t { background-color: transparent !important; background-image: repeating-linear-gradient(transparent 0 40%, #3a3a3a 40% 55%, transparent 55% 100%) !important; }
+  .device-screen.fid-sketch .scr .btn { background-color: transparent !important; outline: 2.5px solid #2d2d2d; }
+  .device-screen.fid-sketch .scr .img { background-color: transparent !important; outline: 2px solid #2d2d2d; background-image: linear-gradient(to top right, transparent calc(50% - 1px), #2d2d2d, transparent calc(50% + 1px)), linear-gradient(to top left, transparent calc(50% - 1px), #2d2d2d, transparent calc(50% + 1px)) !important; }
+  .device-screen.fid-sketch .scr .ico { background-color: transparent !important; outline: 2px solid #2d2d2d; }
+  .device-screen.fid-sketch .scr svg * { stroke: #2d2d2d !important; fill: none !important; }
+</style>

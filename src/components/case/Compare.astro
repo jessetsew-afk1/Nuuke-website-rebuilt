@@ -1,0 +1,40 @@
+---
+// Drag-to-compare: slot "before" vs slot "after" (e.g. wireframe vs final, clay vs render).
+interface Props {
+  before: string;
+  after: string;
+  ratio?: string;
+}
+const { before, after, ratio = '4 / 3' } = Astro.props;
+---
+
+<div class="compare" style={`aspect-ratio:${ratio}`} data-compare>
+  <div class="compare-layer"><slot name="after" /></div>
+  <div class="compare-layer compare-before" data-compare-before><slot name="before" /></div>
+  <span class="compare-tag compare-tag--l">{before}</span>
+  <span class="compare-tag compare-tag--r">{after}</span>
+  <div class="compare-handle" data-compare-handle aria-hidden="true"><span>⟷</span></div>
+  <input class="compare-range" type="range" min="0" max="100" value="50" aria-label={`Compare ${before} and ${after}`} data-compare-range />
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-compare]').forEach((root) => {
+    const range = root.querySelector<HTMLInputElement>('[data-compare-range]')!;
+    const set = (v: number) => root.style.setProperty('--pos', v + '%');
+    range.addEventListener('input', () => set(+range.value));
+    set(50);
+  });
+</script>
+
+<style>
+  .compare { --pos: 50%; position: relative; overflow: hidden; border-radius: var(--r-lg); border: 1px solid var(--line); background: var(--surface); user-select: none; }
+  .compare-layer { position: absolute; inset: 0; }
+  .compare-layer > :global(*) { width: 100%; height: 100%; }
+  .compare-before { clip-path: inset(0 calc(100% - var(--pos)) 0 0); }
+  .compare-handle { position: absolute; top: 0; bottom: 0; left: var(--pos); width: 2px; margin-left: -1px; background: var(--ink); pointer-events: none; }
+  .compare-handle span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--bg); font-weight: 700; box-shadow: 0 8px 30px rgb(0 0 0 / 0.5); }
+  .compare-range { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: ew-resize; margin: 0; }
+  .compare-tag { position: absolute; top: var(--s-3); padding: 4px 10px; border-radius: 99px; background: rgb(0 0 0 / 0.6); font: 600 11px var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; color: #fff; pointer-events: none; }
+  .compare-tag--l { left: var(--s-3); }
+  .compare-tag--r { right: var(--s-3); }
+</style>

@@ -1,0 +1,73 @@
+---
+// Spec-sheet style design system: colour tokens (click to copy), type scale, and a components slot.
+interface Props {
+  colors: { name: string; hex: string; use: string }[];
+  type: { role: string; sample: string; spec: string; style?: string }[];
+  note?: string;
+}
+const { colors, type, note } = Astro.props;
+---
+
+<div class="ds">
+  <div class="ds-block">
+    <p class="t-label">Colour tokens <span class="ds-tip">· click to copy</span></p>
+    <div class="ds-colors" data-stagger="0.05">
+      {
+        colors.map((c) => (
+          <button type="button" class="swatch" style={`--c:${c.hex}`} data-copy={c.hex}>
+            <span class="swatch-chip" />
+            <span class="swatch-name">{c.name}</span>
+            <span class="t-num t-small">{c.hex}</span>
+            <span class="t-small">{c.use}</span>
+          </button>
+        ))
+      }
+    </div>
+  </div>
+  <div class="ds-block">
+    <p class="t-label">Type scale</p>
+    <ul class="ds-type" role="list">
+      {
+        type.map((t) => (
+          <li data-reveal>
+            <span class="t-small">{t.role}</span>
+            <span class="ds-sample" style={t.style}>{t.sample}</span>
+            <span class="t-num t-small">{t.spec}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+  <div class="ds-block ds-components">
+    <slot />
+  </div>
+  {note && <p class="t-small">{note}</p>}
+</div>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(b.dataset.copy!);
+        b.classList.add('copied');
+        setTimeout(() => b.classList.remove('copied'), 1200);
+      } catch {}
+    }),
+  );
+</script>
+
+<style>
+  .ds { display: grid; gap: var(--s-8); }
+  .ds-block { display: grid; gap: var(--s-4); }
+  .ds-tip { text-transform: none; letter-spacing: 0; }
+  .ds-colors { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--s-3); }
+  .swatch { position: relative; display: grid; gap: 4px; text-align: left; padding: var(--s-3); border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface); transition: transform var(--dur-2) var(--ease-out), border-color var(--dur-1); }
+  .swatch:hover { transform: translateY(-4px); border-color: var(--line-strong); }
+  .swatch-chip { height: 84px; border-radius: 10px; background: var(--c); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08); margin-bottom: var(--s-2); }
+  .swatch-name { font-weight: 700; }
+  .swatch.copied::after { content: 'Copied'; position: absolute; top: 10px; right: 10px; padding: 2px 8px; border-radius: 99px; background: var(--ink); color: var(--bg); font: 600 11px var(--font-ui); }
+  .ds-type { list-style: none; padding: 0; border-top: 1px solid var(--line); }
+  .ds-type li { display: grid; grid-template-columns: 9rem 1fr 10rem; align-items: baseline; gap: var(--s-4); padding-block: var(--s-4); border-bottom: 1px solid var(--line); }
+  .ds-sample { color: var(--ink); overflow-wrap: anywhere; }
+  @media (max-width: 700px) { .ds-type li { grid-template-columns: 1fr; gap: var(--s-1); } }
+</style>

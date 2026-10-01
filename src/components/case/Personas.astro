@@ -1,0 +1,71 @@
+---
+// Flip cards: front = who they are, back = goals and frustrations. Tap or hover to flip.
+export type Persona = { name: string; meta: string; quote: string; goals: string[]; pains: string[]; color?: string };
+interface Props {
+  personas: Persona[];
+  note?: string;
+}
+const { personas, note = 'Personas are NUUKE research assumptions built from the brand’s public audience, not real customers.' } = Astro.props;
+---
+
+<div class="personas" data-stagger="0.1">
+  {
+    personas.map((p) => (
+      <button class="persona" type="button" aria-pressed="false" style={p.color ? `--pc:${p.color}` : undefined} data-flip>
+        <span class="persona-inner">
+          <span class="persona-face persona-front">
+            <span class="persona-avatar" aria-hidden="true">{p.name.replace(/["“”]/g, '').split(' ').map((w) => w[0]).slice(0, 2).join('')}</span>
+            <span class="persona-name">{p.name}</span>
+            <span class="t-small">{p.meta}</span>
+            <span class="persona-quote">“{p.quote}”</span>
+            <span class="persona-hint t-label">Tap to see needs ↻</span>
+          </span>
+          <span class="persona-face persona-back">
+            <span class="t-label">Wants</span>
+            <span class="persona-list">{p.goals.map((g) => <span>+ {g}</span>)}</span>
+            <span class="t-label">Frustrated by</span>
+            <span class="persona-list">{p.pains.map((g) => <span>− {g}</span>)}</span>
+          </span>
+        </span>
+      </button>
+    ))
+  }
+</div>
+<p class="t-small persona-note">{note}</p>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-flip]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const on = b.getAttribute('aria-pressed') !== 'true';
+      b.setAttribute('aria-pressed', String(on));
+    }),
+  );
+</script>
+
+<style>
+  .personas { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--s-5); }
+  .persona { perspective: 1200px; text-align: left; min-height: 360px; padding: 0; }
+  .persona-inner { position: relative; display: block; width: 100%; height: 100%; min-height: 360px; transform-style: preserve-3d; transition: transform 0.8s var(--ease-out); }
+  .persona[aria-pressed='true'] .persona-inner { transform: rotateY(180deg); }
+  @media (hover: hover) { .persona:hover .persona-inner { transform: rotateY(180deg); } }
+  .persona-face {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+    padding: var(--s-6);
+    border-radius: var(--r-lg);
+    border: 1px solid var(--line);
+    background: linear-gradient(160deg, color-mix(in srgb, var(--pc, var(--a)) 16%, var(--surface)), var(--surface));
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .persona-back { transform: rotateY(180deg); background: var(--surface-2); }
+  .persona-avatar { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--pc, var(--a)); color: #111; font-family: var(--font-display); font-weight: 900; font-size: 1.3rem; }
+  .persona-name { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-xl); letter-spacing: -0.02em; }
+  .persona-quote { margin-top: auto; color: var(--ink); font-size: var(--fs-lg); line-height: 1.35; }
+  .persona-hint { color: var(--a); }
+  .persona-list { display: grid; gap: var(--s-2); color: var(--ink-2); margin-bottom: var(--s-3); }
+  .persona-note { margin-top: var(--s-4); }
+</style>
