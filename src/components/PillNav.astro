@@ -1,7 +1,7 @@
 ---
 import { nav, services, site } from '../data/site';
 
-const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const path = Astro.url.pathname.replace(/(\/index)?\.html$/, '').replace(/\/$/, '') || '/';
 const isActive = (href: string) => (href === '/' ? path === '/' : path === href || path.startsWith(href + '/') || (href === '/blog' && path.startsWith('/blog-posts')));
 const primary = nav.filter((n) => ['/', '/works', '/about', '/contact'].includes(n.href));
 ---
