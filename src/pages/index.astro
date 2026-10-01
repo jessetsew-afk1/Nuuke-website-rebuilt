@@ -168,14 +168,13 @@ const beliefs = [
     let i = 0;
     const animateIn = () => {
       const split = SplitText.create(word, { type: 'chars', charsClass: 'split-char' });
-      return gsap.fromTo(split.chars, { yPercent: 70, opacity: 0, filter: 'blur(14px)' }, { yPercent: 0, opacity: 1, filter: 'blur(0px)', duration: 1, ease: 'expo.out', stagger: 0.045 });
+      return gsap.fromTo(split.chars, { yPercent: 70, opacity: 0, scaleY: 1.4 }, { yPercent: 0, opacity: 1, scaleY: 1, duration: 1, ease: 'expo.out', stagger: 0.045 });
     };
     const cycle = () => {
       const chars = word.querySelectorAll('.split-char');
       gsap.to(chars, {
         yPercent: -60,
         opacity: 0,
-        filter: 'blur(14px)',
         duration: 0.55,
         ease: 'power2.in',
         stagger: 0.03,
@@ -196,7 +195,7 @@ const beliefs = [
   // Manifesto: words light up as you read.
   const mf = document.querySelector('[data-manifesto]');
   if (mf && !reducedMotion) {
-    gsap.fromTo(mf.querySelectorAll('.mw'), { opacity: 0.12 }, { opacity: 1, stagger: 0.1, ease: 'none', scrollTrigger: { trigger: mf, start: 'top 80%', end: 'bottom 45%', scrub: 0.5 } });
+    gsap.fromTo(mf.querySelectorAll('.mw'), { color: '#6e6e78' }, { color: '#f5f5f6', stagger: 0.1, ease: 'none', scrollTrigger: { trigger: mf, start: 'top 80%', end: 'bottom 45%', scrub: 0.5 } });
   }
 
   // Works: marquees slide with scroll; cards tilt through 3D space.
@@ -257,7 +256,6 @@ const beliefs = [
 
   /* MANIFESTO */
   .manifesto-text { margin-top: var(--s-5); font-family: var(--font-display); font-weight: 800; font-size: var(--fs-3xl); line-height: 1.05; letter-spacing: -0.035em; max-width: 20ch; }
-  .mw { transition: opacity 0.2s; }
 
   /* SERVICES */
   .section-head { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-6); align-items: end; margin-bottom: var(--s-8); }
@@ -324,9 +322,8 @@ const beliefs = [
     margin-inline: auto;
     padding: var(--s-4);
     border-radius: calc(var(--r-lg) + 8px);
-    background: rgb(12 12 15 / 0.82);
+    background: rgb(12 12 15 / 0.94);
     border: 1px solid var(--line);
-    backdrop-filter: blur(14px);
     transform-style: preserve-3d;
     will-change: transform;
     transition: border-color var(--dur-2);

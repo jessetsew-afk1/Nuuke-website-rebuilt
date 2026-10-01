@@ -89,7 +89,7 @@ function initSplits() {
     const scrub = el.dataset.scrub !== undefined;
     gsap.fromTo(
       targets,
-      { yPercent: mode === 'chars' ? 60 : 30, opacity: 0, filter: 'blur(10px)' },
+      { yPercent: mode === 'chars' ? 60 : 30, opacity: 0, filter: 'blur(6px)' },
       {
         yPercent: 0,
         opacity: 1,

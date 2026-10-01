@@ -18,8 +18,9 @@ export type Stage = {
 };
 
 export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?: number; env?: boolean; alpha?: boolean } = {}): Stage {
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: opts.alpha ?? true, powerPreference: 'high-performance' });
+  // No GPU (software rasteriser) or the visitor prefers less motion → static frames only.
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches || isSoftwareGL(renderer.getContext());
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -66,8 +67,17 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
     pointer.lerp(target, 0.06);
     for (const f of frames) f(t, dt);
     render();
-    if (!reduced) raf = requestAnimationFrame(tick);
+    if (!reduced || performance.now() < activeUntil) raf = requestAnimationFrame(tick);
   };
+  // In static mode, still animate for a few seconds after the visitor interacts.
+  let activeUntil = 0;
+  if (reduced) {
+    const wake = () => {
+      activeUntil = performance.now() + 4000;
+      start();
+    };
+    ['pointerdown', 'keydown', 'click'].forEach((ev) => window.addEventListener(ev, wake, { passive: true }));
+  }
   const start = () => {
     if (!raf) raf = requestAnimationFrame(tick);
   };
@@ -80,7 +90,20 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
   });
   io.observe(canvas);
   document.addEventListener('visibilitychange', () => !document.hidden && start());
-  if (reduced) window.addEventListener('scroll', start, { passive: true });
+  if (reduced) {
+    let last = 0;
+    window.addEventListener(
+      'scroll',
+      () => {
+        const now = performance.now();
+        if (now - last > 220) {
+          last = now;
+          start();
+        }
+      },
+      { passive: true },
+    );
+  }
 
   return {
     renderer,
@@ -100,6 +123,17 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
       renderer.dispose();
     },
   };
+}
+
+/** True when WebGL is running on a software rasteriser (no usable GPU). */
+export function isSoftwareGL(gl: WebGLRenderingContext | WebGL2RenderingContext) {
+  try {
+    const ext = gl.getExtension('WEBGL_debug_renderer_info');
+    const name = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : '';
+    return /swiftshader|llvmpipe|softpipe|software|basic render/i.test(name);
+  } catch {
+    return false;
+  }
 }
 
 /** A modern phone: rounded aluminium body, glass front, a screen that takes any texture. */

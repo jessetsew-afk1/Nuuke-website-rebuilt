@@ -33,7 +33,9 @@ export function initStarfield(canvas: HTMLCanvasElement | null) {
   if (!canvas) return;
   const gl = canvas.getContext('webgl', { alpha: true, antialias: false, premultipliedAlpha: false, powerPreference: 'low-power' });
   if (!gl) return;
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ext = gl.getExtension('WEBGL_debug_renderer_info');
+  const software = ext ? /swiftshader|llvmpipe|softpipe|software|basic render/i.test(String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL))) : false;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches || software;
 
   const compile = (type: number, src: string) => {
     const s = gl.createShader(type)!;
@@ -103,7 +105,18 @@ export function initStarfield(canvas: HTMLCanvasElement | null) {
   };
   if (reduced) {
     draw();
-    window.addEventListener('scroll', () => requestAnimationFrame(draw), { passive: true });
+    let lastDraw = 0;
+    window.addEventListener(
+      'scroll',
+      () => {
+        const now = performance.now();
+        if (now - lastDraw > 250) {
+          lastDraw = now;
+          requestAnimationFrame(draw);
+        }
+      },
+      { passive: true },
+    );
   } else {
     loop();
     document.addEventListener('visibilitychange', () => {

@@ -46,8 +46,8 @@ const payload = JSON.stringify({ accent, layers: layers.map((l) => ({ label: l.l
   .stack-canvas:active { cursor: grabbing; }
   .stack-hint { position: absolute; left: 50%; bottom: var(--s-4); transform: translateX(-50%); white-space: nowrap; }
   .stack-list { list-style: none; padding: 0; display: grid; gap: var(--s-3); }
-  .stack-list li { display: flex; gap: var(--s-4); padding: var(--s-5); border-radius: var(--r-md); border: 1px solid var(--line); opacity: 0.5; transition: opacity var(--dur-2), border-color var(--dur-2), background var(--dur-2), transform var(--dur-2) var(--ease-out); }
-  .stack-list li.is-active { opacity: 1; border-color: var(--a, var(--accent)); background: color-mix(in srgb, var(--a, var(--accent)) 8%, transparent); transform: translateX(-6px); }
+  .stack-list li { display: flex; gap: var(--s-4); padding: var(--s-5); border-radius: var(--r-md); border: 1px solid var(--line); transition: border-color var(--dur-2), background var(--dur-2), transform var(--dur-2) var(--ease-out); }
+  .stack-list li.is-active { border-color: var(--a, var(--accent)); background: color-mix(in srgb, var(--a, var(--accent)) 8%, transparent); transform: translateX(-6px); }
   .stack-list .t-num { color: var(--a, var(--accent)); font-weight: 700; }
   .stack-label { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-lg); }
   @media (max-width: 900px) {
