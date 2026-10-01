@@ -1,0 +1,120 @@
+---
+// The 10-shot animatic, played live on the 3D stage, with transport controls
+// and a dope-sheet of keyframes per track.
+import Dock from './Dock.astro';
+import { shots, shotStarts, totalDuration, trackLabels, type Track } from '../../../data/cases/fellow';
+
+const tracks = Object.keys(trackLabels) as Track[];
+const pct = (t: number) => `${((t / totalDuration) * 100).toFixed(3)}%`;
+---
+
+<div class="fw-an" data-fw-an>
+  <Dock name="animatic" label="3D stage playing the animatic" />
+  <div class="fw-transport">
+    <button type="button" class="fw-play" data-fw-play aria-pressed="false">
+      <span class="fw-play-ico" aria-hidden="true"></span>
+      <span data-fw-play-label>Play the animatic</span>
+    </button>
+    <div class="fw-scrub">
+      <input type="range" min="0" max={totalDuration} step="0.01" value="3" aria-label="Animatic timeline" data-fw-scrub />
+      <div class="fw-scrub-ticks" aria-hidden="true">{shotStarts.slice(1).map((s) => <i style={`left:${pct(s)}`} />)}</div>
+    </div>
+    <p class="fw-readout t-num" aria-live="off"><span data-fw-shotno>Shot 01/10</span><span class="fw-sep"> · </span><span data-fw-tc2>00:00:03:00</span></p>
+  </div>
+
+  <div class="fw-dope-wrap" data-lenis-prevent>
+    <div class="fw-dope" style={`--pn:${3 / totalDuration}`} data-fw-dope>
+      <div class="fw-dope-row fw-dope-head">
+        <span class="fw-dope-label t-label">Shot</span>
+        <div class="fw-dope-lane">
+          {
+            shots.map((s, i) => (
+              <button type="button" class="fw-dope-shot" style={`left:${pct(shotStarts[i])};width:${pct(s.dur)}`} data-fw-seek={shotStarts[i] + 0.01} aria-label={`Jump to shot ${i + 1}: ${s.title}`}>
+                <span class="t-num">{String(i + 1).padStart(2, '0')}</span>
+              </button>
+            ))
+          }
+        </div>
+      </div>
+      {
+        tracks.map((tr) => (
+          <div class="fw-dope-row">
+            <span class="fw-dope-label">{trackLabels[tr]}</span>
+            <div class="fw-dope-lane" aria-hidden="true">
+              {shots.flatMap((s, i) => (s.keys[tr] ?? []).map((k) => <i class="fw-key" style={`left:${pct(shotStarts[i] + k * s.dur)}`} />))}
+            </div>
+          </div>
+        ))
+      }
+      <div class="fw-dope-playhead" aria-hidden="true"></div>
+    </div>
+  </div>
+  <p class="t-small fw-an-note">Each ◆ is a keyframe in the scene file; the animatic you’re watching is the same data driving the real-time stage. Durations: {shots.map((s) => s.dur).join(' + ')} = {totalDuration} s.</p>
+</div>
+
+<script>
+  import { on, seek, toggle, timecode, totalDuration, ui } from '../../../scripts/three/fellow-bus';
+  const root = document.querySelector<HTMLElement>('[data-fw-an]');
+  if (root) {
+    const btn = root.querySelector<HTMLButtonElement>('[data-fw-play]')!;
+    const label = root.querySelector<HTMLElement>('[data-fw-play-label]')!;
+    const scrub = root.querySelector<HTMLInputElement>('[data-fw-scrub]')!;
+    const shotNo = root.querySelector<HTMLElement>('[data-fw-shotno]')!;
+    const tc = root.querySelector<HTMLElement>('[data-fw-tc2]')!;
+    const dope = root.querySelector<HTMLElement>('[data-fw-dope]')!;
+    let scrubbing = false;
+    btn.addEventListener('click', () => {
+      if (ui.dock !== 'animatic') root.querySelector('[data-fw-dock]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      toggle();
+    });
+    scrub.addEventListener('input', () => {
+      scrubbing = true;
+      seek(+scrub.value);
+    });
+    scrub.addEventListener('change', () => (scrubbing = false));
+    root.querySelectorAll<HTMLButtonElement>('[data-fw-seek]').forEach((b) => b.addEventListener('click', () => seek(+b.dataset.fwSeek!)));
+    on('time', (i) => {
+      btn.setAttribute('aria-pressed', String(i.playing));
+      btn.classList.toggle('is-playing', i.playing);
+      label.textContent = i.playing ? 'Pause' : i.t > totalDuration - 0.1 ? 'Replay the animatic' : i.active && i.t > 0.1 ? 'Resume' : 'Play the animatic';
+      if (!scrubbing) scrub.value = String(i.t);
+      shotNo.textContent = `Shot ${String(i.shot + 1).padStart(2, '0')}/10`;
+      tc.textContent = timecode(i.t);
+      dope.style.setProperty('--pn', String(i.t / totalDuration));
+    });
+  }
+</script>
+
+<style>
+  .fw-an { display: grid; gap: var(--s-5); }
+  .fw-an > * { min-width: 0; }
+  .fw-transport { display: grid; grid-template-columns: auto 1fr auto; gap: var(--s-4); align-items: center; padding: var(--s-3); border-radius: var(--r-pill); border: 1px solid var(--line); background: var(--surface); }
+  .fw-play { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 20px 0 8px; border-radius: var(--r-pill); background: var(--a); color: #140d07; font: 700 var(--fs-sm) var(--font-ui); letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+  .fw-play-ico { position: relative; width: 34px; height: 34px; border-radius: 50%; background: #140d07; }
+  .fw-play-ico::before { content: ''; position: absolute; left: 13px; top: 10px; border-left: 11px solid var(--a); border-top: 7px solid transparent; border-bottom: 7px solid transparent; }
+  .fw-play.is-playing .fw-play-ico::before { left: 11px; top: 11px; width: 4px; height: 12px; border: 0; background: var(--a); box-shadow: 8px 0 0 var(--a); }
+  .fw-scrub { position: relative; min-width: 0; }
+  .fw-scrub input { width: 100%; accent-color: var(--a); height: 32px; cursor: pointer; }
+  .fw-scrub-ticks { position: absolute; left: 8px; right: 8px; top: 50%; height: 12px; margin-top: -6px; pointer-events: none; }
+  .fw-scrub-ticks i { position: absolute; width: 1px; height: 100%; background: rgb(255 255 255 / 0.35); }
+  .fw-readout { font-size: var(--fs-sm); color: var(--ink-2); white-space: nowrap; padding-right: var(--s-3); }
+  .fw-dope-wrap { overflow-x: auto; border-radius: var(--r-md); border: 1px solid var(--line); background: #0d0c0b; scrollbar-width: thin; }
+  .fw-dope { position: relative; min-width: 760px; padding: var(--s-2) 0; --label: 110px; }
+  .fw-dope-row { display: grid; grid-template-columns: var(--label) 1fr; align-items: center; min-height: 26px; padding-right: var(--s-4); }
+  .fw-dope-row:nth-child(even) { background: rgb(255 255 255 / 0.02); }
+  .fw-dope-label { padding-left: var(--s-4); font: 500 12px var(--font-ui); color: var(--muted); }
+  .fw-dope-lane { position: relative; height: 26px; }
+  .fw-dope-head .fw-dope-lane { height: 32px; }
+  .fw-dope-shot { position: absolute; top: 3px; bottom: 3px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-2); font-size: 11px; display: grid; place-items: center; transition: background var(--dur-1), border-color var(--dur-1); }
+  .fw-dope-shot:hover { background: color-mix(in srgb, var(--a) 20%, var(--surface-2)); border-color: var(--a); }
+  .fw-key { position: absolute; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; background: var(--a); transform: rotate(45deg); border-radius: 1px; }
+  .fw-dope-playhead { position: absolute; top: 0; bottom: 0; left: calc(var(--label) + (100% - var(--label) - var(--s-4)) * var(--pn, 0)); width: 2px; background: #fff; box-shadow: 0 0 10px rgb(255 255 255 / 0.6); pointer-events: none; }
+  .fw-an-note { max-width: 80ch; }
+  @media (max-width: 760px) {
+    .fw-transport { grid-template-columns: 1fr auto; border-radius: var(--r-lg); }
+    .fw-scrub { grid-column: 1 / -1; grid-row: 2; }
+    .fw-readout { padding-right: 0; font-size: 0.75rem; text-align: right; white-space: normal; }
+    .fw-readout span { display: block; }
+    .fw-readout .fw-sep { display: none; }
+  }
+</style>

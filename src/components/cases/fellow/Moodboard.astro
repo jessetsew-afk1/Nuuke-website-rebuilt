@@ -1,0 +1,123 @@
+---
+// "Everyday Magic" moodboard built only from code: palette, material, light, type
+// and motion cards. No photography.
+const palette = [
+  { name: 'Matte Black', hex: '#1C1C1C' },
+  { name: 'Matte White', hex: '#EDEBE6' },
+  { name: 'Copper', hex: '#B87333' },
+  { name: 'Stone Blue', hex: '#7E93A3' },
+  { name: 'Walnut', hex: '#5C4033' },
+];
+const grain = (base: string, freq: string, seed: number, op = 0.5) =>
+  `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='${freq}' numOctaves='3' seed='${seed}'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 ${op} 0'/></filter><rect width='240' height='240' fill='${base}'/><rect width='240' height='240' filter='url(%23n)'/></svg>`).replace(/%2523/g, '%23')}")`;
+const powder = grain('#1f1f1f', '0.9', 3, 0.45);
+const walnut = grain('#6a4632', '0.012 0.35', 8, 0.65);
+---
+
+<div class="fw-mood">
+  <article class="fw-mc fw-mc--statement" data-reveal>
+    <p class="t-label">The line we build on</p>
+    <p class="fw-mc-big">Everyday Magic.</p>
+    <blockquote>“When the simple motions of life become small moments of joy, that’s Everyday Magic.” <cite>Fellow brand copy</cite></blockquote>
+    <p class="fw-mc-idea"><strong>Our film idea:</strong> make precision visible. Temperature, balance and flow are invisible benefits, so each becomes a beat of light.</p>
+  </article>
+
+  <article class="fw-mc fw-mc--palette" data-reveal>
+    <div class="fw-pal">{palette.map((c) => <span style={`--c:${c.hex}`}><b>{c.name}</b><i class="t-num">{c.hex}</i></span>)}</div>
+    <p class="t-small">Grade palette from the published colourways. Hex values are our working approximation, not official Fellow colours.</p>
+  </article>
+
+  <article class="fw-mc fw-mat fw-mat--steel" data-reveal><span class="fw-mat-tag">Brushed 304 steel</span></article>
+  <article class="fw-mc fw-mat fw-mat--copper" data-reveal><span class="fw-mat-tag">Polished copper</span></article>
+  <article class="fw-mc fw-mat" style={`background-image:${powder}`} data-reveal><span class="fw-mat-tag">Matte powder coat</span></article>
+  <article class="fw-mc fw-mat" style={`background-image:${walnut};background-size:240px 240px`} data-reveal><span class="fw-mat-tag">Walnut handle</span></article>
+
+  <article class="fw-mc fw-mc--light" data-reveal>
+    <div class="fw-rim" aria-hidden="true"><i></i></div>
+    <div>
+      <p class="t-label">Light</p>
+      <p class="fw-mc-h">One rim on black.</p>
+      <p class="t-small">Silhouette first. The gooseneck is the logo you don’t need to show.</p>
+    </div>
+  </article>
+
+  <article class="fw-mc fw-mc--type" data-reveal>
+    <p class="t-label">Type</p>
+    <p class="fw-type-a">Stagg EKG</p>
+    <p class="fw-type-b t-num">SET 205°F · NOW 68°F</p>
+    <p class="t-small">Titles in Montserrat 900, tight. Data in Inter with tabular figures, like the base’s display.</p>
+  </article>
+
+  <article class="fw-mc fw-mc--motion" data-reveal>
+    <svg viewBox="0 0 200 110" aria-hidden="true">
+      <path d="M10 100 H190 M10 100 V10" stroke="#2c2724" stroke-width="1.5" fill="none" />
+      <path d="M10 100 C 90 100, 110 12, 190 12" stroke="#c98a4e" stroke-width="3" fill="none" stroke-linecap="round" />
+      <circle cx="100" cy="56" r="4" fill="#f0d2b0" />
+    </svg>
+    <div>
+      <p class="t-label">Motion</p>
+      <p class="fw-mc-h">The pour sets the pace.</p>
+      <p class="t-small">One review measured a ~1–2 g/s trickle. Slow in, slow out; no whip pans.</p>
+    </div>
+  </article>
+</div>
+
+<div class="fw-devices" data-stagger="0.08">
+  <div class="fw-dev">
+    <svg viewBox="0 0 60 60" aria-hidden="true"><path d="M14 46 C 22 30, 38 30, 46 14" stroke="#f0b77a" stroke-width="3" fill="none" stroke-linecap="round" /><circle cx="46" cy="14" r="5" fill="#f0b77a" /></svg>
+    <p><strong>Light = heat.</strong> The rim warms and the element glows as the reading climbs.</p>
+  </div>
+  <div class="fw-dev">
+    <svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="20" stroke="#2c2724" stroke-width="4" fill="none" /><path d="M30 10 A20 20 0 1 1 10 30" stroke="#c98a4e" stroke-width="4" fill="none" stroke-linecap="round" /></svg>
+    <p><strong>Ring = time.</strong> Hold mode draws a 60-minute circle around the base.</p>
+  </div>
+  <div class="fw-dev">
+    <svg viewBox="0 0 60 60" aria-hidden="true"><line x1="34" y1="16" x2="34" y2="50" stroke="#c98a4e" stroke-width="2" stroke-dasharray="3 3" /><circle cx="34" cy="16" r="5" fill="#c98a4e" /><rect x="10" y="50" width="40" height="4" rx="2" fill="#6d655b" /></svg>
+    <p><strong>Dot = balance.</strong> A centre-of-mass marker shows why it doesn’t nose-dive.</p>
+  </div>
+</div>
+
+<style>
+  .fw-mood { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s-3); }
+  .fw-mc { position: relative; border-radius: var(--r-lg); border: 1px solid var(--line); background: var(--surface); padding: var(--s-5); overflow: hidden; min-height: 180px; }
+  .fw-mc--statement { grid-column: span 2; grid-row: span 2; display: grid; align-content: space-between; gap: var(--s-4); background: radial-gradient(80% 70% at 80% 10%, color-mix(in srgb, var(--a) 22%, transparent), transparent 70%), #100e0d; }
+  .fw-mc-big { font: 900 clamp(2.4rem, 1rem + 4.5vw, 5rem) / 0.95 var(--font-display); letter-spacing: -0.05em; color: var(--ink); }
+  .fw-mc--statement blockquote { color: var(--ink-2); font-size: var(--fs-lg); max-width: 40ch; }
+  .fw-mc--statement cite { display: block; margin-top: var(--s-2); font: 500 var(--fs-label) var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-style: normal; }
+  .fw-mc-idea { color: var(--ink-2); font-size: var(--fs-sm); padding-top: var(--s-4); border-top: 1px solid var(--line); }
+  .fw-mc-idea strong { color: var(--a); }
+  .fw-mc--palette { grid-column: span 2; display: grid; gap: var(--s-3); padding: var(--s-3); }
+  .fw-pal { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; min-height: 130px; }
+  .fw-pal span { display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; padding: 8px; border-radius: 10px; background: var(--c); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08); font-size: 11px; color: #fff; min-width: 0; }
+  .fw-pal span:nth-child(2) { color: #222; }
+  .fw-pal b { font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
+  .fw-pal i { font-style: normal; opacity: 0.75; }
+  .fw-mat { min-height: 170px; background-size: cover; }
+  .fw-mat-tag { position: absolute; left: var(--s-3); bottom: var(--s-3); padding: 4px 10px; border-radius: 99px; background: rgb(0 0 0 / 0.55); backdrop-filter: blur(6px); font: 600 11px var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: #fff; }
+  .fw-mat--steel { background: repeating-linear-gradient(0deg, rgb(255 255 255 / 0.05) 0 1px, transparent 1px 3px), repeating-linear-gradient(0deg, rgb(0 0 0 / 0.08) 0 2px, transparent 2px 5px), linear-gradient(100deg, #6b6e72, #c9ccd0 38%, #8a8d91 52%, #e4e6e8 64%, #7b7e82); }
+  .fw-mat--copper { background: radial-gradient(60% 35% at 35% 30%, rgb(255 230 200 / 0.7), transparent 70%), linear-gradient(120deg, #5e3518, #b87333 35%, #e6a86c 50%, #8a4f22 68%, #c98a4e); }
+  .fw-mc--light { grid-column: span 2; display: grid; grid-template-columns: 140px 1fr; gap: var(--s-4); align-items: center; background: #070606; }
+  .fw-rim { position: relative; height: 140px; }
+  .fw-rim i { position: absolute; inset: 10px 30px 10px 10px; border-radius: 22px 22px 12px 12px; box-shadow: 8px -4px 0 -4px #f2c9a0, 14px -8px 24px -6px rgb(240 183 122 / 0.6); background: #070606; }
+  .fw-mc-h { font: 800 var(--fs-xl) / 1.1 var(--font-display); letter-spacing: -0.02em; color: var(--ink); margin: 4px 0 6px; }
+  .fw-mc--type { grid-column: span 2; display: grid; gap: var(--s-2); align-content: start; }
+  .fw-type-a { font: 900 clamp(2rem, 1rem + 3vw, 3.4rem) / 1 var(--font-display); letter-spacing: -0.05em; color: var(--ink); }
+  .fw-type-b { font: 600 var(--fs-lg) var(--font-ui); color: var(--a); letter-spacing: 0.02em; }
+  .fw-mc--motion { grid-column: span 2; display: grid; grid-template-columns: 160px 1fr; gap: var(--s-4); align-items: center; }
+  .fw-mc--motion svg { width: 100%; height: auto; }
+  .fw-devices { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); margin-top: var(--s-6); }
+  .fw-dev { display: grid; grid-template-columns: 56px 1fr; gap: var(--s-3); align-items: center; color: var(--ink-2); font-size: var(--fs-sm); }
+  .fw-dev svg { width: 56px; height: 56px; }
+  .fw-dev strong { color: var(--ink); }
+  @media (max-width: 900px) {
+    .fw-mood { grid-template-columns: 1fr 1fr; }
+    .fw-devices { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .fw-mc--light, .fw-mc--motion { grid-template-columns: 1fr; }
+    .fw-rim { height: 100px; width: 120px; }
+    .fw-mc--motion svg { max-width: 160px; }
+    .fw-pal { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .fw-pal span { font-size: 9px; padding: 6px 4px; }
+  }
+</style>

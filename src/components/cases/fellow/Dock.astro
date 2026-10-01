@@ -1,0 +1,41 @@
+---
+// A slot the shared 3D studio docks into while this chapter is on screen.
+import Stage from './Stage.astro';
+import { kettle, base } from '../../../data/cases/fellow';
+interface Props {
+  name: 'story' | 'lookdev' | 'lighting' | 'animatic';
+  label: string;
+  withStage?: boolean;
+  tall?: boolean;
+}
+const { name, label, withStage = false, tall = false } = Astro.props;
+const poster = `<svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="320" height="180" fill="#0b0a09"/><ellipse cx="160" cy="150" rx="120" ry="14" fill="#000" opacity=".6"/>${base(165, 152, 0.9)}${kettle({ x: 165, y: 139, s: 0.9, fill: '#151413', stroke: '#2b2723', rim: true })}</svg>`;
+---
+
+<div class:list={['fw-dock', { 'fw-dock--tall': tall }]} data-fw-dock={name} role="group" aria-label={label}>
+  <div class="fw-dock-ph" set:html={poster} />
+  <p class="fw-dock-msg t-small">Loading the studio…</p>
+  {withStage && <Stage />}
+</div>
+
+<style>
+  .fw-dock {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 82vh;
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    background: #0b0a09;
+    border: 1px solid var(--line);
+    isolation: isolate;
+  }
+  .fw-dock--tall { aspect-ratio: 4 / 3; }
+  .fw-dock-ph { position: absolute; inset: 0; }
+  .fw-dock-ph :global(svg) { width: 100%; height: 100%; }
+  .fw-dock-msg { position: absolute; left: 50%; bottom: var(--s-4); transform: translateX(-50%); white-space: nowrap; }
+  .fw-dock.is-docked .fw-dock-msg { display: none; }
+  @media (max-width: 700px) {
+    .fw-dock, .fw-dock--tall { aspect-ratio: 4 / 5; max-height: 76svh; }
+  }
+</style>

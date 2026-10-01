@@ -1,0 +1,181 @@
+---
+// Modelling & look dev: reference sheet, the live pipeline switcher, colourways,
+// and a clay-vs-final compare built from snapshots of the same 3D scene.
+import Dock from './Dock.astro';
+import Compare from '../../case/Compare.astro';
+import { kettle, base } from '../../../data/cases/fellow';
+
+const steps = [
+  { id: 'blockout', label: 'Blockout', text: 'Grey primitives only. We lock proportions and camera distances against the published 292 × 171 × 203 mm footprint before any detail exists.' },
+  { id: 'wireframe', label: 'Wireframe', text: 'Clean, light topology: a lathed body, a swept gooseneck that tapers to a pointed tip, and a tube-swept counterbalanced handle. Edge loops go where light will catch.' },
+  { id: 'clay', label: 'Clay', text: 'One neutral material. Clay shows form, silhouette and shadow problems that colour would hide, so the client signs off shape here.' },
+  { id: 'materials', label: 'Materials', text: 'Flat, even light so we judge shaders, not lighting: matte powder coat, polished copper, walnut. One shader set, switched per colourway.' },
+  { id: 'lighting', label: 'Lighting', text: 'Key, fill and two rims (softboxes shown). The rim is the hero: it draws the gooseneck line against black.' },
+  { id: 'final', label: 'Final', text: 'The poster frame: a lifted pour into a cone, a thin stream, steam and a warm backdrop glow. Same model, same shaders.' },
+];
+const colours = [
+  { id: 'black', label: 'Matte Black', chip: '#1C1C1C' },
+  { id: 'white', label: 'Matte White', chip: '#EDEBE6' },
+  { id: 'copper', label: 'Polished Copper', chip: 'linear-gradient(135deg,#7a4a22,#e3a56a 45%,#8d5426 70%,#d79a5f)' },
+  { id: 'blue', label: 'Stone Blue + Walnut', chip: 'linear-gradient(90deg,#7E93A3 0 62%,#5C4033 62%)' },
+];
+const BP = '#c98a4e';
+const blueprint = `<svg viewBox="0 0 520 250" role="img" aria-label="Reference sheet: side and top views with the published dimensions 292 × 171 × 203 mm">
+<defs><pattern id="fw-grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#2a2420" stroke-width="1"/></pattern>
+<marker id="fw-dim" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 2L5 5L0 8" fill="none" stroke="${BP}" stroke-width="1.4"/></marker></defs>
+<rect width="520" height="250" fill="#0f0d0c"/><rect width="520" height="250" fill="url(#fw-grid)"/>
+<g>${base(150, 200, 1)}${kettle({ x: 150, y: 186, fill: 'none', stroke: '#e9e2d6' })}</g>
+<line x1="34" y1="225" x2="232" y2="225" stroke="${BP}" stroke-width="1.2" marker-start="url(#fw-dim)" marker-end="url(#fw-dim)"/>
+<text x="133" y="241" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="${BP}">292 mm</text>
+<line x1="252" y1="82" x2="252" y2="200" stroke="${BP}" stroke-width="1.2" marker-start="url(#fw-dim)" marker-end="url(#fw-dim)"/>
+<text x="260" y="145" font-family="Inter,sans-serif" font-size="11" fill="${BP}">203 mm</text>
+<text x="20" y="26" font-family="Inter,sans-serif" font-size="10" fill="#8f857a" letter-spacing="1.5">SIDE</text>
+<text x="330" y="26" font-family="Inter,sans-serif" font-size="10" fill="#8f857a" letter-spacing="1.5">TOP</text>
+<g transform="translate(420 125)"><rect x="-60" y="-55" width="120" height="110" rx="8" fill="none" stroke="#6d655b" stroke-width="1.5"/><circle r="46" fill="none" stroke="#e9e2d6" stroke-width="2"/><circle r="9" fill="#e9e2d6"/><path d="M-44 0 H-102" stroke="#e9e2d6" stroke-width="5" stroke-linecap="round"/><path d="M44 -8 H76 V8 H44" fill="none" stroke="#e9e2d6" stroke-width="4"/></g>
+<line x1="490" y1="70" x2="490" y2="180" stroke="${BP}" stroke-width="1.2" marker-start="url(#fw-dim)" marker-end="url(#fw-dim)"/>
+<text x="484" y="62" text-anchor="end" font-family="Inter,sans-serif" font-size="11" fill="${BP}">171 mm</text>
+</svg>`;
+const claySvg = `<svg viewBox="0 0 320 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="320" height="240" fill="#2a2826"/>${base(170, 200, 1)}${kettle({ x: 170, y: 186, fill: '#bdb8b0', stroke: '#8f8a83' })}</svg>`;
+const finalSvg = `<svg viewBox="0 0 320 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="320" height="240" fill="#0b0a09"/>${base(170, 200, 1, true)}${kettle({ x: 170, y: 186, fill: '#1c1c1c', stroke: '#3a3632', rim: true })}</svg>`;
+---
+
+<div class="fw-ld">
+  <div class="fw-ld-ref" data-reveal>
+    <div class="fw-ld-bp" set:html={blueprint} />
+    <div class="fw-ld-specs">
+      <p class="t-label">What we model to (published specs)</p>
+      <ul role="list">
+        <li><span class="t-num">0.9 L</span> capacity</li>
+        <li><span class="t-num">1200 W</span> (US)</li>
+        <li><span class="t-num">135–212 °F</span> / 57–100 °C, to the degree</li>
+        <li><span class="t-num">60 min</span> Hold mode</li>
+        <li><span class="t-num">304</span> stainless steel body and lid</li>
+      </ul>
+      <p class="t-small">Temperature range is Fellow’s current spec. Some older sources list a lower minimum; it varies by model and version, so the film only shows 135–212 °F.</p>
+    </div>
+  </div>
+
+  <div class="fw-ld-studio">
+    <div class="fw-steps" role="group" aria-label="Pipeline stage">
+      {
+        steps.map((s, i) => (
+          <button type="button" class:list={['fw-step', { 'is-on': s.id === 'final' }]} data-fw-step={s.id} aria-pressed={s.id === 'final' ? 'true' : 'false'}>
+            <span class="t-num">{String(i + 1).padStart(2, '0')}</span>
+            <span>{s.label}</span>
+          </button>
+        ))
+      }
+    </div>
+    <Dock name="lookdev" label="3D stage for the modelling and look-dev pipeline" />
+    <div class="fw-ld-under">
+      <div class="fw-ld-info" aria-live="polite">
+        {
+          steps.map((s, i) => (
+            <p data-fw-step-text={s.id} hidden={s.id !== 'final'}>
+              <strong>{String(i + 1).padStart(2, '0')} · {s.label}.</strong> {s.text}
+            </p>
+          ))
+        }
+      </div>
+      <div class="fw-swatches" role="group" aria-label="Colourway">
+        {
+          colours.map((c) => (
+            <button type="button" class:list={['fw-swatch', { 'is-on': c.id === 'black' }]} data-fw-colour={c.id} aria-pressed={c.id === 'black' ? 'true' : 'false'}>
+              <span class="fw-swatch-chip" style={`background:${c.chip}`} />
+              <span>{c.label}</span>
+            </button>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="fw-ld-compare">
+    <div class="fw-ld-compare-copy">
+      <p class="t-label">Clay vs final</p>
+      <h3 class="t-h4">Same model, same camera, same lights.</h3>
+      <p class="t-body">Both halves are rendered live from the scene above, one with the clay shader and one with the final look. Drag the handle: only the surfaces change. That’s the point of a modular pipeline: a new colourway is a shader swap, not a reshoot.</p>
+    </div>
+    <Compare before="Clay" after="Final" ratio="4 / 3">
+      <div slot="before" class="fw-snap"><Fragment set:html={claySvg} /><img alt="Clay render of the kettle pouring into a cone" data-fw-snap="clay" hidden /></div>
+      <div slot="after" class="fw-snap"><Fragment set:html={finalSvg} /><img alt="Final render of the kettle pouring into a cone, with steam" data-fw-snap="final" hidden /></div>
+    </Compare>
+  </div>
+</div>
+
+<script>
+  import { on, setStage, setColour, ui } from '../../../scripts/three/fellow-bus';
+  import type { Colourway, PipelineStage } from '../../../scripts/three/fellow';
+
+  const steps = [...document.querySelectorAll<HTMLButtonElement>('[data-fw-step]')];
+  const texts = [...document.querySelectorAll<HTMLElement>('[data-fw-step-text]')];
+  const swatches = [...document.querySelectorAll<HTMLButtonElement>('[data-fw-colour]')];
+  const markStage = (s: PipelineStage) => {
+    steps.forEach((b) => {
+      const on = b.dataset.fwStep === s;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+    texts.forEach((t) => (t.hidden = t.dataset.fwStepText !== s));
+  };
+  steps.forEach((b) => b.addEventListener('click', () => setStage(b.dataset.fwStep as PipelineStage)));
+  swatches.forEach((b) =>
+    b.addEventListener('click', () => {
+      setColour(b.dataset.fwColour as Colourway);
+      swatches.forEach((x) => {
+        x.classList.toggle('is-on', x === b);
+        x.setAttribute('aria-pressed', String(x === b));
+      });
+    }),
+  );
+  on('stage', markStage);
+  markStage(ui.stage);
+
+  on('ready', (api) => {
+    // Snapshots for the compare slider (rendered once, off the live scene).
+    requestAnimationFrame(() => {
+      const snaps = api.snapshots();
+      if (!snaps) return;
+      document.querySelectorAll<HTMLImageElement>('[data-fw-snap]').forEach((img) => {
+        img.src = img.dataset.fwSnap === 'clay' ? snaps.clay : snaps.final;
+        img.hidden = false;
+      });
+    });
+  });
+</script>
+
+<style>
+  .fw-ld { display: grid; gap: var(--s-8); }
+  .fw-ld > *, .fw-ld-studio > *, .fw-ld-ref > *, .fw-ld-compare > * { min-width: 0; }
+  .fw-ld-ref { display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--s-6); align-items: center; }
+  .fw-ld-bp { border-radius: var(--r-lg); overflow: hidden; border: 1px solid var(--line); }
+  .fw-ld-bp :global(svg) { width: 100%; height: auto; }
+  .fw-ld-specs { display: grid; gap: var(--s-4); }
+  .fw-ld-specs ul { list-style: none; padding: 0; display: grid; gap: var(--s-2); }
+  .fw-ld-specs li { display: flex; gap: var(--s-3); align-items: baseline; padding-bottom: var(--s-2); border-bottom: 1px solid var(--line); color: var(--ink-2); }
+  .fw-ld-specs .t-num { min-width: 7.5rem; font-size: var(--fs-lg); font-weight: 700; color: var(--ink); }
+  .fw-ld-studio { display: grid; gap: var(--s-4); }
+  .fw-steps { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; padding: 6px; border-radius: var(--r-pill); border: 1px solid var(--line); background: var(--surface); }
+  .fw-step { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 10px; border-radius: var(--r-pill); font: 600 var(--fs-sm) var(--font-ui); color: var(--ink-2); transition: background var(--dur-1), color var(--dur-1); }
+  .fw-step .t-num { color: var(--muted); font-size: 0.72rem; }
+  .fw-step:hover { background: rgb(255 255 255 / 0.05); color: var(--ink); }
+  .fw-step.is-on { background: var(--a); color: #140d07; }
+  .fw-step.is-on .t-num { color: #140d07; opacity: 0.6; }
+  .fw-ld-under { display: grid; grid-template-columns: 1fr auto; gap: var(--s-5); align-items: start; }
+  .fw-ld-info p { color: var(--ink-2); max-width: 62ch; }
+  .fw-ld-info strong { color: var(--ink); }
+  .fw-swatches { display: flex; flex-wrap: wrap; gap: var(--s-2); justify-content: flex-end; }
+  .fw-swatch { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 14px 6px 6px; border-radius: var(--r-pill); border: 1px solid var(--line); background: var(--surface); font: 500 var(--fs-sm) var(--font-ui); color: var(--ink-2); transition: border-color var(--dur-1), color var(--dur-1); }
+  .fw-swatch:hover { border-color: var(--line-strong); color: var(--ink); }
+  .fw-swatch.is-on { border-color: var(--a); color: var(--ink); }
+  .fw-swatch-chip { width: 30px; height: 30px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.15); }
+  .fw-ld-compare { display: grid; grid-template-columns: 1fr 1.5fr; gap: var(--s-6); align-items: center; }
+  .fw-ld-compare-copy { display: grid; gap: var(--s-3); }
+  .fw-snap { position: relative; }
+  .fw-snap :global(svg), .fw-snap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  @media (max-width: 960px) {
+    .fw-ld-ref, .fw-ld-compare, .fw-ld-under { grid-template-columns: 1fr; }
+    .fw-swatches { justify-content: flex-start; }
+    .fw-steps { grid-template-columns: repeat(3, 1fr); border-radius: var(--r-lg); }
+  }
+</style>

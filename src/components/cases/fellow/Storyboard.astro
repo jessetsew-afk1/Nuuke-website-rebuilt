@@ -1,0 +1,141 @@
+---
+// Ten original line-art frames. Clicking one jumps the live 3D camera to that shot.
+import Dock from './Dock.astro';
+import { shots, storyFrames, shotStarts } from '../../../data/cases/fellow';
+---
+
+<div class="fw-sb" data-fw-sb>
+  <div class="fw-sb-strip-wrap">
+    <ol class="fw-sb-strip" role="list" data-fw-strip>
+      {
+        shots.map((s, i) => (
+          <li>
+            <button type="button" class:list={['fw-sb-frame', { 'is-on': i === 0 }]} data-fw-frame={i} aria-pressed={i === 0 ? 'true' : 'false'} aria-label={`Shot ${i + 1}: ${s.title}. Show it on the 3D stage.`}>
+              <span class="fw-sb-art" set:html={storyFrames[i]} />
+              <span class="fw-sb-meta">
+                <span class="t-num">{String(i + 1).padStart(2, '0')}</span>
+                <span class="fw-sb-title">{s.title}</span>
+                <span class="t-num fw-sb-dur">{s.dur}s</span>
+              </span>
+            </button>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+  <div class="fw-sb-row">
+    <div class="fw-sb-notes">
+      {
+        shots.map((s, i) => (
+          <article class="fw-sb-note" data-fw-note={i} hidden={i !== 0}>
+            <p class="t-label">
+              Shot {String(i + 1).padStart(2, '0')} / 10 · {shotStarts[i]}s–{shotStarts[i] + s.dur}s
+            </p>
+            <h3 class="t-h4">{s.title}</h3>
+            <dl>
+              <div><dt class="t-label">Action</dt><dd>{s.action}</dd></div>
+              <div><dt class="t-label">Camera</dt><dd>{s.camera}</dd></div>
+              <div><dt class="t-label">Sound</dt><dd>{s.sound}</dd></div>
+            </dl>
+          </article>
+        ))
+      }
+      <div class="fw-sb-actions">
+        <button type="button" class="btn btn--ghost fw-sb-play" data-fw-sb-play>
+          Play from this shot <span class="btn-icon" aria-hidden="true">▶</span>
+        </button>
+        <div class="fw-sb-nav">
+          <button type="button" class="fel-icon-btn" data-fw-sb-step="-1" aria-label="Previous shot">←</button>
+          <button type="button" class="fel-icon-btn" data-fw-sb-step="1" aria-label="Next shot">→</button>
+        </div>
+      </div>
+    </div>
+    <Dock name="story" label="3D stage showing the selected storyboard shot" withStage />
+  </div>
+</div>
+
+<script>
+  import { on, showShot, play, ui, shotStarts } from '../../../scripts/three/fellow-bus';
+  const root = document.querySelector<HTMLElement>('[data-fw-sb]');
+  if (root) {
+    const frames = [...root.querySelectorAll<HTMLButtonElement>('[data-fw-frame]')];
+    const notes = [...root.querySelectorAll<HTMLElement>('[data-fw-note]')];
+    const strip = root.querySelector<HTMLElement>('[data-fw-strip]')!;
+    let cur = 0;
+    const mark = (i: number, scroll: boolean) => {
+      if (i === cur) return;
+      cur = i;
+      frames.forEach((f, j) => {
+        f.classList.toggle('is-on', j === i);
+        f.setAttribute('aria-pressed', j === i ? 'true' : 'false');
+      });
+      notes.forEach((n, j) => (n.hidden = j !== i));
+      if (scroll) {
+        const f = frames[i];
+        const left = f.offsetLeft - (strip.clientWidth - f.clientWidth) / 2;
+        strip.scrollTo({ left, behavior: 'smooth' });
+      }
+    };
+    frames.forEach((f, i) =>
+      f.addEventListener('click', () => {
+        mark(i, true);
+        showShot(i);
+      }),
+    );
+    root.querySelectorAll<HTMLButtonElement>('[data-fw-sb-step]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const i = (cur + Number(b.dataset.fwSbStep) + frames.length) % frames.length;
+        mark(i, true);
+        showShot(i);
+      }),
+    );
+    root.querySelector('[data-fw-sb-play]')?.addEventListener('click', () => {
+      showShot(cur);
+      play(shotStarts[cur]);
+    });
+    on('shot', (i) => mark(i, true));
+    on('time', (t) => {
+      if (t.active && t.playing && ui.dock === 'story') mark(t.shot, true);
+    });
+  }
+</script>
+
+<style>
+  .fw-sb { display: grid; gap: var(--s-6); }
+  .fw-sb > *, .fw-sb-row > * { min-width: 0; }
+  .fw-sb-strip-wrap { margin-inline: calc(var(--gutter) * -1); }
+  .fw-sb-strip {
+    list-style: none;
+    padding: 4px var(--gutter) var(--s-4);
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: clamp(220px, 24vw, 300px);
+    gap: var(--s-3);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+  .fw-sb-strip li { scroll-snap-align: start; }
+  .fw-sb-frame { width: 100%; display: grid; gap: var(--s-2); text-align: left; padding: 6px; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface); transition: border-color var(--dur-1), transform var(--dur-2) var(--ease-out), background var(--dur-1); }
+  .fw-sb-frame:hover { transform: translateY(-3px); border-color: var(--line-strong); }
+  .fw-sb-frame.is-on { border-color: var(--a); background: color-mix(in srgb, var(--a) 10%, var(--surface)); }
+  .fw-sb-art { display: block; border-radius: 9px; overflow: hidden; }
+  .fw-sb-art :global(svg) { width: 100%; height: auto; }
+  .fw-sb-meta { display: flex; align-items: baseline; gap: var(--s-2); padding: 0 4px 2px; font-size: var(--fs-sm); }
+  .fw-sb-meta .t-num { color: var(--a); font-weight: 700; }
+  .fw-sb-title { flex: 1; color: var(--ink); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fw-sb-dur { color: var(--muted) !important; font-weight: 500 !important; }
+  .fw-sb-row { display: grid; grid-template-columns: minmax(260px, 0.75fr) 2fr; gap: var(--s-6); align-items: start; }
+  .fw-sb-notes { display: grid; gap: var(--s-5); align-content: start; }
+  .fw-sb-note { display: grid; gap: var(--s-3); }
+  .fw-sb-note dl { display: grid; gap: var(--s-3); margin-top: var(--s-2); }
+  .fw-sb-note dd { color: var(--ink-2); font-size: var(--fs-sm); margin-top: 2px; }
+  .fw-sb-actions { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: center; }
+  .fw-sb-nav { display: flex; gap: var(--s-2); }
+  @media (max-width: 960px) {
+    .fw-sb-row { grid-template-columns: 1fr; }
+    .fw-sb-notes { order: 2; }
+  }
+</style>

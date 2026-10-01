@@ -1,0 +1,101 @@
+---
+// The single shared WebGL studio. It starts in one dock and moves between
+// chapters (see scripts/three/fellow-bus.ts). Overlays: HUD, captions, title cards.
+---
+
+<div class="fw-stage" data-fw-stage>
+  <canvas class="fw-canvas" aria-label="Interactive 3D model of a Stagg EKG-style kettle. Drag sideways to orbit."></canvas>
+  <div class="fw-hud" aria-hidden="true">
+    <span class="fw-hud-tag" data-fw-hud>Final</span>
+    <span class="fw-hud-tc t-num" data-fw-tc></span>
+  </div>
+  <div class="fw-card fw-title" data-fw-titlecard aria-hidden="true">Everyday Magic.</div>
+  <div class="fw-card fw-end" data-fw-endcard aria-hidden="true">
+    <strong>Stagg EKG</strong>
+    <span>Concept – not commissioned by Fellow</span>
+  </div>
+  <p class="fw-caption" data-fw-caption aria-live="polite"></p>
+  <div class="fw-prog" aria-hidden="true"><i data-fw-prog></i></div>
+  <p class="fw-hint" aria-hidden="true">Drag to orbit</p>
+  <p class="fw-fail t-small">3D needs WebGL, which isn’t available here. The storyboard and notes still tell the whole story.</p>
+</div>
+
+<script>
+  import { boot, on, ui, shots, timecode, totalDuration } from '../../../scripts/three/fellow-bus';
+
+  const root = document.querySelector<HTMLElement>('[data-fw-stage]');
+  if (root) {
+    const hud = root.querySelector<HTMLElement>('[data-fw-hud]')!;
+    const tc = root.querySelector<HTMLElement>('[data-fw-tc]')!;
+    const cap = root.querySelector<HTMLElement>('[data-fw-caption]')!;
+    const prog = root.querySelector<HTMLElement>('[data-fw-prog]')!;
+    const title = root.querySelector<HTMLElement>('[data-fw-titlecard]')!;
+    const end = root.querySelector<HTMLElement>('[data-fw-endcard]')!;
+    const names: Record<string, string> = { blockout: 'Blockout', wireframe: 'Wireframe', clay: 'Clay', materials: 'Materials', lighting: 'Lighting', final: 'Final' };
+    let lastShot = -1;
+    let tris = { blockout: 0, detail: 0 };
+    const free = () => {
+      root.classList.remove('is-anim');
+      const n = ui.stage === 'blockout' ? tris.blockout : tris.detail;
+      hud.textContent = `${names[ui.stage]}${n ? ` · ${n.toLocaleString('en-US')} tris` : ''}`;
+      tc.textContent = '';
+      title.classList.remove('is-on');
+      end.classList.remove('is-on');
+      lastShot = -1;
+    };
+    on('ready', (api) => {
+      tris = api.triangles;
+      if (!ui.time.active) free();
+    });
+    on('stage', () => !ui.time.active && free());
+    on('time', (i) => {
+      if (!i.active) return free();
+      root.classList.add('is-anim');
+      root.classList.toggle('is-playing', i.playing);
+      if (i.shot !== lastShot) {
+        lastShot = i.shot;
+        hud.textContent = `Shot ${String(i.shot + 1).padStart(2, '0')}/10 · ${shots[i.shot].title}`;
+        cap.textContent = shots[i.shot].caption;
+      }
+      tc.textContent = timecode(i.t);
+      prog.style.transform = `scaleX(${i.t / totalDuration})`;
+      title.classList.toggle('is-on', i.shot === 0 && i.local > 0.35);
+      end.classList.toggle('is-on', i.shot === 9 && i.local > 0.3);
+    });
+    boot();
+  }
+</script>
+
+<style>
+  .fw-stage { position: absolute; inset: 0; z-index: 1; background: #0b0a09; }
+  .fw-canvas { width: 100%; height: 100%; touch-action: pan-y; cursor: grab; opacity: 0; transition: opacity 0.8s var(--ease-out); }
+  .fw-canvas:active { cursor: grabbing; }
+  .fw-stage.is-ready .fw-canvas { opacity: 1; }
+  .fw-hud { position: absolute; top: var(--s-3); left: var(--s-3); right: var(--s-3); display: flex; justify-content: space-between; gap: var(--s-3); pointer-events: none; }
+  .fw-hud-tag, .fw-hud-tc { padding: 4px 10px; border-radius: 99px; background: rgb(0 0 0 / 0.55); backdrop-filter: blur(6px); font: 600 11px/1.4 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: #f1e9de; }
+  .fw-hud-tc:empty { display: none; }
+  .fw-hud-tc { color: var(--a); }
+  .fw-card { position: absolute; left: 50%; transform: translate(-50%, 8px); text-align: center; pointer-events: none; opacity: 0; transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out); color: #f4ede2; }
+  .fw-card.is-on { opacity: 1; transform: translate(-50%, 0); }
+  .fw-title { top: 16%; font: 900 clamp(1.4rem, 1rem + 2.4vw, 3rem) / 1 var(--font-display); letter-spacing: -0.04em; white-space: nowrap; }
+  .fw-end { top: 9%; display: grid; gap: 6px; padding: var(--s-4) var(--s-5); border-radius: var(--r-md); background: rgb(11 10 9 / 0.55); backdrop-filter: blur(6px); }
+  .fw-end strong { font: 900 clamp(1.6rem, 1rem + 3vw, 3.4rem) / 1 var(--font-display); letter-spacing: -0.04em; }
+  .fw-end span { font: 500 12px var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; color: #c9bfb2; }
+  .fw-caption { position: absolute; left: var(--s-4); right: var(--s-4); bottom: calc(var(--s-4) + 6px); max-width: 60ch; margin-inline: auto; text-align: center; font-size: var(--fs-sm); line-height: 1.45; color: #f1e9de; text-shadow: 0 1px 12px rgb(0 0 0 / 0.9); opacity: 0; transition: opacity var(--dur-2); pointer-events: none; }
+  .fw-stage.is-anim .fw-caption { opacity: 1; }
+  .fw-prog { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgb(255 255 255 / 0.08); opacity: 0; transition: opacity var(--dur-2); }
+  .fw-stage.is-anim .fw-prog { opacity: 1; }
+  .fw-prog i { position: absolute; inset: 0; background: var(--a); transform-origin: left; transform: scaleX(0); }
+  .fw-hint { position: absolute; right: var(--s-3); bottom: var(--s-3); font: 500 11px var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: rgb(255 255 255 / 0.5); pointer-events: none; transition: opacity var(--dur-2); }
+  .fw-stage.is-anim .fw-hint { opacity: 0; }
+  .fw-fail { display: none; position: absolute; inset: auto var(--s-4) var(--s-4); text-align: center; }
+  .fw-stage.is-failed .fw-fail { display: block; }
+  .fw-stage.is-failed { background: transparent; }
+  .fw-stage:not(.is-ready) { background: transparent; }
+  @media (max-width: 700px) {
+    .fw-caption { font-size: 0.8rem; bottom: var(--s-3); }
+    .fw-hint { display: none; }
+    .fw-end { padding: var(--s-3) var(--s-4); }
+    .fw-end span { font-size: 9px; white-space: nowrap; }
+  }
+</style>

@@ -1,0 +1,123 @@
+---
+// Deliverables: cutdowns as timelines, and one master frame reframed for 16:9, 1:1 and 9:16.
+import { shots, kettle } from '../../../data/cases/fellow';
+
+const cuts = [
+  { name: 'Hero film', len: 60, use: 'Site hero, YouTube, launch email', shots: shots.map((s, i) => ({ i, d: (s.dur * 60) / 50 })) },
+  { name: 'Social cut', len: 15, use: 'Paid social, Reels, Shorts', shots: [ { i: 0, d: 2 }, { i: 2, d: 3 }, { i: 4, d: 3 }, { i: 7, d: 4 }, { i: 9, d: 3 } ] },
+  { name: 'Bumper', len: 6, use: 'Six-second pre-roll', shots: [ { i: 7, d: 4 }, { i: 9, d: 2 } ] },
+];
+const hue = (i: number) => `color-mix(in srgb, #c98a4e ${28 + i * 8}%, #241d18)`;
+
+const master = (vb: string, id: string) => `<svg viewBox="${vb}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+<defs><radialGradient id="fw-m-${id}" cx="55%" cy="35%" r="70%"><stop offset="0" stop-color="#2a2420"/><stop offset="1" stop-color="#0b0a09"/></radialGradient></defs>
+<rect width="1000" height="1000" fill="url(#fw-m-${id})"/>
+<rect y="760" width="1000" height="240" fill="#100e0d"/>
+<ellipse cx="560" cy="770" rx="250" ry="22" fill="#000" opacity=".55"/>
+${kettle({ x: 620, y: 700, s: 2.6, tilt: -22, fill: '#1c1c1c', stroke: '#3c3733', rim: true })}
+<line x1="331" y1="438" x2="331" y2="640" stroke="#cfe6f7" stroke-width="3" opacity=".85"/>
+<path d="M262 640 L400 640 L366 700 L296 700 Z" fill="#ece8e1"/>
+<rect x="282" y="700" width="98" height="66" rx="8" fill="#2a2826"/>
+<path d="M320 600 C300 560 340 520 318 470 M350 610 C372 560 336 520 360 470" stroke="#fff" stroke-opacity=".18" stroke-width="6" fill="none" stroke-linecap="round"/>
+</svg>`;
+const frames = [
+  { id: 'wide', ratio: '16 / 9', label: '16:9', use: 'Site hero · YouTube', vb: '0 250 1000 562.5', cls: '' },
+  { id: 'square', ratio: '1 / 1', label: '1:1', use: 'Feed · product page', vb: '0 0 1000 1000', cls: '' },
+  { id: 'tall', ratio: '9 / 16', label: '9:16', use: 'Reels · TikTok · Shorts', vb: '180 0 562.5 1000', cls: 'fw-fr--tall' },
+];
+---
+
+<div class="fw-dl" data-fw-dl>
+  <div class="fw-cuts">
+    {
+      cuts.map((c) => (
+        <div class="fw-cut" data-reveal>
+          <div class="fw-cut-head">
+            <span class="fw-cut-name">{c.name}</span>
+            <span class="t-num fw-cut-len">{c.len}s</span>
+            <span class="t-small">{c.use}</span>
+          </div>
+          <div class="fw-cut-bar" style={`width:${(c.len / 60) * 100}%`}>
+            {c.shots.map((s) => (
+              <span style={`flex:${s.d};background:${hue(s.i)}`} title={`Shot ${s.i + 1}: ${shots[s.i].title}`}>
+                <b class="t-num">{String(s.i + 1).padStart(2, '0')}</b>
+              </span>
+            ))}
+          </div>
+        </div>
+      ))
+    }
+    <p class="t-small">Numbers are storyboard shots. The 15 s cut keeps reveal → wake → heat → pour → end card; the bumper is pour + end card only.</p>
+  </div>
+
+  <div class="fw-frames-head">
+    <p class="t-label">One master frame, three aspect ratios</p>
+    <button type="button" class="fel-chip-btn" data-fw-safe aria-pressed="false">Show safe zones</button>
+  </div>
+  <div class="fw-frames" data-stagger="0.08">
+    {
+      frames.map((f) => (
+        <figure class:list={['fw-fr', f.cls]}>
+          <div class="fw-fr-box" style={`aspect-ratio:${f.ratio}`}>
+            <Fragment set:html={master(f.vb, f.id)} />
+            <span class="fw-fr-title">Everyday Magic.</span>
+            <span class="fw-safe" aria-hidden="true" />
+          </div>
+          <figcaption>
+            <span class="t-num">{f.label}</span> {f.use}
+          </figcaption>
+        </figure>
+      ))
+    }
+  </div>
+  <ul class="fw-also" role="list" data-stagger="0.05">
+    <li><strong>4</strong> colourway turntables, 6 s seamless loops</li>
+    <li><strong>12</strong> hero stills from the same scene file</li>
+    <li><strong>1</strong> product-page 360° spin</li>
+    <li><strong>Lightweight</strong> video loops for the site (no GIFs)</li>
+  </ul>
+</div>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-fw-dl]');
+  const btn = root?.querySelector<HTMLButtonElement>('[data-fw-safe]');
+  btn?.addEventListener('click', () => {
+    const on = btn.getAttribute('aria-pressed') !== 'true';
+    btn.setAttribute('aria-pressed', String(on));
+    btn.textContent = on ? 'Hide safe zones' : 'Show safe zones';
+    root!.classList.toggle('show-safe', on);
+  });
+</script>
+
+<style>
+  .fw-dl { display: grid; gap: var(--s-6); }
+  .fw-dl > * { min-width: 0; }
+  .fw-cuts { display: grid; gap: var(--s-4); }
+  .fw-cut { display: grid; gap: var(--s-2); }
+  .fw-cut-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px var(--s-3); }
+  .fw-cut-name { font-weight: 700; color: var(--ink); }
+  .fw-cut-len { color: var(--a); font-weight: 700; }
+  .fw-cut-bar { display: flex; gap: 2px; height: 34px; min-width: 64px; border-radius: 8px; overflow: hidden; }
+  .fw-cut-bar span { display: grid; place-items: center; min-width: 0; }
+  .fw-cut-bar b { font-size: 10px; color: rgb(255 255 255 / 0.85); overflow: hidden; }
+  .fw-frames-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--s-3); margin-top: var(--s-4); }
+  .fw-frames { display: grid; grid-template-columns: 1.78fr 1fr 0.5625fr; gap: var(--s-4); align-items: end; }
+  .fw-fr { display: grid; gap: var(--s-2); margin: 0; min-width: 0; }
+  .fw-fr-box { position: relative; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--line-strong); }
+  .fw-fr-box :global(svg) { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .fw-fr-title { position: absolute; left: 8%; top: 9%; font: 900 clamp(0.8rem, 0.5rem + 1vw, 1.4rem) / 1 var(--font-display); letter-spacing: -0.04em; color: #f4ede2; }
+  .fw-fr--tall .fw-fr-title { top: 18%; }
+  .fw-safe { position: absolute; inset: 5%; border: 1px dashed rgb(255 255 255 / 0.6); opacity: 0; transition: opacity var(--dur-2); pointer-events: none; }
+  .fw-fr--tall .fw-safe { inset: 14% 4% 22% 4%; box-shadow: 0 0 0 999px rgb(201 138 78 / 0.22); }
+  .show-safe .fw-safe { opacity: 1; }
+  .fw-fr figcaption { font-size: var(--fs-sm); color: var(--muted); }
+  .fw-fr figcaption .t-num { color: var(--ink); font-weight: 700; margin-right: 4px; }
+  .fw-also { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s-3); }
+  .fw-also li { padding: var(--s-4); border-radius: var(--r-md); border: 1px solid var(--line); color: var(--ink-2); font-size: var(--fs-sm); }
+  .fw-also strong { display: block; font: 800 var(--fs-xl) / 1.1 var(--font-display); color: var(--ink); margin-bottom: 4px; }
+  @media (max-width: 900px) {
+    .fw-frames { grid-template-columns: 1fr 1fr; }
+    .fw-frames .fw-fr:first-child { grid-column: 1 / -1; }
+    .fw-also { grid-template-columns: 1fr 1fr; }
+  }
+</style>

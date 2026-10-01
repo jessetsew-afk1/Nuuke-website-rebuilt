@@ -1,0 +1,119 @@
+---
+// Three-point lighting on the live model: toggle key / fill / rim and watch the
+// top-view diagram and the 3D studio respond together.
+import Dock from './Dock.astro';
+
+const lights = [
+  { id: 'key', name: 'Key', color: '#f0b77a', pos: [218, 238], text: 'Warm, high, front-right. Shapes the body and casts the only hard-ish shadow.' },
+  { id: 'fill', name: 'Fill', color: '#9fc0ff', pos: [50, 222], text: 'Cool and soft from the left, roughly a quarter of the key. Opens the shadows without flattening them.' },
+  { id: 'rim', name: 'Rim ×2', color: '#ffffff', pos: [82, 78], pos2: [210, 78], text: 'Two strips behind. They trace the gooseneck and handle so the silhouette reads on black.' },
+];
+const beam = (x: number, y: number, c: string) => {
+  const dx = 150 - x;
+  const dy = 150 - y;
+  const L = Math.hypot(dx, dy);
+  const nx = -dy / L;
+  const ny = dx / L;
+  const w = 34;
+  return `<polygon points="${x + nx * 8},${y + ny * 8} ${x - nx * 8},${y - ny * 8} ${150 - nx * w},${150 - ny * w} ${150 + nx * w},${150 + ny * w}" fill="${c}" opacity=".16"/>`;
+};
+const box = (x: number, y: number, c: string, w = 30, h = 8) => {
+  const a = (Math.atan2(150 - y, 150 - x) * 180) / Math.PI + 90;
+  return `<rect x="${x - w / 2}" y="${y - h / 2}" width="${w}" height="${h}" rx="2" fill="${c}" transform="rotate(${a} ${x} ${y})"/>`;
+};
+const diagram = `<svg viewBox="0 0 300 300" role="img" aria-label="Top view of the three-point lighting set-up around the kettle">
+<rect width="300" height="300" rx="18" fill="#0f0d0c"/>
+<circle cx="150" cy="150" r="118" fill="none" stroke="#221e1b" stroke-dasharray="3 5"/>
+${lights
+  .map((l) => {
+    const p2 = (l as { pos2?: number[] }).pos2;
+    return `<g class="fw-lg" data-fw-lg="${l.id}">${beam(l.pos[0], l.pos[1], l.color)}${p2 ? beam(p2[0], p2[1], l.color) : ''}${box(l.pos[0], l.pos[1], l.color, l.id === 'rim' ? 10 : 30, l.id === 'rim' ? 34 : 8)}${p2 ? box(p2[0], p2[1], l.color, 10, 34) : ''}<text x="${l.pos[0]}" y="${l.pos[1] + (l.pos[1] > 150 ? 26 : -20)}" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="${l.color}">${l.name.toUpperCase()}</text></g>`;
+  })
+  .join('')}
+<g transform="translate(150 150)"><rect x="-38" y="-35" width="76" height="70" rx="6" fill="#1a1715" stroke="#3a3430"/><circle r="30" fill="#24201d" stroke="#e9e2d6" stroke-width="1.5"/><path d="M-30 0 H-70" stroke="#e9e2d6" stroke-width="3" stroke-linecap="round"/><path d="M30 -6 H50 V6 H30" fill="none" stroke="#e9e2d6" stroke-width="2.5"/></g>
+<g transform="translate(150 282)"><rect x="-13" y="-8" width="26" height="16" rx="3" fill="#e9e2d6"/><path d="M13 -4 L22 -8 V8 L13 4Z" fill="#e9e2d6"/><text y="-14" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#8f857a" letter-spacing="1">CAMERA</text></g>
+</svg>`;
+---
+
+<div class="fw-lt" data-fw-lt>
+  <Dock name="lighting" label="3D stage showing the lighting set-up with softboxes" />
+  <div class="fw-lt-side">
+    <div class="fw-lt-diagram" set:html={diagram} />
+    <div class="fw-lt-toggles" role="group" aria-label="Lights">
+      {
+        lights.map((l) => (
+          <button type="button" class="fw-lt-toggle is-on" data-fw-light={l.id} aria-pressed="true" style={`--lc:${l.color}`}>
+            <span class="fw-lt-dot" aria-hidden="true" />
+            <span class="fw-lt-name">{l.name}</span>
+            <span class="fw-lt-state" aria-hidden="true">On</span>
+            <span class="fw-lt-text">{l.text}</span>
+          </button>
+        ))
+      }
+    </div>
+    <div class="fw-lt-presets">
+      <button type="button" class="fel-chip-btn" data-fw-lpreset="rim">Rim only (shot 01)</button>
+      <button type="button" class="fel-chip-btn" data-fw-lpreset="flat">Key off</button>
+      <button type="button" class="fel-chip-btn" data-fw-lpreset="all">All on</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { on, setLight, ui } from '../../../scripts/three/fellow-bus';
+  import type { LightName } from '../../../scripts/three/fellow';
+
+  const root = document.querySelector<HTMLElement>('[data-fw-lt]');
+  if (root) {
+    const toggles = [...root.querySelectorAll<HTMLButtonElement>('[data-fw-light]')];
+    const groups = [...root.querySelectorAll<SVGGElement>('[data-fw-lg]')];
+    const sync = () => {
+      toggles.forEach((b) => {
+        const onn = ui.lights[b.dataset.fwLight as LightName];
+        b.classList.toggle('is-on', onn);
+        b.setAttribute('aria-pressed', String(onn));
+        b.querySelector('.fw-lt-state')!.textContent = onn ? 'On' : 'Off';
+      });
+      groups.forEach((g) => g.classList.toggle('is-off', !ui.lights[g.dataset.fwLg as LightName]));
+    };
+    toggles.forEach((b) => b.addEventListener('click', () => setLight(b.dataset.fwLight as LightName, !ui.lights[b.dataset.fwLight as LightName])));
+    const presets: Record<string, Record<LightName, boolean>> = {
+      rim: { key: false, fill: false, rim: true },
+      flat: { key: false, fill: true, rim: true },
+      all: { key: true, fill: true, rim: true },
+    };
+    root.querySelectorAll<HTMLButtonElement>('[data-fw-lpreset]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const p = presets[b.dataset.fwLpreset!];
+        (Object.keys(p) as LightName[]).forEach((n) => setLight(n, p[n]));
+      }),
+    );
+    on('light', sync);
+    sync();
+  }
+</script>
+
+<style>
+  .fw-lt { display: grid; grid-template-columns: 1.6fr 1fr; gap: var(--s-6); align-items: start; }
+  .fw-lt > * { min-width: 0; }
+  .fw-lt-side { display: grid; gap: var(--s-4); }
+  .fw-lt-diagram :global(svg) { width: 100%; max-width: 360px; height: auto; margin-inline: auto; }
+  .fw-lt-diagram :global(.fw-lg) { transition: opacity var(--dur-2); }
+  .fw-lt-diagram :global(.fw-lg.is-off) { opacity: 0.18; }
+  .fw-lt-toggles { display: grid; gap: var(--s-2); }
+  .fw-lt-toggle { display: grid; grid-template-columns: auto 1fr auto; gap: 4px var(--s-3); align-items: center; text-align: left; padding: var(--s-3) var(--s-4); border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface); transition: border-color var(--dur-1), opacity var(--dur-1); }
+  .fw-lt-toggle:hover { border-color: var(--line-strong); }
+  .fw-lt-toggle.is-on { border-color: color-mix(in srgb, var(--lc) 55%, transparent); }
+  .fw-lt-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--lc); box-shadow: 0 0 12px var(--lc); transition: opacity var(--dur-1), box-shadow var(--dur-1); }
+  .fw-lt-toggle:not(.is-on) .fw-lt-dot { opacity: 0.25; box-shadow: none; }
+  .fw-lt-name { font-weight: 700; color: var(--ink); }
+  .fw-lt-state { font: 600 11px var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 9px; border-radius: 99px; background: rgb(255 255 255 / 0.06); color: var(--ink-2); }
+  .fw-lt-toggle.is-on .fw-lt-state { background: var(--lc); color: #111; }
+  .fw-lt-text { grid-column: 2 / -1; font-size: var(--fs-sm); color: var(--muted); }
+  .fw-lt-presets { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+  @media (max-width: 960px) {
+    .fw-lt { grid-template-columns: 1fr; }
+    .fw-lt-diagram :global(svg) { max-width: 300px; }
+    .fw-lt-diagram { order: 3; }
+  }
+</style>

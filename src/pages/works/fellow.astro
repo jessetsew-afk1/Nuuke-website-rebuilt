@@ -1,0 +1,150 @@
+---
+import Case from '../../layouts/Case.astro';
+import Chapter from '../../components/case/Chapter.astro';
+import Brief from '../../components/case/Brief.astro';
+import Personas from '../../components/case/Personas.astro';
+import Metrics from '../../components/case/Metrics.astro';
+import Moodboard from '../../components/cases/fellow/Moodboard.astro';
+import Storyboard from '../../components/cases/fellow/Storyboard.astro';
+import LookDev from '../../components/cases/fellow/LookDev.astro';
+import Lighting from '../../components/cases/fellow/Lighting.astro';
+import Animatic from '../../components/cases/fellow/Animatic.astro';
+import Sound from '../../components/cases/fellow/Sound.astro';
+import Deliverables from '../../components/cases/fellow/Deliverables.astro';
+import { bySlug } from '../../data/projects';
+
+const p = bySlug('fellow');
+const chapters = [
+  { id: 'brief', label: 'Brief' },
+  { id: 'audience', label: 'Audience' },
+  { id: 'concept', label: 'Creative concept' },
+  { id: 'storyboard', label: 'Storyboard' },
+  { id: 'lookdev', label: 'Modelling & look dev' },
+  { id: 'lighting', label: 'Lighting' },
+  { id: 'animation', label: 'Animation' },
+  { id: 'sound', label: 'Sound design' },
+  { id: 'deliverables', label: 'Deliverables' },
+  { id: 'measure', label: 'Measure' },
+];
+const sources = [
+  { label: 'Red Dot — Stagg EKG', url: 'https://www.red-dot.org/project/stagg-ekg-22494-22493' },
+  { label: 'IDSA IDEA gallery — Stagg EKG', url: 'https://www.idsa.org/awards-recognition/idea/idea-gallery/stagg-ekg-electric-water-kettle/' },
+  { label: 'Fellow — Stagg EKG product page', url: 'https://fellowproducts.com/products/stagg-ekg-electric-pour-over-kettle' },
+  { label: 'Fellow — EKG instructions', url: 'https://help.fellowproducts.com/hc/en-us/articles/115001707611-Stagg-EKG-Electric-Kettle-Safety-Troubleshooting-and-Instructions' },
+  { label: 'Fellow — home (Everyday Magic)', url: 'https://fellowproducts.com/' },
+  { label: 'TechGearLab — EKG review', url: 'https://www.techgearlab.com/reviews/kitchen/electric-kettle/fellow-stagg-ekg' },
+  { label: 'Northern Teaist — EKG review', url: 'https://northernteaist.com/2019/11/11/fellow-stagg-ekg-kettle/' },
+  { label: 'Crate & Barrel — EKG Pro Stone Blue with Walnut', url: 'https://www.crateandbarrel.com/fellow-stagg-ekg-pro-electric-tea-kettle-in-stone-blue-with-walnut-accents/s681646' },
+  { label: 'Daily Coffee News — $30M Series B', url: 'https://dailycoffeenews.com/2022/06/15/coffee-equipment-maker-fellow-raises-30-million-in-series-b-round/' },
+  { label: 'Entrepreneur — Kickstarter story', url: 'https://www.entrepreneur.com/building-a-business/my-business-idea-brought-in-200k-on-kickstarter-then-grew-to-9-figures' },
+  { label: 'Housewares — Meet Fellow', url: 'https://blog.housewares.org/2017/02/19/discovering-design-meet-fellow/' },
+  { label: 'Forbes — Fellow, 2026', url: 'https://www.forbes.com/sites/eshachhabra/2026/05/27/how-73-rejections-shaped-fellows-trajectory-and-now-a-new-espresso-machine/' },
+];
+const meta = [
+  { label: 'Brand', value: 'Fellow, San Francisco' },
+  { label: 'Hero product', value: 'Stagg EKG electric kettle' },
+  { label: 'Discipline', value: '3D product animation film' },
+  { label: 'Deliverables', value: '60 s film, 15 s + 6 s cuts, stills' },
+];
+const personas = [
+  { name: 'Pour-over Paolo', meta: '34 · software engineer', quote: 'I weigh my beans. I want the same cup every morning.', goals: ['Exact, repeatable temperature', 'A steady, controllable pour', 'Specs shown, not claimed'], pains: ['Vague “perfect coffee” ads', 'Kettles that glug or drip', 'Guessing when water is ready'], color: '#c98a4e' },
+  { name: 'Aesthetic Anya', meta: '29 · designer', quote: 'If it lives on my counter, it has to look right from every side.', goals: ['See every colourway and finish', 'Real materials: steel, wood', 'An object she’s proud to gift'], pains: ['Flat cut-out product shots', 'Colours that differ in real life', 'Busy, loud product videos'], color: '#7e93a3' },
+  { name: 'Tea-first Tomás', meta: '45 · tea drinker', quote: 'Green tea at boiling point tastes burnt. I need lower temperatures.', goals: ['Clear temperature control', 'Water kept warm for a second pot', 'Simple, quiet controls'], pains: ['Coffee-only messaging', 'Boil-only kettles', 'Fiddly menus'], color: '#a9b98a' },
+];
+---
+
+<Case project={p} chapters={chapters} sources={sources} meta={meta}>
+  <Chapter id="brief" n="01" label="The brief" title="A kettle that's famous for its silhouette.">
+    <Brief
+      story="Fellow is a San Francisco design brand founded by <strong>Jake Miller</strong> in 2013. Its tagline is <em>“Everyday Magic.”</em> The <strong>Stagg EKG</strong> is its electric pour-over kettle: a squat cylinder with a flat lid, a long gooseneck and a counterbalanced handle, set on a square base with a small display and one dial. It holds <strong>0.9 L</strong>, draws <strong>1200 W</strong>, sets any temperature from <strong>135–212 °F</strong> and holds it for up to <strong>60 minutes</strong>."
+      facts={[
+        { v: '2013', k: 'Founded in San Francisco by Jake Miller' },
+        { v: '$193k', k: 'Raised on Kickstarter by its first product, the Duo Coffee Steeper' },
+        { v: 'Red Dot ’18', k: 'Design award for the Stagg EKG' },
+        { v: '$30M', k: 'Series B, June 2022' },
+      ]}
+      problems={[
+        { title: 'Make precision visible', text: 'Temperature, flow and balance are the EKG’s real benefits, and all three are invisible on camera. The film needs a visual language for each.' },
+        { title: 'One hero object, many finishes', text: 'Black, white, copper, stone blue with walnut. A modular CGI pipeline keeps every colourway and future launch consistent and fast.' },
+        { title: 'Calm, not loud', text: 'The audience buys slow rituals. The edit has to move at the pace of a pour, not a sneaker ad.' },
+      ]}
+      goal="A 60-second launch film that makes precision visible, built on one 3D scene that renders every colourway and every cutdown."
+    />
+  </Chapter>
+
+  <Chapter id="audience" n="02" label="Audience" title="Three people who'd watch a kettle film to the end." intro="Fellow’s public audience is specialty home brewers, design-led gift buyers and tea drinkers. Each persona gets at least one shot written for them.">
+    <Personas personas={personas} />
+  </Chapter>
+
+  <Chapter id="concept" n="03" label="Creative concept" title="Everyday Magic, made of light." intro="Before modelling anything we agree a mood: dark seamless studio, one warm rim, slow motion. The moodboard is built entirely in code, from palette, material and type cards, so nothing is borrowed.">
+    <Moodboard />
+  </Chapter>
+
+  <Chapter id="storyboard" n="04" label="Storyboard" title="Ten shots, about fifty seconds." intro="Every frame is drawn before anything is rendered. <strong>Click a frame</strong> and the live 3D camera below jumps to that shot. Use <strong>Play from this shot</strong> to run the sequence from there.">
+    <Storyboard />
+  </Chapter>
+
+  <Chapter id="lookdev" n="05" label="Modelling & look dev" title="From grey boxes to the poster frame." intro="The kettle on this page is modelled in code: a lathed body, a swept, tapering gooseneck and a tube-swept handle. Step through the pipeline, switch colourways, and <strong>drag to orbit</strong>.">
+    <LookDev />
+  </Chapter>
+
+  <Chapter id="lighting" n="06" label="Lighting" title="Turn the lights off one by one." intro="Classic three-point lighting with one change: the rim is the hero. Toggle each light and watch the live model and the plan view respond together.">
+    <Lighting />
+  </Chapter>
+
+  <Chapter id="animation" n="07" label="Animation" title="Play the animatic, live." intro="The storyboard becomes a real-time animatic on the same 3D stage, with captions, timecode and a scrubber. Drag the stage at any time to take the camera back.">
+    <Animatic />
+  </Chapter>
+
+  <Chapter id="sound" n="08" label="Sound design" title="Half the precision is in what you hear." intro="Each shot gets one sound beat. Detents click once per degree, and the pour is a thin trickle, never a splash. Press a beat to hear a quick sketch.">
+    <Sound />
+  </Chapter>
+
+  <Chapter id="deliverables" n="09" label="Deliverables" title="One scene file, every format." intro="The 60-second film is cut down to 15 and 6 seconds, and the master frame is reframed for 16:9, 1:1 and 9:16 rather than re-rendered from scratch.">
+    <Deliverables />
+  </Chapter>
+
+  <Chapter id="measure" n="10" label="Measure" title="How we'd know the film worked.">
+    <Metrics
+      metrics={[
+        { name: 'View-through rate', hypothesis: 'A slow, beat-led edit holds people to the pour (shot 8), not just the reveal.', how: 'Completion at 25/50/75/100 % on the 60 s and 15 s cuts, by placement.' },
+        { name: 'Colourway clicks', hypothesis: 'The carousel and end card send viewers to a specific colourway, not the generic product page.', how: 'Click-through from end card and video description to each colourway page, tagged per cut.' },
+        { name: 'Precision recall', hypothesis: 'Viewers remember “to the degree” and “60-minute hold”, not just “nice kettle”.', how: 'Brand-lift survey against a hold-out group, aided and unaided recall of the three features.' },
+        { name: 'Asset reuse', hypothesis: 'One scene file covers every colourway and format without reshoots.', how: 'Count of deliverables rendered from the master scene versus new production days.' },
+      ]}
+    />
+  </Chapter>
+</Case>
+
+<style>
+  /* Small shared controls for the Fellow components. */
+  :global(.fel-icon-btn) {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    color: var(--ink);
+    transition: background var(--dur-1), border-color var(--dur-1);
+  }
+  :global(.fel-icon-btn:hover) { background: rgb(255 255 255 / 0.06); border-color: var(--ink-2); }
+  :global(.fel-chip-btn) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--line-strong);
+    background: rgb(255 255 255 / 0.03);
+    font: 600 var(--fs-label) var(--font-ui);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    white-space: nowrap;
+    transition: background var(--dur-1), border-color var(--dur-1), color var(--dur-1);
+  }
+  :global(.fel-chip-btn:hover) { color: var(--ink); border-color: var(--ink-2); }
+  :global(.fel-chip-btn[aria-pressed='true']) { background: var(--a); border-color: var(--a); color: #140d07; }
+</style>
