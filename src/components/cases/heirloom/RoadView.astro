@@ -113,12 +113,12 @@ const racks = Array.from({ length: 7 }, (_, i) => i * 46);
       {
         faqs.map((f, i) => (
           <li>
-            <h4>
+            <h3 class="rv-q">
               <button type="button" aria-expanded={i === 0 ? 'true' : 'false'} aria-controls={`rv-a-${i}`} id={`rv-q-${i}`} data-rv-q>
                 <span>{f.q}</span>
                 <span class="rv-plus" aria-hidden="true" />
               </button>
-            </h4>
+            </h3>
             <div class="rv-a" id={`rv-a-${i}`} role="region" aria-labelledby={`rv-q-${i}`} hidden={i !== 0}>
               <p>{f.a}</p>
             </div>
@@ -228,7 +228,7 @@ const racks = Array.from({ length: 7 }, (_, i) => i * 46);
 
   .rv-faq ul { list-style: none; padding: 0; margin-top: var(--s-3); border-top: 1px solid var(--line); }
   .rv-faq li { border-bottom: 1px solid var(--line); }
-  .rv-faq h4 { font-size: inherit; }
+  .rv-faq h3 { font: inherit; letter-spacing: inherit; }
   .rv-faq button { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: var(--s-4); padding: var(--s-4) 0; text-align: left; font-family: var(--font-display); font-weight: 700; font-size: var(--fs-lg); color: var(--ink); }
   .rv-plus { position: relative; flex: none; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line-strong); }
   .rv-plus::before, .rv-plus::after { content: ''; position: absolute; left: 50%; top: 50%; width: 11px; height: 1.5px; background: currentColor; transform: translate(-50%, -50%); transition: transform var(--dur-2) var(--ease-out); }

@@ -198,8 +198,8 @@ main { position: relative; z-index: 1; }
 .btn:hover .btn-icon { transform: rotate(45deg); }
 .btn--ghost { --btn-bg: transparent; --btn-ink: var(--ink); border: 1px solid var(--line-strong); }
 .btn--ghost .btn-icon { background: var(--ink); color: var(--bg); }
-.btn--accent { --btn-bg: var(--accent); --btn-ink: #fff; }
-.btn--accent .btn-icon { background: #fff; color: var(--accent); }
+.btn--accent { --btn-bg: var(--accent); --btn-ink: #0b0b0f; }
+.btn--accent .btn-icon { background: #0b0b0f; color: var(--accent); }
 
 .chip {
   display: inline-flex; align-items: center; gap: var(--s-2);

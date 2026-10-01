@@ -18,7 +18,8 @@ const lockup = 'TIN O’CLOCK'.split('');
 <div class="fw-mani" data-fw-mani>
   <div class="fw-mani-sticky">
     <div class="fw-mani-grid container">
-      <p class="fw-mani-text" aria-label={lines.map((l) => l.map((x) => x.w).join(' ')).join(' ')}>
+      <p class="fw-mani-text">
+        <span class="visually-hidden">{lines.map((l) => l.map((x) => x.w).join(' ')).join(' ')}</span>
         {
           lines.map((line) => (
             <span class="fw-line" aria-hidden="true">

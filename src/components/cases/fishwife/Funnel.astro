@@ -94,17 +94,17 @@ const colors = [FW.red, FW.sun, FW.pink, FW.mint];
     align-items: center;
     justify-content: center;
     gap: var(--s-3);
-    color: #1d1b3a;
+    color: #0d0b0a;
     background: var(--c);
     clip-path: polygon(0 0, 100% 0, calc(100% - 26px) 100%, 26px 100%);
-    opacity: 0.45;
+    filter: saturate(0.6);
     transition: opacity var(--dur-2), transform var(--dur-2) var(--ease-out), filter var(--dur-2);
   }
-  .fw-stage:hover { opacity: 0.75; }
-  .fw-stage[aria-selected='true'] { opacity: 1; transform: scale(1.04); }
+  .fw-stage:hover { opacity: 1; filter: none; }
+  .fw-stage[aria-selected='true'] { opacity: 1; filter: none; transform: scale(1.04); }
   .fw-stage:focus-visible { outline: none; opacity: 1; }
   .fw-stage:focus-visible .fw-stage-l { text-decoration: underline; text-underline-offset: 4px; }
-  .fw-stage-n { font-weight: 700; font-size: var(--fs-sm); opacity: 0.7; }
+  .fw-stage-n { font-weight: 700; font-size: var(--fs-sm); }
   .fw-stage-l { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-lg); letter-spacing: -0.02em; }
   .fw-funnel-tip { margin-top: var(--s-3); }
 

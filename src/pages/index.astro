@@ -152,11 +152,12 @@ const beliefs = [
 
 <script>
   import { gsap, ScrollTrigger, SplitText, reducedMotion } from '../scripts/motion';
+  import { hasHardwareGL } from '../scripts/gl-support';
 
   // Hero 3D: load Three.js only after the headline has painted.
   const heroCanvas = document.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
   const hero = document.querySelector<HTMLElement>('[data-hero]');
-  if (heroCanvas && hero) {
+  if (heroCanvas && hero && hasHardwareGL()) {
     const start = () => import('../scripts/three/hero').then((m) => m.initHero(heroCanvas, hero)).catch(() => {});
     'requestIdleCallback' in window ? requestIdleCallback(start, { timeout: 1200 }) : setTimeout(start, 300);
   }

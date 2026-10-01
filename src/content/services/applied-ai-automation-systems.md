@@ -2,7 +2,7 @@
 headTexts: ["Applied AI & Automation Systems", "Where automation meets intelligence, and your business begins to run itself."]
 ---
 
-### Where intelligence replaces repetition, and systems learn, adapt, and elevate your business.
+## Where intelligence replaces repetition, and systems learn, adapt, and elevate your business.
 NUUKE’s Applied AI & Automation Systems division exists to help companies operate at a level of efficiency and intelligence that manual workflows simply cannot reach. We engineer AI-powered infrastructures that automate complexity, enhance decision-making, reduce operational drag, and transform fragmented processes into unified, self-improving systems.
 
 This is not about “adding a dashboard” or “connecting a bot.”
