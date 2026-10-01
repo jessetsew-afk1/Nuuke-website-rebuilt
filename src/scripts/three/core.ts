@@ -55,15 +55,16 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
   window.addEventListener('pointermove', onMove, { passive: true });
 
   const frames: ((t: number, dt: number) => void)[] = [];
-  const clock = new THREE.Clock();
+  const timer = new THREE.Timer();
   let visible = true;
   let raf = 0;
   const render = () => renderer.render(scene, camera);
   const tick = () => {
     raf = 0;
     if (!visible || document.hidden) return;
-    const dt = Math.min(clock.getDelta(), 0.05);
-    const t = clock.elapsedTime;
+    timer.update();
+    const dt = Math.min(timer.getDelta(), 0.05);
+    const t = timer.getElapsed();
     pointer.lerp(target, 0.06);
     for (const f of frames) f(t, dt);
     render();
@@ -84,7 +85,7 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
   const io = new IntersectionObserver((entries) => {
     visible = entries[0]?.isIntersecting ?? true;
     if (visible) {
-      clock.getDelta();
+      timer.update();
       start();
     }
   });
