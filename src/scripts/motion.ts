@@ -139,7 +139,7 @@ function initParallax() {
 /** Buttons drift slightly toward the cursor. */
 function initMagnetic() {
   if (reducedMotion || window.matchMedia('(hover: none)').matches) return;
-  document.querySelectorAll<HTMLElement>('.btn, [data-magnetic]').forEach((el) => {
+  document.querySelectorAll<HTMLElement>('.btn:not(.device-screen *), [data-magnetic]').forEach((el) => {
     el.addEventListener('pointermove', (e) => {
       const r = el.getBoundingClientRect();
       const x = (e.clientX - r.left - r.width / 2) * 0.18;

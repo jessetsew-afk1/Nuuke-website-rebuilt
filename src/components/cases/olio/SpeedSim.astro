@@ -1,0 +1,362 @@
+---
+// "Speed is the product": an illustrative, minute-by-minute scenario of one listing,
+// from photo to doorstep, with our proposed "fair waves" alert rule on a live map.
+import { simEvents, SIM_END } from '../../../data/cases/olio';
+
+// Neighbour dots (deterministic). 1 map unit = 4 m. Giver sits at (200, 205).
+const G = { x: 200, y: 205 };
+let seed = 7;
+const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+const neighbours: { x: number; y: number; d: number }[] = [];
+while (neighbours.length < 36) {
+  const x = 18 + rnd() * 364;
+  const y = 18 + rnd() * 364;
+  const d = Math.hypot(x - G.x, y - G.y);
+  if (d < 30 || Math.hypot(x - 240, y - 300) < 24) continue;
+  neighbours.push({ x: Math.round(x), y: Math.round(y), d: Math.round(d) });
+}
+const route = [
+  [240, 300],
+  [240, 250],
+  [200, 250],
+  [200, 218],
+];
+// City blocks between the roads (skipping the river band at the bottom).
+const xs = [0, 70, 160, 240, 330, 400];
+const ys = [0, 60, 140, 250, 330];
+const blocks: { x: number; y: number; w: number; h: number; park: boolean }[] = [];
+for (let i = 0; i < xs.length - 1; i++)
+  for (let j = 0; j < ys.length - 1; j++) {
+    const x = xs[i] + 12, y = ys[j] + 12, w = xs[i + 1] - xs[i] - 24, h = ys[j + 1] - ys[j] - 24;
+    // The diagonal high street cuts through: skip blocks it crosses through the middle.
+    const cx = x + w / 2, cy = y + h / 2;
+    if (Math.abs(cx + cy - 395) < 40) continue;
+    blocks.push({ x, y, w, h, park: i === 3 && j === 1 });
+  }
+const payload = JSON.stringify({ events: simEvents, end: SIM_END, route });
+---
+
+<div class="sim" data-sim>
+  <div class="sim-map-wrap">
+    <svg class="sim-map" viewBox="0 0 400 400" role="img" aria-label="Illustrative map: a listing near the centre, neighbours alerted in widening circles, and a collector walking to the pickup.">
+      <defs>
+        <clipPath id="sim-clip"><rect width="400" height="400" rx="22" /></clipPath>
+        <radialGradient id="sim-glow"><stop offset="0" stop-color="#6E3BD9" stop-opacity=".35" /><stop offset="1" stop-color="#6E3BD9" stop-opacity="0" /></radialGradient>
+      </defs>
+      <g clip-path="url(#sim-clip)">
+        <rect width="400" height="400" fill="#FFF3E2" />
+        <g class="sim-blocks">
+          {blocks.map((b) => <rect x={b.x} y={b.y} width={b.w} height={b.h} rx="6" class:list={[{ 'sim-park-b': b.park }]} />)}
+        </g>
+        <path d="M0 352 C 80 340 120 380 210 368 S 330 390 400 362 V400 H0Z" fill="#E6DCFF" />
+        <g class="sim-roads">
+          <path d="M0 60 H400 M0 140 H400 M0 250 H400 M0 330 H400 M70 0 V400 M160 0 V400 M240 0 V400 M330 0 V400" />
+          <path d="M0 395 L395 0" class="sim-road-main" />
+        </g>
+        <g class="sim-roads-in">
+          <path d="M0 60 H400 M0 140 H400 M0 250 H400 M0 330 H400 M70 0 V400 M160 0 V400 M240 0 V400 M330 0 V400" />
+          <path d="M0 395 L395 0" />
+        </g>
+        <text x="285" y="104" text-anchor="middle" class="sim-park">Park</text>
+        <circle cx={G.x} cy={G.y} r="110" fill="url(#sim-glow)" />
+        <!-- Wave rings: 300 m, 600 m, 1 km (cancelled) -->
+        <circle class="sim-ring" cx={G.x} cy={G.y} r="0" data-ring="0" />
+        <circle class="sim-ring" cx={G.x} cy={G.y} r="0" data-ring="1" />
+        <circle class="sim-ring sim-ring--ghost" cx={G.x} cy={G.y} r="250" data-ring="2" />
+        <text class="sim-ring-l" x={G.x - 56} y={G.y - 58} text-anchor="end" data-ring-l="0">300 m</text>
+        <text class="sim-ring-l" x={G.x - 108} y={G.y - 110} text-anchor="end" data-ring-l="1">600 m</text>
+        <text class="sim-ring-l sim-ring-l--ghost" x="372" y="48" text-anchor="end" data-ring-l="2">1 km · not needed</text>
+        <!-- Route -->
+        <polyline class="sim-route" points={route.map((p) => p.join(',')).join(' ')} data-route />
+        <!-- Neighbours -->
+        <g data-ns>{neighbours.map((n) => <circle class="sim-n" cx={n.x} cy={n.y} r="5" data-d={n.d} />)}</g>
+        <!-- Giver -->
+        <g class="sim-giver" transform={`translate(${G.x} ${G.y})`}>
+          <circle r="16" class="sim-giver-pulse" data-giver-pulse />
+          <path d="M0 6 C -12 -6 -12 -20 0 -24 C 12 -20 12 -6 0 6Z" fill="#6E3BD9" transform="translate(0 -2)" />
+          <circle cy="-17" r="5" fill="#fff" />
+        </g>
+        <!-- Collector -->
+        <g class="sim-sam" data-sam transform="translate(240 300)">
+          <circle r="10" fill="#FF6B5B" stroke="#fff" stroke-width="3" />
+          <text y="4" text-anchor="middle" class="sim-sam-t">S</text>
+        </g>
+      </g>
+    </svg>
+    <div class="sim-toast" data-toast aria-hidden="true"><b data-toast-t>17:30</b> <span data-toast-x>Photo taken</span></div>
+    <p class="sim-tag t-label">Illustrative scenario · not Olio data</p>
+  </div>
+
+  <div class="sim-side">
+    <div class="sim-clock">
+      <span class="t-label">Scenario clock</span>
+      <span class="sim-clock-n t-num" data-clock>17:30</span>
+      <span class="t-small" data-ff>Real time</span>
+    </div>
+    <dl class="sim-stats">
+      <div><dt class="t-label">Photo → live</dt><dd class="t-num" data-s-live>—</dd></div>
+      <div><dt class="t-label">Neighbours alerted</dt><dd class="t-num" data-s-alerted>0</dd></div>
+      <div><dt class="t-label">Live → reserved</dt><dd class="t-num" data-s-claim>—</dd></div>
+      <div><dt class="t-label">Extra alerts avoided</dt><dd class="t-num" data-s-saved>—</dd></div>
+    </dl>
+
+    <div class="sim-controls">
+      <button type="button" class="sim-play" data-play aria-label="Play scenario"><span data-play-ico aria-hidden="true">▶</span> <span data-play-t>Play</span></button>
+      <label class="sim-range">
+        <span class="sr-only">Scenario time</span>
+        <input type="range" min="0" max={SIM_END * 10} value="0" step="1" data-scrub />
+      </label>
+    </div>
+
+    <ol class="sim-log" role="list">
+      {
+        simEvents.map((e, i) => (
+          <li>
+            <button type="button" class:list={['sim-ev', `sim-ev--${e.who}`]} data-ev={i} data-t={e.t}>
+              <span class="sim-ev-time t-num">{e.clock}</span>
+              <span class="sim-ev-body">
+                <b>{e.title}</b>
+                <span>{e.text}</span>
+              </span>
+            </button>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+  <script type="application/json" data-sim-data set:html={payload} />
+</div>
+
+<script>
+  import { reducedMotion } from '../../../scripts/motion';
+  type Ev = { t: number; clock: string; title: string };
+  document.querySelectorAll<HTMLElement>('[data-sim]').forEach((root) => {
+    const data = JSON.parse(root.querySelector('[data-sim-data]')!.textContent || '{}') as { events: Ev[]; end: number; route: number[][] };
+    const { events, end, route } = data;
+    const $ = <T extends Element = HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const rings = [...root.querySelectorAll<SVGCircleElement>('[data-ring]')];
+    const ringLabels = [...root.querySelectorAll<SVGTextElement>('[data-ring-l]')];
+    const ns = [...root.querySelectorAll<SVGCircleElement>('.sim-n')].map((el) => ({ el, d: Number(el.dataset.d) }));
+    const sam = $<SVGGElement>('[data-sam]');
+    const routeEl = $<SVGPolylineElement>('[data-route]');
+    const scrub = $<HTMLInputElement>('[data-scrub]');
+    const evBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-ev]')];
+    const playBtn = $<HTMLButtonElement>('[data-play]');
+    const pulse = $<SVGCircleElement>('[data-giver-pulse]');
+
+    const W1 = 1.2, W2 = 3, RES = 6, LEAVE = 28, ARRIVE = 34;
+    const R1 = 75, R2 = 150, R3 = 250;
+    const SAM_D = Math.hypot(240 - 200, 300 - 205);
+    const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+    const ease = (v: number) => 1 - Math.pow(1 - v, 3);
+
+    // Route length for walking interpolation.
+    const segs = route.slice(1).map((p, i) => Math.hypot(p[0] - route[i][0], p[1] - route[i][1]));
+    const total = segs.reduce((a, b) => a + b, 0);
+    const along = (f: number) => {
+      let dist = f * total;
+      for (let i = 0; i < segs.length; i++) {
+        if (dist <= segs[i]) {
+          const k = dist / segs[i];
+          return [route[i][0] + (route[i + 1][0] - route[i][0]) * k, route[i][1] + (route[i + 1][1] - route[i][1]) * k];
+        }
+        dist -= segs[i];
+      }
+      return route[route.length - 1];
+    };
+
+    const fmtClock = (t: number) => {
+      const m = 30 + Math.floor(t);
+      const h = 17 + Math.floor(m / 60);
+      return `${h}:${String(m % 60).padStart(2, '0')}`;
+    };
+    // Alerted when the wave front passes you (only waves that started before it was reserved).
+    const alertTime = (d: number) => (d <= R1 ? W1 + (d / R1) * 0.5 : d <= R2 ? W2 + ((d - R1) / (R2 - R1)) * 0.6 : Infinity);
+    const wouldHaveBeen = ns.filter((n) => n.d > R2 && n.d <= R3).length;
+
+    let t = 0;
+    const render = () => {
+      // Rings
+      const r0 = R1 * ease(clamp((t - W1) / 0.5));
+      const r1 = R2 * ease(clamp((t - W2) / 0.6));
+      rings[0].setAttribute('r', String(r0));
+      rings[1].setAttribute('r', String(r1));
+      rings[0].classList.toggle('is-on', t >= W1);
+      rings[1].classList.toggle('is-on', t >= W2);
+      rings[2].classList.toggle('is-on', t >= RES);
+      ringLabels[0].classList.toggle('is-on', t >= W1 + 0.5);
+      ringLabels[1].classList.toggle('is-on', t >= W2 + 0.6);
+      ringLabels[2].classList.toggle('is-on', t >= RES);
+      // Neighbours
+      let alerted = 0;
+      ns.forEach((n) => {
+        const on = t >= alertTime(n.d) && alertTime(n.d) < RES;
+        if (on) alerted++;
+        n.el.classList.toggle('is-alerted', on);
+        n.el.classList.toggle('is-quiet', t >= RES && !on);
+      });
+      const samAlert = t >= alertTime(SAM_D);
+      if (samAlert) alerted++;
+      sam.classList.toggle('is-alerted', samAlert);
+      sam.classList.toggle('is-req', t >= 4.5);
+      // Walk
+      const f = clamp((t - LEAVE) / (ARRIVE - LEAVE));
+      const [sx, sy] = along(f);
+      sam.setAttribute('transform', `translate(${sx.toFixed(1)} ${sy.toFixed(1)})`);
+      routeEl.classList.toggle('is-on', t >= 7);
+      routeEl.style.strokeDashoffset = String(total * (1 - f));
+      routeEl.style.strokeDasharray = `${total}`;
+      pulse.classList.toggle('is-live', t >= 1 && t < ARRIVE);
+      root.classList.toggle('is-done', t >= ARRIVE);
+      // Stats
+      $('[data-clock]').textContent = fmtClock(t);
+      $('[data-s-live]').textContent = t >= 1 ? '1 min' : '—';
+      $('[data-s-alerted]').textContent = String(alerted);
+      $('[data-s-claim]').textContent = t >= RES ? '5 min' : '—';
+      $('[data-s-saved]').textContent = t >= RES ? `${wouldHaveBeen}` : '—';
+      $('[data-ff]').textContent = t > 7.5 && t < LEAVE ? 'Skipping ahead ⏩' : t >= ARRIVE ? 'Collected ✓' : 'Real time';
+      // Events
+      let cur = 0;
+      events.forEach((e, i) => t >= e.t && (cur = i));
+      evBtns.forEach((b, i) => {
+        b.classList.toggle('is-past', events[i].t <= t && i !== cur);
+        b.classList.toggle('is-now', i === cur);
+      });
+      $('[data-toast-t]').textContent = events[cur].clock;
+      $('[data-toast-x]').textContent = events[cur].title;
+      scrub.value = String(Math.round(t * 10));
+      scrub.style.setProperty('--p', `${(t / end) * 100}%`);
+    };
+
+    // Playback: real time scaled, fast-forward through the quiet stretch.
+    let playing = false;
+    let last = 0;
+    const speed = (tt: number) => (tt > 7.5 && tt < LEAVE ? 9 : 1.2); // sim-minutes per second
+    const setPlaying = (on: boolean) => {
+      playing = on;
+      $('[data-play-ico]').textContent = on ? '❚❚' : t >= end ? '↺' : '▶';
+      $('[data-play-t]').textContent = on ? 'Pause' : t >= end ? 'Replay' : 'Play';
+      playBtn.setAttribute('aria-label', on ? 'Pause scenario' : 'Play scenario');
+      if (on) {
+        last = performance.now();
+        requestAnimationFrame(tick);
+      }
+    };
+    const tick = (now: number) => {
+      if (!playing) return;
+      const dt = Math.min(0.1, (now - last) / 1000);
+      last = now;
+      t = Math.min(end, t + dt * speed(t));
+      render();
+      if (t >= end) return setPlaying(false);
+      requestAnimationFrame(tick);
+    };
+    playBtn.addEventListener('click', () => {
+      if (!playing && t >= end) t = 0;
+      setPlaying(!playing);
+    });
+    scrub.addEventListener('input', () => {
+      setPlaying(false);
+      t = Number(scrub.value) / 10;
+      render();
+    });
+    evBtns.forEach((b) =>
+      b.addEventListener('click', () => {
+        setPlaying(false);
+        t = Number(b.dataset.t) + 0.05;
+        if (Number(b.dataset.t) === ARRIVE) t = ARRIVE;
+        render();
+      }),
+    );
+
+    render();
+    // Autoplay once when the map is comfortably in view.
+    if (!reducedMotion) {
+      const io = new IntersectionObserver(
+        (es) => {
+          if (es.some((e) => e.isIntersecting)) {
+            io.disconnect();
+            if (t === 0) setPlaying(true);
+          }
+        },
+        { threshold: 0.55 },
+      );
+      io.observe(root.querySelector('.sim-map-wrap')!);
+    }
+  });
+</script>
+
+<style>
+  .sim { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: var(--s-7); align-items: start; }
+  .sim-map-wrap { position: sticky; top: 100px; border-radius: 26px; padding: 10px; background: linear-gradient(150deg, #6e3bd9, #ff6b5b 60%, #ffd23f); box-shadow: 0 40px 100px -40px rgb(110 59 217 / 0.7); }
+  .sim-map { display: block; width: 100%; height: auto; border-radius: 22px; }
+  .sim-park { font: 600 11px var(--font-ui); fill: #a07a1d; letter-spacing: 0.08em; text-transform: uppercase; }
+  .sim-roads path { fill: none; stroke: #f0dcc0; stroke-width: 14; }
+  .sim-roads .sim-road-main { stroke-width: 20; }
+  .sim-roads-in path { fill: none; stroke: #fffdf8; stroke-width: 9; }
+  .sim-roads-in path:last-child { stroke-width: 14; }
+  .sim-blocks rect { fill: #f7e8d2; }
+  .sim-blocks .sim-park-b { fill: #fbe3a6; }
+  .sim-ring { fill: rgb(110 59 217 / 0.06); stroke: #6e3bd9; stroke-width: 2; opacity: 0; transition: opacity 0.3s; }
+  .sim-ring.is-on { opacity: 1; }
+  .sim-ring--ghost { fill: none; stroke: #9a8fb0; stroke-dasharray: 6 8; }
+  .sim-ring--ghost.is-on { opacity: 0.8; }
+  .sim-ring-l { font: 800 12px var(--font-ui); fill: #6e3bd9; stroke: #fff8ee; stroke-width: 4px; paint-order: stroke; opacity: 0; transition: opacity 0.3s; }
+  .sim-ring-l.is-on { opacity: 1; }
+  .sim-ring-l--ghost { fill: #7d7194; font-weight: 700; }
+  .sim-n { fill: #c9bfd8; stroke: #fff; stroke-width: 2; transition: fill 0.25s, r 0.25s; }
+  .sim-n.is-alerted { fill: #6e3bd9; r: 6.5; }
+  .sim-n.is-quiet { fill: #e2dbe9; }
+  .sim-route { fill: none; stroke: #ff6b5b; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transition: opacity 0.3s; }
+  .sim-route.is-on { opacity: 1; }
+  .sim-giver-pulse { fill: none; stroke: #6e3bd9; stroke-width: 2; opacity: 0; transform-box: fill-box; transform-origin: center; }
+  .sim-giver-pulse.is-live { animation: sim-pulse 1.6s ease-out infinite; }
+  @keyframes sim-pulse { from { opacity: 0.8; transform: scale(0.6); } to { opacity: 0; transform: scale(2.4); } }
+  .sim-sam circle { transition: fill 0.25s; }
+  .sim-sam-t { font: 800 10px var(--font-ui); fill: #fff; pointer-events: none; }
+  .sim-sam:not(.is-alerted) circle { fill: #c9bfd8; }
+  .sim-sam.is-req circle { stroke: #ffd23f; }
+  .sim-toast { position: absolute; left: 24px; top: 24px; max-width: calc(100% - 48px); padding: 8px 14px; border-radius: 999px; background: rgb(34 22 59 / 0.9); color: #fff; font: 500 0.85rem var(--font-ui); box-shadow: 0 10px 30px -10px rgb(0 0 0 / 0.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sim-toast b { color: #ffd23f; margin-right: 4px; }
+  .sim.is-done .sim-toast { background: #6e3bd9; }
+  .sim-tag { position: absolute; right: 22px; bottom: 20px; padding: 4px 10px; border-radius: 999px; background: rgb(255 255 255 / 0.85); color: #22163b; font-size: 0.65rem; }
+
+  .sim-side { display: grid; gap: var(--s-5); }
+  .sim-clock { display: grid; gap: var(--s-1); }
+  .sim-clock-n { font-size: clamp(3rem, 2rem + 4vw, 5.5rem); font-weight: 800; line-height: 1; color: var(--ink); }
+  .sim-stats { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+  .sim-stats div { padding: var(--s-3) var(--s-4); border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface); }
+  .sim-stats dd { margin-top: var(--s-1); font-size: var(--fs-xl); font-weight: 700; color: var(--ink); }
+  .sim-controls { display: flex; gap: var(--s-4); align-items: center; }
+  .sim-play { flex: none; display: inline-flex; gap: var(--s-2); align-items: center; padding: 0.7rem 1.2rem; border-radius: var(--r-pill); background: var(--a); color: #fff; font: 700 var(--fs-sm) var(--font-ui); min-width: 112px; justify-content: center; }
+  .sim-play:hover { filter: brightness(1.1); }
+  .sim-range { flex: 1; display: flex; }
+  .sim-range input { --p: 0%; width: 100%; height: 28px; appearance: none; -webkit-appearance: none; background: transparent; cursor: pointer; }
+  .sim-range input::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--b) var(--p), var(--line-strong) var(--p)); }
+  .sim-range input::-moz-range-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--b) var(--p), var(--line-strong) var(--p)); }
+  .sim-range input::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px var(--a); }
+  .sim-range input::-moz-range-thumb { width: 18px; height: 18px; border: 0; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px var(--a); }
+  .sim-log { list-style: none; padding: 0; display: grid; gap: 4px; }
+  .sim-ev { --c: #ffd23f; display: grid; grid-template-columns: 3.4rem 1fr; gap: var(--s-3); width: 100%; padding: 0.55rem 0.8rem; border-radius: var(--r-md); text-align: left; border: 1px solid transparent; opacity: 0.45; transition: opacity var(--dur-1), background var(--dur-1), border-color var(--dur-1); }
+  .sim-ev--olio { --c: #a78bfa; }
+  .sim-ev--collector { --c: #ff6b5b; }
+  .sim-ev--both { --c: #fff; }
+  .sim-ev:hover { opacity: 0.85; }
+  .sim-ev.is-past { opacity: 0.75; }
+  .sim-ev.is-now { opacity: 1; border-color: color-mix(in srgb, var(--c) 60%, transparent); background: color-mix(in srgb, var(--c) 10%, transparent); }
+  .sim-ev-time { color: var(--c); font-weight: 700; font-size: var(--fs-sm); padding-top: 1px; }
+  .sim-ev-body { display: grid; gap: 2px; font-size: var(--fs-sm); color: var(--ink-2); line-height: 1.4; }
+  .sim-ev-body b { color: var(--ink); font-family: var(--font-ui); }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (max-width: 960px) {
+    .sim { grid-template-columns: 1fr; gap: var(--s-5); }
+    /* Compact sticky map so the log scrolls underneath it. */
+    .sim-map-wrap { top: 64px; z-index: 2; width: min(100%, 48vh); justify-self: center; padding: 6px; border-radius: 22px; }
+    .sim-map { border-radius: 18px; }
+    .sim-map-wrap::before { content: ''; position: absolute; left: -24px; right: -24px; top: -66px; height: 66px; background: var(--bg); z-index: -1; }
+  }
+  @media (max-width: 480px) {
+    .sim-toast { left: 18px; top: 18px; font-size: 0.75rem; }
+    .sim-stats dd { font-size: var(--fs-lg); }
+  }
+</style>

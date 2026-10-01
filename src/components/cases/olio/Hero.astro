@@ -1,0 +1,164 @@
+---
+// Hero visual: a tilted CSS-3D neighbourhood where listings pop up as pins,
+// alert waves ripple out from a fresh listing, and a phone shows it getting reserved.
+const pins = [
+  { x: 22, y: 26, e: '🥕', c: '#ffd23f', d: 0.2 },
+  { x: 74, y: 20, e: '🍎', c: '#ff6b5b', d: 0.9 },
+  { x: 80, y: 66, e: '📚', c: '#ede6ff', d: 1.6 },
+  { x: 28, y: 76, e: '🧀', c: '#ff9a3d', d: 2.3 },
+  { x: 58, y: 84, e: '🍋', c: '#ffd23f', d: 3.0 },
+  { x: 14, y: 50, e: '🪴', c: '#ede6ff', d: 3.7 },
+];
+---
+
+<div class="olh" data-olh role="img" aria-label="Illustration: a tilted neighbourhood map with shared food pins and alert waves rippling out from a fresh listing, next to a phone showing it reserved.">
+  <div class="olh-scene" data-olh-scene>
+    <div class="olh-plane">
+      <svg class="olh-map" viewBox="0 0 500 500" aria-hidden="true">
+        <rect width="500" height="500" rx="40" fill="#fff3e2" />
+        <path d="M0 400 C 120 370 170 470 300 440 S 440 470 500 430 V500 H0Z" fill="#e6dcff" />
+        <rect x="320" y="60" width="130" height="110" rx="18" fill="#fbe3a6" />
+        <g fill="none" stroke="#fffdf8" stroke-width="16" stroke-linecap="round">
+          <path d="M0 110 H500 M0 230 H500 M0 340 H500 M110 0 V500 M250 0 V500 M380 0 V500" />
+          <path d="M20 500 L500 40" stroke-width="24" />
+        </g>
+        <polyline class="olh-path" points="400,430 380,340 250,340 250,262" fill="none" stroke="#ff6b5b" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+        <circle cx="400" cy="430" r="11" fill="#ff6b5b" stroke="#fff" stroke-width="4" />
+      </svg>
+      <span class="olh-ring" style="--i:0"></span>
+      <span class="olh-ring" style="--i:1"></span>
+      <span class="olh-ring" style="--i:2"></span>
+      {
+        pins.map((p) => (
+          <span class="olh-pin" style={`--x:${p.x}%;--y:${p.y}%;--c:${p.c};--d:${p.d}s`}>
+            <span class="olh-up">
+              <span class="olh-bob">
+                <span class="olh-bubble">{p.e}</span>
+                <span class="olh-stick" />
+              </span>
+            </span>
+          </span>
+        ))
+      }
+      <span class="olh-pin olh-pin--main" style="--x:50%;--y:50%;--c:#6e3bd9;--d:0s">
+        <span class="olh-up">
+          <span class="olh-bob">
+            <span class="olh-bubble">🥯</span>
+            <span class="olh-stick" />
+          </span>
+        </span>
+      </span>
+    </div>
+  </div>
+
+  <div class="olh-phone">
+    <div class="olh-screen">
+      <p class="olh-k">Nearby · just added</p>
+      <div class="olh-photo"><span>🥖</span><span>🥯</span><i class="olh-age">2 min</i></div>
+      <p class="olh-title">Sourdough + 4 bagels</p>
+      <p class="olh-meta">350 m · today 6–8 pm</p>
+      <div class="olh-cta"><span class="olh-cta-a">Request</span><span class="olh-cta-b">Reserved ✓</span></div>
+    </div>
+  </div>
+
+  <span class="olh-chip olh-chip--1"><b>17:31</b> Listed</span>
+  <span class="olh-chip olh-chip--2"><b>17:36</b> Reserved</span>
+</div>
+
+<script>
+  import { reducedMotion } from '../../../scripts/motion';
+  document.querySelectorAll<HTMLElement>('[data-olh]').forEach((root) => {
+    if (reducedMotion || window.matchMedia('(hover: none)').matches) return;
+    const scene = root.querySelector<HTMLElement>('[data-olh-scene]')!;
+    let raf = 0;
+    root.addEventListener('pointermove', (e) => {
+      const r = root.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        scene.style.setProperty('--px', x.toFixed(3));
+        scene.style.setProperty('--py', y.toFixed(3));
+      });
+    });
+    root.addEventListener('pointerleave', () => {
+      scene.style.setProperty('--px', '0');
+      scene.style.setProperty('--py', '0');
+    });
+  });
+</script>
+
+<style>
+  .olh { position: relative; width: 100%; max-width: 620px; margin-inline: auto; aspect-ratio: 1 / 0.95; }
+  .olh-scene { --px: 0; --py: 0; position: absolute; inset: 0; perspective: 1400px; display: grid; place-items: center; }
+  .olh-plane {
+    --tx: 60deg;
+    --tz: -34deg;
+    position: relative;
+    width: 74%;
+    aspect-ratio: 1;
+    transform-style: preserve-3d;
+    transform: translate(-6%, -2%) rotateX(calc(var(--tx) + var(--py) * -8deg)) rotateZ(calc(var(--tz) + var(--px) * 10deg));
+    transition: transform 0.8s var(--ease-out);
+  }
+  .olh-map { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 40px; box-shadow: 0 0 0 8px rgb(255 255 255 / 0.06), 30px 60px 80px -20px rgb(0 0 0 / 0.6); }
+  .olh-path { stroke-dasharray: 10 12; animation: olh-dash 1.2s linear infinite; }
+  @keyframes olh-dash { to { stroke-dashoffset: -44; } }
+  .olh-ring { position: absolute; left: 50%; top: 50%; width: 70%; aspect-ratio: 1; border-radius: 50%; border: 3px solid #6e3bd9; background: rgb(110 59 217 / 0.08); transform: translate(-50%, -50%) scale(0); animation: olh-ring 3.6s var(--ease-out) infinite; animation-delay: calc(var(--i) * 1.2s); }
+  @keyframes olh-ring { 0% { transform: translate(-50%, -50%) scale(0.05); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1.25); opacity: 0; } }
+  .olh-pin { position: absolute; left: var(--x); top: var(--y); width: 0; height: 0; transform-style: preserve-3d; }
+  /* Undo the plane's tilt so pins stand upright, facing the viewer. */
+  .olh-up { position: absolute; left: 0; top: 0; transform-style: preserve-3d; transform: rotateZ(calc(-1 * (var(--tz, -34deg) + var(--px, 0) * 10deg))) rotateX(calc(-1 * (60deg + var(--py, 0) * -8deg))); transform-origin: 0 0; }
+  .olh-bob { position: absolute; left: 0; bottom: 0; display: grid; justify-items: center; transform: translate(-50%, 0); animation: olh-pop 0.9s var(--ease-out) both, olh-bob 4s ease-in-out infinite; animation-delay: var(--d), calc(var(--d) + 0.9s); }
+  @keyframes olh-pop { from { transform: translate(-50%, 0) scale(0); opacity: 0; } to { transform: translate(-50%, 0) scale(1); opacity: 1; } }
+  @keyframes olh-bob { 50% { transform: translate(-50%, -8px); } }
+  .olh-bubble { display: grid; place-items: center; width: clamp(34px, 6vw, 52px); aspect-ratio: 1; border-radius: 50%; background: var(--c); box-shadow: 0 10px 24px -8px rgb(0 0 0 / 0.5); font-size: clamp(16px, 2.6vw, 24px); }
+  .olh-bubble { line-height: 1; border: 3px solid #fff; }
+  .olh-stick { width: 3px; height: clamp(14px, 2.4vw, 24px); background: linear-gradient(var(--c), rgb(0 0 0 / 0.25)); border-radius: 2px; }
+  .olh-pin--main .olh-bubble { width: clamp(48px, 8.5vw, 72px); font-size: clamp(22px, 3.6vw, 34px); color: #fff; box-shadow: 0 0 0 5px rgb(255 255 255 / 0.9), 0 18px 40px -10px rgb(110 59 217 / 0.9); }
+  .olh-pin--main .olh-stick { height: clamp(22px, 4vw, 40px); width: 4px; }
+  .olh-pin--main::after { content: ''; position: absolute; left: -14px; top: -7px; width: 28px; height: 14px; border-radius: 50%; background: rgb(34 22 59 / 0.25); }
+
+  .olh-phone {
+    position: absolute;
+    right: 0;
+    bottom: 2%;
+    width: clamp(104px, 28%, 190px);
+    aspect-ratio: 9 / 18.5;
+    padding: 7px;
+    border-radius: 30px;
+    background: linear-gradient(145deg, #f4f2f6, #c9c6cf 45%, #ecebef);
+    box-shadow: 0 40px 70px -24px rgb(0 0 0 / 0.75), 0 0 60px -10px rgb(255 107 91 / 0.35);
+    transform: perspective(900px) rotateY(-18deg) rotateX(6deg) rotateZ(3deg);
+    animation: olh-float 6s ease-in-out infinite;
+  }
+  @keyframes olh-float { 50% { translate: 0 -10px; } }
+  .olh-screen { height: 100%; border-radius: 24px; background: #fff8ee; padding: 18% 9% 9%; display: flex; flex-direction: column; gap: 6px; overflow: hidden; color: #22163b; font-family: Inter, system-ui, sans-serif; }
+  .olh-k { font-size: clamp(7px, 0.9vw, 9px); letter-spacing: 0.1em; text-transform: uppercase; color: #6f6584; font-weight: 600; }
+  .olh-photo { position: relative; display: flex; justify-content: center; align-items: center; gap: 2px; aspect-ratio: 1.1; border-radius: 14px; background: linear-gradient(135deg, #ffd23f, #ff9a3d); font-size: clamp(22px, 3.4vw, 34px); }
+  .olh-age { position: absolute; left: 6px; top: 6px; padding: 2px 6px; border-radius: 99px; background: #ff6b5b; color: #fff; font: 700 clamp(7px, 0.8vw, 9px) Inter, sans-serif; font-style: normal; animation: olh-blink 1.6s ease-in-out infinite; }
+  @keyframes olh-blink { 50% { opacity: 0.6; } }
+  .olh-title { font-weight: 800; font-size: clamp(10px, 1.2vw, 13px); line-height: 1.15; }
+  .olh-meta { font-size: clamp(8px, 0.9vw, 10px); color: #6f6584; }
+  .olh-cta { position: relative; margin-top: auto; height: clamp(24px, 3vw, 32px); border-radius: 99px; overflow: hidden; font: 700 clamp(9px, 1vw, 11px) Inter, sans-serif; color: #fff; }
+  .olh-cta span { position: absolute; inset: 0; display: grid; place-items: center; border-radius: inherit; }
+  .olh-cta-a { background: #6e3bd9; animation: olh-swap-a 6s infinite; }
+  .olh-cta-b { background: #ffd23f; color: #22163b; animation: olh-swap-b 6s infinite; }
+  @keyframes olh-swap-a { 0%, 55% { transform: none; } 62%, 95% { transform: translateY(-100%); } 100% { transform: none; } }
+  @keyframes olh-swap-b { 0%, 55% { transform: translateY(100%); } 62%, 95% { transform: none; } 100% { transform: translateY(100%); } }
+
+  .olh-chip { position: absolute; display: inline-flex; gap: 6px; padding: 6px 12px; border-radius: 99px; background: rgb(18 18 22 / 0.85); border: 1px solid var(--line-strong); font: 500 0.78rem var(--font-ui); color: var(--ink-2); backdrop-filter: blur(8px); animation: olh-float 5s ease-in-out infinite; }
+  .olh-chip b { color: #ffd23f; }
+  .olh-chip--1 { left: 2%; top: 8%; }
+  .olh-chip--2 { left: 8%; bottom: 10%; animation-delay: -2s; }
+  .olh-chip--2 b { color: #ff6b5b; }
+
+  @media (max-width: 600px) {
+    .olh-plane { width: 70%; transform: translate(-14%, -4%) rotateX(calc(var(--tx) + var(--py) * -8deg)) rotateZ(calc(var(--tz) + var(--px) * 10deg)); }
+    .olh-screen { gap: 4px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .olh-ring, .olh-bob, .olh-phone, .olh-chip, .olh-path, .olh-age, .olh-cta span { animation: none !important; }
+    .olh-ring { transform: translate(-50%, -50%) scale(0.8); opacity: 0.5; }
+  }
+</style>

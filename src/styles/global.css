@@ -179,10 +179,9 @@ h4, h5, h6 { font-family: var(--font-display); font-weight: 700; line-height: 1.
 .skip-link:focus { transform: none; }
 main { position: relative; z-index: 1; }
 
-/* ---------- Buttons ---------- */
-.btn {
-  --btn-bg: var(--ink);
-  --btn-ink: var(--bg);
+/* ---------- Buttons (site chrome only; never inside mock device screens) ---------- */
+:where(.btn) { --btn-bg: var(--ink); --btn-ink: var(--bg); }
+.btn:not(.device-screen *) {
   display: inline-flex; align-items: center; gap: var(--s-3);
   height: 52px; padding-inline: 1.5rem 0.4rem;
   border-radius: var(--r-pill);
@@ -191,7 +190,7 @@ main { position: relative; z-index: 1; }
   transition: transform var(--dur-2) var(--ease-out), background var(--dur-1);
   will-change: transform;
 }
-.btn .btn-icon {
+.btn:not(.device-screen *) .btn-icon {
   display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
   background: var(--btn-ink); color: var(--btn-bg);
   transition: transform var(--dur-2) var(--ease-out);

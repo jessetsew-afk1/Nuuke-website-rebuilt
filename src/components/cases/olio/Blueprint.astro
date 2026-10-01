@@ -1,0 +1,237 @@
+---
+// Two-sided service blueprint: giver lane, Olio backstage lane, collector lane,
+// converging on the doorstep handover in the middle. Tap any beat for the insight.
+import { blueprint, handover, timeCols, type Beat } from '../../../data/cases/olio';
+
+const face = (s: number) => (s >= 1.5 ? '😄' : s >= 0.5 ? '🙂' : s > -0.5 ? '😐' : s > -1.2 ? '😕' : '😣');
+// Map beat index (0..5) to grid column (skipping the handover column 4).
+const colOf = (i: number) => (i < 3 ? i + 2 : i + 3);
+type Cell = { key: string; lane: (typeof blueprint)[number]; beat: Beat; i: number };
+const cells: Cell[] = blueprint.flatMap((lane) => lane.beats.map((beat, i) => ({ key: `${lane.id}-${i}`, lane, beat, i })));
+---
+
+<div class="bp" data-bp>
+  <div class="bp-tools">
+    <div class="bp-legend" aria-hidden="true">
+      <span><i class="bp-sw bp-sw--giver"></i>Giver</span>
+      <span><i class="bp-sw bp-sw--olio"></i>Olio backstage</span>
+      <span><i class="bp-sw bp-sw--collector"></i>Collector</span>
+    </div>
+    <button type="button" class="bp-pain" aria-pressed="false" data-bp-pain>Highlight pain points</button>
+  </div>
+
+  <div class="bp-scroll">
+    <div class="bp-grid">
+      <span class="bp-corner t-label">Time</span>
+      {timeCols.map((t, i) => <span class:list={['bp-time', 't-label', { 'bp-time--h': i === 3 }]} style={`grid-column:${i + 2}`}>{t}</span>)}
+
+      <svg class="bp-lines" viewBox="0 0 700 300" preserveAspectRatio="none" aria-hidden="true">
+        <path class="bp-line bp-line--giver" d="M0 55 H250 C300 55 305 150 350 150 C395 150 400 55 450 55 H700" data-bp-draw />
+        <path class="bp-line bp-line--olio" d="M0 150 H700" />
+        <path class="bp-line bp-line--collector" d="M0 245 H250 C300 245 305 150 350 150 C395 150 400 245 450 245 H700" data-bp-draw />
+      </svg>
+
+      {
+        blueprint.map((lane, r) => (
+          <span class:list={['bp-lane-label', `bp-lane-label--${lane.id}`]} style={`grid-row:${r + 2}`}>
+            <b>{lane.name}</b>
+            <span class="t-small">{lane.who}</span>
+          </span>
+        ))
+      }
+
+      {
+        cells.map((c) => (
+          <button
+            type="button"
+            class:list={['bp-beat', `bp-beat--${c.lane.id}`, { 'is-pain': c.lane.id !== 'olio' && c.beat.mood < 0 }]}
+            style={`grid-column:${colOf(c.i)};grid-row:${blueprint.indexOf(c.lane) + 2}`}
+            data-bp-beat={c.key}
+            aria-label={`${c.lane.name}, ${timeCols[colOf(c.i) - 2]}: ${c.beat.title}`}
+          >
+            {c.lane.id !== 'olio' && <span class="bp-face" aria-hidden="true">{face(c.beat.mood)}</span>}
+            <span class="bp-beat-t">{c.beat.title}</span>
+          </button>
+        ))
+      }
+
+      <button type="button" class="bp-hand" data-bp-beat="handover" aria-label="The doorstep handover">
+        <span class="bp-hand-ring" aria-hidden="true"></span>
+        <span class="bp-hand-ico" aria-hidden="true">🤝</span>
+        <span class="bp-hand-t">Handover</span>
+      </button>
+    </div>
+  </div>
+  <p class="t-small bp-swipe">Swipe sideways to follow the timeline →</p>
+
+  <div class="bp-panels" aria-live="polite">
+    <div class="bp-panel card bp-panel--hand" data-bp-panel="handover">
+      <p class="t-label">Both lanes · the middle of the journey</p>
+      <h3 class="t-h4">{handover.title}</h3>
+      <div class="bp-cols">
+        <div><p class="t-label">What happens</p><p>{handover.doing}</p></div>
+        <div><p class="t-label">Insight</p><p>{handover.insight}</p></div>
+        <div class="bp-opp"><p class="t-label">Opportunity</p><p>{handover.opportunity}</p></div>
+      </div>
+    </div>
+    {
+      cells.map((c) => (
+        <div class:list={['bp-panel', 'card', `bp-panel--${c.lane.id}`]} data-bp-panel={c.key} hidden>
+          <p class="t-label">
+            {c.lane.name} · {c.lane.who} · {timeCols[colOf(c.i) - 2]}
+          </p>
+          <h3 class="t-h4">
+            {c.lane.id !== 'olio' && <span aria-hidden="true">{face(c.beat.mood)} </span>}
+            {c.beat.title}
+          </h3>
+          <div class="bp-cols">
+            <div><p class="t-label">Doing</p><p>{c.beat.doing}</p></div>
+            <div><p class="t-label">Insight</p><p>{c.beat.insight}</p></div>
+            <div class="bp-opp"><p class="t-label">Opportunity</p><p>{c.beat.opportunity}</p></div>
+          </div>
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  import { gsap, reducedMotion } from '../../../scripts/motion';
+  document.querySelectorAll<HTMLElement>('[data-bp]').forEach((root) => {
+    const beats = [...root.querySelectorAll<HTMLButtonElement>('[data-bp-beat]')];
+    const panels = [...root.querySelectorAll<HTMLElement>('[data-bp-panel]')];
+    const select = (key: string) => {
+      beats.forEach((b) => b.classList.toggle('is-active', b.dataset.bpBeat === key));
+      beats.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.bpBeat === key)));
+      panels.forEach((p) => (p.hidden = p.dataset.bpPanel !== key));
+    };
+    beats.forEach((b) => {
+      b.addEventListener('click', () => select(b.dataset.bpBeat!));
+      b.addEventListener('mouseenter', () => select(b.dataset.bpBeat!));
+      b.addEventListener('focus', () => select(b.dataset.bpBeat!));
+    });
+    select('handover');
+
+    const pain = root.querySelector<HTMLButtonElement>('[data-bp-pain]')!;
+    pain.addEventListener('click', () => {
+      const on = pain.getAttribute('aria-pressed') !== 'true';
+      pain.setAttribute('aria-pressed', String(on));
+      root.classList.toggle('show-pain', on);
+    });
+
+    // Lanes draw toward the handover as the section scrolls in.
+    if (!reducedMotion) {
+      root.querySelectorAll<SVGPathElement>('[data-bp-draw]').forEach((p) => {
+        const len = p.getTotalLength();
+        p.style.strokeDasharray = `${len}`;
+        gsap.fromTo(p, { strokeDashoffset: len }, { strokeDashoffset: 0, ease: 'none', scrollTrigger: { trigger: root, start: 'top 80%', end: 'center 50%', scrub: 0.6 } });
+      });
+    }
+  });
+</script>
+
+<style>
+  .bp { --giver: #ffd23f; --olio: #a78bfa; --collector: #ff6b5b; display: grid; gap: var(--s-4); }
+  .bp-tools { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--s-3); }
+  .bp-legend { display: flex; flex-wrap: wrap; gap: var(--s-4); font: 500 var(--fs-sm) var(--font-ui); color: var(--ink-2); }
+  .bp-legend span { display: inline-flex; align-items: center; gap: var(--s-2); }
+  .bp-sw { width: 14px; height: 4px; border-radius: 2px; }
+  .bp-sw--giver { background: var(--giver); }
+  .bp-sw--olio { background: var(--olio); }
+  .bp-sw--collector { background: var(--collector); }
+  .bp-pain { padding: 0.5rem 1rem; border-radius: var(--r-pill); border: 1px solid var(--line-strong); font: 600 var(--fs-sm) var(--font-ui); color: var(--ink-2); transition: background var(--dur-1), color var(--dur-1), border-color var(--dur-1); }
+  .bp-pain:hover { color: var(--ink); border-color: var(--ink-2); }
+  .bp-pain[aria-pressed='true'] { background: var(--collector); border-color: var(--collector); color: #1a0d0b; }
+
+  .bp-scroll { overflow-x: auto; padding: var(--s-5); border-radius: var(--r-lg); border: 1px solid var(--line); background: radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.07) 1px, transparent 0) 0 0 / 22px 22px, var(--bg-2); }
+  .bp-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: 120px repeat(7, minmax(108px, 1fr));
+    grid-template-rows: 36px 110px 80px 110px;
+    min-width: 960px;
+    align-items: center;
+    justify-items: center;
+  }
+  .bp-corner { justify-self: start; }
+  .bp-time { color: var(--muted); }
+  .bp-time--h { color: var(--ink); }
+  .bp-lines { grid-column: 2 / -1; grid-row: 2 / 5; width: 100%; height: 100%; align-self: stretch; justify-self: stretch; pointer-events: none; }
+  .bp-line { fill: none; stroke-width: 3; vector-effect: non-scaling-stroke; stroke-linecap: round; }
+  .bp-line--giver { stroke: var(--giver); }
+  .bp-line--collector { stroke: var(--collector); }
+  .bp-line--olio { stroke: var(--olio); stroke-dasharray: 5 7; opacity: 0.6; animation: bp-dash 1.6s linear infinite; }
+  @keyframes bp-dash { to { stroke-dashoffset: -24; } }
+  .bp-lane-label { grid-column: 1; justify-self: start; display: grid; gap: 2px; padding-left: var(--s-3); border-left: 3px solid; font-family: var(--font-ui); }
+  .bp-lane-label b { font-size: var(--fs-sm); }
+  .bp-lane-label .t-small { font-size: 0.75rem; }
+  .bp-lane-label--giver { border-color: var(--giver); }
+  .bp-lane-label--olio { border-color: var(--olio); }
+  .bp-lane-label--collector { border-color: var(--collector); }
+
+  .bp-beat {
+    --c: var(--giver);
+    position: relative;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    width: calc(100% - 12px);
+    max-width: 132px;
+    padding: 10px 8px;
+    border-radius: 14px;
+    border: 1.5px solid color-mix(in srgb, var(--c) 45%, transparent);
+    background: var(--surface-2);
+    font: 600 0.8rem/1.2 var(--font-ui);
+    color: var(--ink);
+    text-align: center;
+    transition: transform var(--dur-2) var(--ease-out), background var(--dur-1), border-color var(--dur-1), opacity var(--dur-2), color var(--dur-1);
+  }
+  .bp-beat--olio { --c: var(--olio); padding: 8px; border-style: dashed; background: color-mix(in srgb, var(--olio) 10%, var(--bg-2)); font-weight: 500; color: var(--ink-2); }
+  .bp-beat--collector { --c: var(--collector); }
+  .bp-beat:hover, .bp-beat:focus-visible { transform: translateY(-3px); border-color: var(--c); }
+  .bp-beat.is-active { background: var(--c); border-color: var(--c); color: #1a1022; transform: translateY(-3px) scale(1.04); }
+  .bp-face { font-size: 1.15rem; line-height: 1; }
+  .show-pain .bp-beat:not(.is-pain) { opacity: 0.28; }
+  .show-pain .bp-beat.is-pain { box-shadow: 0 0 0 3px color-mix(in srgb, var(--collector) 55%, transparent); }
+
+  .bp-hand {
+    position: relative;
+    z-index: 2;
+    grid-column: 5;
+    grid-row: 2 / 5;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    width: 112px;
+    height: 112px;
+    border-radius: 50%;
+    background: linear-gradient(140deg, #6e3bd9, #ff6b5b);
+    color: #fff;
+    box-shadow: 0 18px 50px -12px rgb(110 59 217 / 0.7);
+    transition: transform var(--dur-2) var(--ease-out);
+  }
+  .bp-hand:hover, .bp-hand.is-active { transform: scale(1.06); }
+  .bp-hand.is-active { box-shadow: 0 0 0 4px var(--bg-2), 0 0 0 6px #ffd23f, 0 18px 50px -12px rgb(110 59 217 / 0.7); }
+  .bp-hand-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid #ffd23f; animation: bp-ring 2.4s var(--ease-out) infinite; }
+  @keyframes bp-ring { from { transform: scale(1); opacity: 0.8; } to { transform: scale(1.6); opacity: 0; } }
+  .bp-hand-ico { font-size: 2rem; line-height: 1; }
+  .bp-hand-t { font: 700 0.8rem var(--font-ui); letter-spacing: 0.04em; }
+
+  .bp-swipe { display: none; }
+  .bp-panels .card { display: grid; gap: var(--s-3); }
+  .bp-panel { border-top: 3px solid var(--giver); }
+  .bp-panel--olio { border-top-color: var(--olio); }
+  .bp-panel--collector { border-top-color: var(--collector); }
+  .bp-panel--hand { border-top-color: #6e3bd9; }
+  .bp-cols { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: var(--s-5); color: var(--ink-2); }
+  .bp-cols .t-label { margin-bottom: var(--s-2); }
+  .bp-opp { padding-left: var(--s-5); border-left: 2px solid var(--a, var(--accent)); color: var(--ink); }
+  @media (max-width: 1100px) { .bp-swipe { display: block; } }
+  @media (max-width: 760px) {
+    .bp-cols { grid-template-columns: 1fr; }
+    .bp-opp { padding-left: var(--s-4); }
+    .bp-scroll { padding: var(--s-4); }
+  }
+  @media (prefers-reduced-motion: reduce) { .bp-hand-ring, .bp-line--olio { animation: none; } }
+</style>

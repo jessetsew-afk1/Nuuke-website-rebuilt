@@ -1,0 +1,888 @@
+---
+import Case from '../../layouts/Case.astro';
+import Chapter from '../../components/case/Chapter.astro';
+import Brief from '../../components/case/Brief.astro';
+import Personas from '../../components/case/Personas.astro';
+import FlowMap from '../../components/case/FlowMap.astro';
+import ScreenStack from '../../components/case/ScreenStack.astro';
+import Prototype from '../../components/case/Prototype.astro';
+import DesignSystem from '../../components/case/DesignSystem.astro';
+import Metrics from '../../components/case/Metrics.astro';
+import OlioHero from '../../components/cases/olio/Hero.astro';
+import Blueprint from '../../components/cases/olio/Blueprint.astro';
+import SpeedSim from '../../components/cases/olio/SpeedSim.astro';
+import { bySlug } from '../../data/projects';
+import { olioLayers } from '../../data/cases/olio';
+
+const p = bySlug('olio');
+const chapters = [
+  { id: 'brief', label: 'Brief' },
+  { id: 'research', label: 'Research' },
+  { id: 'blueprint', label: 'Service blueprint' },
+  { id: 'speed', label: 'Speed is the product' },
+  { id: 'flow', label: 'User flow' },
+  { id: 'layers', label: '3D wireframe' },
+  { id: 'prototype', label: 'Prototype' },
+  { id: 'system', label: 'Design system' },
+  { id: 'measure', label: 'Measure' },
+];
+const sources = [
+  { label: 'The Grocer — 10th anniversary, 120M meals', url: 'https://www.thegrocer.co.uk/news/olio-food-waste-app-marks-10th-anniversary-with-120-million-meal-landmark/707257.article' },
+  { label: 'Olio — 10 years of Olio', url: 'https://olioapp.com/business/2025/07/16/looking-back-at-10-years-of-olio-and-120-million-meals-rescued/' },
+  { label: 'Olio — Meet the new look Olio', url: 'https://olioapp.com/en/olio-updates/meet-the-new-look-olio/' },
+  { label: 'Wholegrain Digital — Olio’s low-carbon site', url: 'https://www.wholegraindigital.com/blog/olio-sustainable-site/' },
+  { label: 'Olio help — adding listings', url: 'https://help.olioapp.com/en/articles/12158761-how-do-i-add-edit-and-remove-my-listings' },
+  { label: 'Olio help — becoming a Supporter', url: 'https://help.olioapp.com/en/articles/12140082-becoming-an-olio-supporter' },
+  { label: 'Olio help — Wanted listings', url: 'https://help.olioapp.com/article/23-wanted' },
+  { label: 'TechCrunch — $43M Series B', url: 'https://techcrunch.com/2021/09/05/food-sharing-app-olio-raises-43m-series-b-as-the-world-switches-on-to-the-food-waste-crisis/' },
+  { label: 'TechCrunch — Series A (2018)', url: 'https://techcrunch.com/2018/07/11/olio' },
+  { label: 'Grocery Gazette — Tesco × Olio 30M meals', url: 'https://www.grocerygazette.co.uk/2023/02/08/tesco-save-meals-with-olio-app/' },
+  { label: 'The Grocer — Tesco partnership hits 100M meals', url: 'https://www.thegrocer.co.uk/news/tescos-olio-food-waste-partnership-hits-100-million-meals/723887.article' },
+  { label: 'Design Museum — Beazley Designs of the Year 2019', url: 'https://designmuseum.org/exhibitions/beazley-designs-of-the-year/digital-2019/olio-the-food-sharing-app' },
+  { label: 'About Amazon — Tessa Clarke interview', url: 'https://www.aboutamazon.co.uk/news/aws/olios-tessa-clarke-tackling-food-waste-with-hyper-local-community-sharing-app' },
+  { label: 'Olio on LinkedIn — “Share More, Waste Less”', url: 'https://www.linkedin.com/company/olio-share-more-waste-less' },
+  { label: 'Wikipedia — Olio (app)', url: 'https://en.wikipedia.org/wiki/Olio_(app)' },
+];
+const meta = [
+  { label: 'Brand', value: 'Olio, London' },
+  { label: 'Discipline', value: 'Mobile app · service design' },
+  { label: 'Our role', value: 'Research, blueprint, flows, prototype, UI system' },
+  { label: 'Timeline (concept)', value: '5-week design sprint' },
+];
+const personas = [
+  { name: 'Saver Sam', meta: '27 · renter in Manchester', quote: 'If it’s free and round the corner, tell me now, not in an hour.', goals: ['See what’s nearby right now', 'Request in one tap, with a time', 'Know for sure it’s his'], pains: ['Turning up to “already gone”', 'Long back-and-forth chats', 'Alerts for things across town'], color: '#ff6b5b' },
+  { name: 'Declutter Diane', meta: '54 · gives things away in Bristol', quote: 'Snap a photo, set a time, done. I don’t want twenty messages.', goals: ['List in under a minute', 'Pick a collector fairly, fast', 'Porch pickup so she needn’t wait in'], pains: ['Writing descriptions', 'A flood of requests to answer', 'No-shows'], color: '#ffd23f' },
+  { name: 'Hero Hamid', meta: '40 · volunteer Food Waste Hero', quote: 'I collect a bag of thirty items. Listing them one by one takes longer than the pickup.', goals: ['Batch-list a whole bag', 'Hand everything out before it expires', 'Show the store what its food did'], pains: ['The same form thirty times', 'Late-night chat juggling', 'Leftovers at the end of the night'], color: '#ff9a3d' },
+];
+const nodes = [
+  { id: 'onboard', label: 'Get / Give / Volunteer', x: 95, y: 220, kind: 'start' as const },
+  { id: 'home', label: 'Nearby feed', x: 270, y: 220, kind: 'key' as const },
+  { id: 'map', label: 'Map view', x: 445, y: 70 },
+  { id: 'detail', label: 'Listing detail', x: 615, y: 70 },
+  { id: 'request', label: 'Request', x: 785, y: 70 },
+  { id: 'chat', label: 'Chat', x: 945, y: 70 },
+  { id: 'pickup', label: 'Pickup', x: 1105, y: 140, kind: 'end' as const },
+  { id: 'add', label: 'Add · camera', x: 445, y: 230 },
+  { id: 'draft', label: 'AI-ify draft', x: 615, y: 230, kind: 'key' as const },
+  { id: 'times', label: 'Pickup times', x: 785, y: 230 },
+  { id: 'published', label: 'Live!', x: 945, y: 230 },
+  { id: 'hero', label: 'Hero dashboard', x: 445, y: 370 },
+  { id: 'batch', label: 'Add Collection', x: 615, y: 370, kind: 'key' as const },
+  { id: 'impact', label: 'Impact', x: 1105, y: 320, kind: 'end' as const },
+];
+const edges = [
+  { from: 'onboard', to: 'home' },
+  { from: 'home', to: 'map', label: 'browse' },
+  { from: 'map', to: 'detail' },
+  { from: 'detail', to: 'request' },
+  { from: 'request', to: 'chat' },
+  { from: 'chat', to: 'pickup' },
+  { from: 'home', to: 'add' },
+  { from: 'add', to: 'draft' },
+  { from: 'draft', to: 'times' },
+  { from: 'times', to: 'published' },
+  { from: 'home', to: 'hero', label: 'volunteer' },
+  { from: 'hero', to: 'batch' },
+  { from: 'batch', to: 'published', label: 'publish all' },
+  { from: 'published', to: 'impact' },
+];
+const tasks = [
+  { label: 'Tell Olio you’re here to get food', screen: 'home' },
+  { label: 'Switch to the map and find the closest food', screen: 'map' },
+  { label: 'Request the sourdough with a quick reply', screen: 'chat' },
+  { label: 'Confirm the pickup', screen: 'pickup' },
+  { label: 'Give something away: let AI-ify write it', screen: 'draft' },
+  { label: 'Publish it to your neighbours', screen: 'published' },
+  { label: 'Batch-list a Food Waste Hero collection', screen: 'batch' },
+  { label: 'See your impact', screen: 'impact' },
+];
+const feed = [
+  { e: '🥕🥬', bg: 'linear-gradient(135deg,#ffd0c4,#ff6b5b)', t: 'Veg box, slightly wonky', m: '600 m · 9 min ago', tag: 'Food' },
+  { e: '🥾', bg: 'linear-gradient(135deg,#ede6ff,#b9a3f5)', t: 'Kids’ wellies, size 10', m: '800 m · 21 min ago', tag: 'Non-food' },
+  { e: '🍋🍋', bg: 'linear-gradient(135deg,#fff1b3,#ffd23f)', t: 'Lemons ×6 from a party', m: '950 m · 34 min ago', tag: 'Food' },
+];
+const batchItems = [
+  ['🥪', 'Sandwiches ×4', ''],
+  ['🥗', 'Salad bowls ×2', ''],
+  ['🥐', 'Pastries ×6', ''],
+  ['🍌', 'Bananas ×5', ''],
+  ['🧃', 'Juice ×3', 'check date'],
+  ['🍞', 'Bread ×2', ''],
+  ['🧁', 'Muffins ×4', ''],
+  ['🥛', 'Milk ×2', 'check date'],
+  ['🍅', 'Tomatoes', ''],
+];
+---
+
+<Case project={p} chapters={chapters} sources={sources} meta={meta}>
+  <OlioHero slot="hero" />
+
+  <Chapter id="brief" n="01" label="The brief" title="Giving food away should be faster than binning it.">
+    <Brief
+      story="Olio began with a failed handover: on moving day in 2014, co-founder Tessa Clarke couldn’t find anyone to take her good food. With Saasha Celestial-One she founded Olio in London in 2015, an app where neighbours give away, request, borrow and lend food and household things, mostly for free. Businesses pay Olio so that trained volunteer <strong>Food Waste Heroes</strong> collect their unsold food and list it in the app. Its mission: a world where “<em>nothing of value goes to waste</em>”. Its 2023 rebrand traded green for warm colours and an idea it calls “urgent optimism”."
+      facts={[
+        { v: '2015', k: 'Founded in London; tested first in a 12-person WhatsApp group' },
+        { v: '8.8M', k: 'Users in 60 countries at its 10th anniversary (2025)' },
+        { v: '120M', k: 'Meals shared through the app by its 10th anniversary' },
+        { v: '150k', k: 'Food-safety-trained volunteers, collecting from 8,500 locations a month' },
+      ]}
+      problems={[
+        { title: 'Speed is the product', text: 'Good food goes in minutes. Discovery and alerts must surface local, time-critical items fairly, without notification overload.' },
+        { title: 'Trust between strangers', text: 'The doorstep handover has to feel safe and polite on both sides: clear pickup etiquette, visible reliability, no awkward no-shows.' },
+        { title: 'Make the volunteer engine scale', text: 'A Food Waste Hero bag holds 10–40 items. Listing it should be a 60-second job, not thirty forms.' },
+      ]}
+      goal="Photo to live in under a minute, reserved in minutes, collected without awkwardness, for one loaf or a whole bag."
+    />
+  </Chapter>
+
+  <Chapter id="research" n="02" label="Research" title="Three neighbours, one shared clock." intro="Olio is a two-sided market that happens on a doorstep. We modelled a collector, a giver and a volunteer from Olio’s public audience, then timed every step of their journeys. For all three, the enemy is the same: <strong>minutes</strong>.">
+    <Personas personas={personas} />
+  </Chapter>
+
+  <Chapter id="blueprint" n="03" label="Service blueprint" title="Two journeys that meet on a doorstep." intro="A normal journey map follows one person. Olio needs two, plus the backstage systems that connect them. Both lanes converge on the <strong>handover</strong>, the twenty seconds where trust is won or lost. Tap any moment for the insight and the opportunity we found.">
+    <Blueprint />
+  </Chapter>
+
+  <Chapter id="speed" n="04" label="Speed is the product" title="Watch a loaf find a new home in 34 minutes." intro="We played our design rules forward, minute by minute, for a single listing. The key proposal is <strong>fair waves</strong>: alert the closest neighbours first, widen the circle only if nobody asks, and stop the moment it’s reserved. Press play, or drag the timeline.">
+    <SpeedSim />
+    <p class="t-small ol-disclaimer">This is an illustrative scenario we wrote to test our own design rules: the times, distances and neighbour counts are invented for the walkthrough. It is not Olio data, and the “fair waves” rule is our proposal, not a description of how Olio works today.</p>
+  </Chapter>
+
+  <Chapter id="flow" n="05" label="User flow" title="Three ways in. One purple button." intro="Collectors browse, givers add, volunteers batch. Every path is reachable from the Nearby feed, and the purple <strong>Add</strong> button sits in the same spot on every screen. Tap a screen to open it in the prototype.">
+    <FlowMap nodes={nodes} edges={edges} width={1190} height={440} />
+  </Chapter>
+
+  <Chapter id="layers" n="06" label="3D wireframe" title="The Nearby feed, taken apart." intro="Five layers make the home feed. Scroll to assemble it, and drag to look around. Notice how little is purple: we kept it for the actions that make sharing happen.">
+    <ScreenStack layers={olioLayers} accent={p.accent} />
+  </Chapter>
+
+  <Chapter id="prototype" n="07" label="Prototype" title="Get, give, volunteer. Try all three." intro="Fourteen screens, fully tappable. Follow the tasks on the left, then flip to <strong>Sketch</strong> or <strong>Wireframe</strong> to see how each screen started.">
+    <Prototype title="Olio · list → request → pickup" start="onboard" tasks={tasks} device="light" note="Eight tasks across all three personas. Chips, switches and AI-ify are live.">
+      <!-- 1. Onboarding -->
+      <section class="scr ol ol-onboard" data-screen="onboard" data-title="Onboarding · what do you want to do?">
+        <div class="ol-blob img" aria-hidden="true"><span>🥖</span><span>🍎</span><span>🪴</span></div>
+        <div class="ol-pad ol-top ol-onboard-body">
+          <p class="t ol-kicker">Hi neighbour · 1 km around you</p>
+          <h4 class="t ol-h1">What do you want to do?</h4>
+          <div class="ol-options">
+            <button class="ui ol-option is-on" data-toggle><span class="ico ol-opt-ico" style="background:#ffd0c4">🛍️</span><span><span class="t ol-row-t">Get</span><br /><span class="t ol-row-s">Free food & things nearby</span></span><span class="ico ol-check"></span></button>
+            <button class="ui ol-option" data-toggle><span class="ico ol-opt-ico" style="background:#fff1b3">🎁</span><span><span class="t ol-row-t">Give</span><br /><span class="t ol-row-s">Share what you won’t use</span></span><span class="ico ol-check"></span></button>
+            <button class="ui ol-option" data-toggle><span class="ico ol-opt-ico" style="background:#ffe0c2">🦸</span><span><span class="t ol-row-t">Volunteer</span><br /><span class="t ol-row-s">Become a Food Waste Hero</span></span><span class="ico ol-check"></span></button>
+          </div>
+          <div class="ui ol-row ol-notify">
+            <span><span class="t ol-row-t">Alert me about food within</span><br /><span class="t ol-row-s">Closest first. Never more than you ask for.</span></span>
+          </div>
+          <div class="ol-chips">
+            <button class="ui ol-chip" data-toggle><span class="t">300 m</span></button>
+            <button class="ui ol-chip is-on" data-toggle><span class="t">600 m</span></button>
+            <button class="ui ol-chip" data-toggle><span class="t">1 km</span></button>
+          </div>
+        </div>
+        <div class="ol-pad ol-bottom">
+          <button class="btn ol-cta" data-go="home"><span class="t">Start sharing</span></button>
+        </div>
+      </section>
+
+      <!-- 2. Home feed -->
+      <section class="scr ol" data-screen="home" data-title="Nearby feed">
+        <div class="ol-scroll" data-scroll>
+          <div class="ol-pad ol-top">
+            <div class="ol-head">
+              <div><h4 class="t ol-h1">Nearby</h4><p class="t ol-row-s">Within 600 m · 17:33</p></div>
+              <button class="ui ol-round" data-go="map" aria-label="Map view"><span class="ico">🗺️</span></button>
+            </div>
+            <div class="ol-chips ol-chips--scroll">
+              <button class="ui ol-chip is-on" data-toggle><span class="t">All</span></button>
+              <button class="ui ol-chip" data-toggle><span class="t">Food</span></button>
+              <button class="ui ol-chip" data-toggle><span class="t">Non-food</span></button>
+              <button class="ui ol-chip" data-toggle><span class="t">Wanted</span></button>
+              <button class="ui ol-chip" data-toggle><span class="t">Borrow</span></button>
+            </div>
+            <p class="t ol-kicker">Just added</p>
+            <button class="ui ol-card" data-go="detail">
+              <span class="img ol-photo" style="background:linear-gradient(135deg,#ffd23f,#ff9a3d)"><span>🥖🥯</span><span class="ol-age"><i class="ol-pulse"></i>2 min</span></span>
+              <span class="ol-card-body">
+                <span class="t ol-card-t">Sourdough + 4 bagels</span>
+                <span class="t ol-row-s">350 m · today 6–8 pm · porch pickup</span>
+                <span class="btn ol-mini"><span class="t">Request</span></span>
+              </span>
+            </button>
+            <button class="ui ol-hero-banner" data-go="hero">
+              <span class="ico ol-opt-ico" style="background:#ff9a3d">🦸</span>
+              <span><span class="t ol-row-t">Tonight’s collection is ready</span><br /><span class="t ol-row-s">Food Waste Hero · list your bag</span></span>
+              <span class="t ol-chev">›</span>
+            </button>
+            {
+              feed.map((f) => (
+                <div class="ui ol-row ol-feed-row">
+                  <span class="img ol-thumb" style={`background:${f.bg}`}>{f.e}</span>
+                  <span><span class="t ol-row-t">{f.t}</span><br /><span class="t ol-row-s">{f.m}</span></span>
+                  <span class="t ol-tag">{f.tag}</span>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+        <nav class="ol-tabs ui">
+          <button class="is-on" data-go="home"><span class="ico">🏠</span><span class="t">Nearby</span></button>
+          <button data-go="map"><span class="ico">🗺️</span><span class="t">Map</span></button>
+          <button class="ol-add btn" data-go="add" aria-label="Add a listing"><span>＋</span></button>
+          <button data-go="hero"><span class="ico">🦸</span><span class="t">Hero</span></button>
+          <button data-go="impact"><span class="ico">🙂</span><span class="t">Me</span></button>
+        </nav>
+      </section>
+
+      <!-- 3. Map -->
+      <section class="scr ol" data-screen="map" data-title="Map view">
+        <svg class="img ol-map" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <rect width="390" height="844" fill="#fff3e2" />
+          <path d="M0 690 C 90 650 160 740 260 710 S 360 740 390 720 V844 H0Z" fill="#e6dcff" />
+          <rect x="230" y="150" width="120" height="110" rx="16" fill="#fbe3a6" />
+          <g fill="none" stroke="#fffdf8" stroke-width="16"><path d="M0 130 H390 M0 290 H390 M0 450 H390 M0 600 H390 M80 0 V844 M210 0 V844 M330 0 V844" /><path d="M0 760 L390 210" stroke-width="22" /></g>
+          <circle cx="195" cy="420" r="150" fill="rgb(110 59 217 / .07)" stroke="#6e3bd9" stroke-width="2" stroke-dasharray="6 8" />
+          <circle cx="195" cy="420" r="9" fill="#6e3bd9" stroke="#fff" stroke-width="4" />
+        </svg>
+        <div class="ol-pins" aria-hidden="true">
+          <span class="ol-pin ol-pin--hot" style="left:63%;top:39%">🥖</span>
+          <span class="ol-pin" style="left:24%;top:30%">🥕</span>
+          <span class="ol-pin" style="left:78%;top:58%">🍋</span>
+          <span class="ol-pin ol-pin--cluster" style="left:30%;top:63%">3</span>
+          <span class="ol-pin" style="left:52%;top:22%">🥾</span>
+        </div>
+        <div class="ol-pad ol-top ol-map-top">
+          <div class="ol-head">
+            <button class="ui ol-round" data-back aria-label="Back"><span class="ico">‹</span></button>
+            <div class="ui ol-search"><span class="t">Food · within 600 m</span></div>
+          </div>
+          <span class="t ol-supporter">Map view · Supporter perk</span>
+        </div>
+        <button class="ui ol-map-card" data-go="detail">
+          <span class="img ol-thumb" style="background:linear-gradient(135deg,#ffd23f,#ff9a3d)">🥖</span>
+          <span><span class="t ol-row-t">Sourdough + 4 bagels</span><br /><span class="t ol-row-s">350 m · 4 min walk · 2 min ago</span></span>
+          <span class="btn ol-mini"><span class="t">View</span></span>
+        </button>
+      </section>
+
+      <!-- 4. Listing detail -->
+      <section class="scr ol" data-screen="detail" data-title="Listing detail">
+        <div class="ol-scroll ol-scroll--cta" data-scroll>
+          <div class="img ol-gallery" style="background:linear-gradient(135deg,#ffd23f,#ff9a3d)">
+            <span class="ol-gallery-e">🥖🥯</span>
+            <span class="ol-dots"><i class="is-on"></i><i></i><i></i></span>
+          </div>
+          <button class="ui ol-round ol-float-back" data-back aria-label="Back"><span class="ico">‹</span></button>
+          <div class="ol-pad ol-detail">
+            <div class="ol-tags"><span class="t ol-tag">Food</span><span class="t ol-tag ol-tag--hot">Added 2 min ago</span><span class="t ol-tag">350 m</span></div>
+            <h4 class="t ol-h2">Sourdough + 4 bagels</h4>
+            <p class="t ol-p">Baked yesterday, too much for one. Lovely toasted. Bagged and ready on the porch.</p>
+            <div class="ui ol-row">
+              <span class="ico ol-opt-ico" style="background:#ede6ff">🕕</span>
+              <span><span class="t ol-row-t">Today, 6–8 pm</span><br /><span class="t ol-row-s">Porch pickup OK · address after reserving</span></span>
+            </div>
+            <div class="ui ol-row">
+              <span class="ico ol-avatar">D</span>
+              <span><span class="t ol-row-t">Diane</span><br /><span class="t ol-row-s">★ 4.9 · 212 shares · usually replies in 5 min</span></span>
+              <span class="t ol-verified">ID ✓</span>
+            </div>
+            <p class="t ol-row-s">Sample listing for this concept.</p>
+          </div>
+        </div>
+        <div class="ol-cta-bar ui">
+          <button class="ui ol-round" data-toggle aria-label="Save"><span class="ico">♡</span></button>
+          <button class="btn ol-cta" data-go="request" data-sheet><span class="t">Request</span></button>
+        </div>
+      </section>
+
+      <!-- 5. Request sheet -->
+      <section class="scr ol ol-sheet-scr" data-screen="request" data-title="Request (sheet)">
+        <div class="ol-sheet ui">
+          <div class="ol-grabber"></div>
+          <h4 class="t ol-h2">Request this?</h4>
+          <p class="t ol-p">Pick a time. Diane sees it first, so she can choose quickly.</p>
+          <div class="ol-quick">
+            <button class="ui ol-chip is-on" data-toggle><span class="t">I can come at 6pm</span></button>
+            <button class="ui ol-chip" data-toggle><span class="t">Any time after 7</span></button>
+            <button class="ui ol-chip" data-toggle><span class="t">Can collect in 10 min</span></button>
+          </div>
+          <div class="ui ol-input"><span class="t">Hi Diane! Would love the bread for dinner 🙂</span></div>
+          <button class="btn ol-cta" data-go="chat"><span class="t">Send request</span></button>
+          <button class="ol-link t" data-back>Not now</button>
+        </div>
+      </section>
+
+      <!-- 6. Chat -->
+      <section class="scr ol" data-screen="chat" data-title="Chat">
+        <div class="ol-chat-head ui">
+          <button class="ol-back t" data-back aria-label="Back">‹</button>
+          <span class="ico ol-avatar">D</span>
+          <span><span class="t ol-row-t">Diane</span><br /><span class="t ol-row-s">Sourdough + 4 bagels</span></span>
+          <span class="t ol-reserved">Reserved for you</span>
+        </div>
+        <div class="ol-msgs">
+          <p class="t ol-msg ol-msg--me">I can come at 6pm 🙂</p>
+          <p class="t ol-msg">Perfect, it’s yours! Porch pickup is fine, blue door.</p>
+          <div class="ui ol-sys">
+            <span class="t ol-row-t">✓ Reserved · today 6:00 pm</span>
+            <span class="t ol-row-s">Address shared with you only · 4 min walk</span>
+          </div>
+          <p class="t ol-msg ol-msg--me">Brilliant, thank you!</p>
+        </div>
+        <div class="ol-chat-foot">
+          <div class="ol-quick ol-quick--row">
+            <button class="ui ol-chip" data-toggle><span class="t">On my way</span></button>
+            <button class="ui ol-chip" data-toggle><span class="t">Running 10 min late</span></button>
+            <button class="ui ol-chip" data-toggle><span class="t">Thank you!</span></button>
+          </div>
+          <button class="btn ol-cta" data-go="pickup"><span class="t">Confirm pickup at 6:00 pm</span></button>
+        </div>
+      </section>
+
+      <!-- 7. Pickup -->
+      <section class="scr ol" data-screen="pickup" data-title="Pickup confirmed">
+        <div class="ol-pad ol-top">
+          <button class="ol-back t" data-back>‹ Chat</button>
+          <p class="t ol-kicker">Pickup confirmed</p>
+          <h4 class="t ol-h1">Leave in 18 min</h4>
+          <div class="ui ol-minimap">
+            <svg class="img" viewBox="0 0 340 170" aria-hidden="true">
+              <rect width="340" height="170" rx="18" fill="#fff3e2" />
+              <g fill="none" stroke="#fffdf8" stroke-width="12"><path d="M0 50 H340 M0 120 H340 M90 0 V170 M230 0 V170" /></g>
+              <polyline points="290,140 230,140 230,50 140,50" fill="none" stroke="#ff6b5b" stroke-width="5" stroke-dasharray="8 8" stroke-linecap="round" class="ol-route" />
+              <circle cx="290" cy="140" r="9" fill="#ff6b5b" stroke="#fff" stroke-width="3" />
+              <circle cx="140" cy="50" r="10" fill="#6e3bd9" stroke="#fff" stroke-width="3" />
+            </svg>
+            <span class="t ol-row-s">350 m · 4 min walk · blue door, porch</span>
+          </div>
+          <p class="t ol-kicker">Doorstep etiquette</p>
+          <div class="ui ol-checks">
+            <button class="ol-checkrow is-on" data-toggle><span class="ico ol-tick"></span><span class="t">Bring a bag</span></button>
+            <button class="ol-checkrow is-on" data-toggle><span class="ico ol-tick"></span><span class="t">Porch pickup: no need to knock</span></button>
+            <button class="ol-checkrow" data-toggle><span class="ico ol-tick"></span><span class="t">Message if you’re running late</span></button>
+          </div>
+        </div>
+        <div class="ol-pad ol-bottom">
+          <button class="btn ol-cta" data-go="impact"><span class="t">I’ve collected it</span></button>
+        </div>
+      </section>
+
+      <!-- 8. Add: camera -->
+      <section class="scr ol ol-camera" data-screen="add" data-title="Add · camera">
+        <div class="img ol-viewfinder" aria-hidden="true"><span class="ol-subject">🍎🍎🍎</span><i class="ol-corner ol-c1"></i><i class="ol-corner ol-c2"></i><i class="ol-corner ol-c3"></i><i class="ol-corner ol-c4"></i></div>
+        <div class="ol-pad ol-top ol-cam-top">
+          <button class="ui ol-round ol-round--dark" data-back aria-label="Close"><span class="ico">✕</span></button>
+          <div class="ol-chips">
+            <button class="ui ol-chip ol-chip--dark is-on" data-toggle><span class="t">Free</span></button>
+            <button class="ui ol-chip ol-chip--dark is-on" data-toggle><span class="t">Food</span></button>
+          </div>
+        </div>
+        <div class="ol-cam-bottom">
+          <p class="t ol-cam-hint">Up to 10 photos · we’ll write the rest</p>
+          <button class="btn ol-shutter" data-go="draft" aria-label="Take photo"><span></span></button>
+        </div>
+      </section>
+
+      <!-- 9. Draft with AI-ify -->
+      <section class="scr ol ol-draft" data-screen="draft" data-title="AI-ify draft">
+        <div class="ol-scroll ol-scroll--cta" data-scroll>
+          <div class="ol-pad ol-top">
+            <button class="ol-back t" data-back>‹ Retake</button>
+            <h4 class="t ol-h2">New listing</h4>
+            <div class="ol-shots">
+              <span class="img ol-thumb ol-thumb--lg" style="background:linear-gradient(135deg,#ffd0c4,#ff6b5b)">🍎</span>
+              <span class="ui ol-thumb ol-thumb--add">＋</span>
+            </div>
+            <button class="btn ol-aiify" data-toggle><span class="t">✨ AI-ify from photo</span><span class="t ol-aiify-done">✓ Drafted, check it’s right</span></button>
+            <div class="ui ol-field"><span class="t ol-field-l">Title</span><span class="t ol-field-v" data-v="Eating apples ×6"></span></div>
+            <div class="ui ol-field"><span class="t ol-field-l">Description</span><span class="t ol-field-v" data-v="Six eating apples from the market. A few small marks, crisp and sweet."></span></div>
+            <div class="ui ol-field"><span class="t ol-field-l">Category</span><span class="t ol-field-v" data-v="Food · Fruit & veg"></span></div>
+          </div>
+        </div>
+        <div class="ol-cta-bar ui">
+          <button class="btn ol-cta" data-go="times"><span class="t">Next: pickup times</span></button>
+        </div>
+      </section>
+
+      <!-- 10. Pickup times -->
+      <section class="scr ol" data-screen="times" data-title="Pickup times">
+        <div class="ol-pad ol-top">
+          <button class="ol-back t" data-back>‹ Draft</button>
+          <h4 class="t ol-h2">When can people collect?</h4>
+          <div class="ol-quick">
+            <button class="ui ol-chip is-on" data-toggle><span class="t">Today 6–8 pm</span></button>
+            <button class="ui ol-chip" data-toggle><span class="t">Tomorrow morning</span></button>
+            <button class="ui ol-chip" data-toggle><span class="t">Any time this week</span></button>
+          </div>
+          <div class="ui ol-row">
+            <span><span class="t ol-row-t">Porch pickup OK</span><br /><span class="t ol-row-s">You don’t need to be in</span></span>
+            <button class="ui ol-switch is-on" data-toggle aria-label="Porch pickup"><i></i></button>
+          </div>
+          <div class="ui ol-row">
+            <span><span class="t ol-row-t">Remember these times</span><br /><span class="t ol-row-s">Next listing is one tap faster</span></span>
+            <button class="ui ol-switch is-on" data-toggle aria-label="Remember times"><i></i></button>
+          </div>
+          <div class="ui ol-row ol-waves-row">
+            <span class="ico ol-opt-ico" style="background:#ede6ff">📡</span>
+            <span><span class="t ol-row-t">Alert in fair waves</span><br /><span class="t ol-row-s">Closest neighbours first, wider only if needed</span></span>
+            <button class="ui ol-switch is-on" data-toggle aria-label="Fair waves"><i></i></button>
+          </div>
+        </div>
+        <div class="ol-pad ol-bottom">
+          <button class="btn ol-cta" data-go="published"><span class="t">Publish</span></button>
+        </div>
+      </section>
+
+      <!-- 11. Published -->
+      <section class="scr ol ol-live" data-screen="published" data-title="Live!">
+        <div class="img ol-waves" aria-hidden="true"><i></i><i></i><i></i><span>📍</span></div>
+        <div class="ol-pad ol-bottom ol-center">
+          <p class="t ol-kicker">You’re live</p>
+          <h4 class="t ol-h1">Good food goes in minutes.</h4>
+          <p class="t ol-p">Your closest neighbours are being told first. We’ll widen the circle only if nobody asks, and stop as soon as it’s reserved.</p>
+          <button class="btn ol-cta" data-go="home"><span class="t">Back to Nearby</span></button>
+          <button class="ol-link t" data-go="impact">See your impact</button>
+        </div>
+      </section>
+
+      <!-- 12. Food Waste Hero dashboard -->
+      <section class="scr ol" data-screen="hero" data-title="Food Waste Hero dashboard">
+        <div class="ol-scroll" data-scroll>
+          <div class="ol-pad ol-top">
+            <button class="ol-back t" data-back>‹ Back</button>
+            <p class="t ol-kicker">Food Waste Hero</p>
+            <h4 class="t ol-h1">Tonight’s collection</h4>
+            <div class="ui ol-slot">
+              <span class="t ol-row-s">Partner store · 21:15</span>
+              <span class="t ol-slot-n">1 bag collected</span>
+              <div class="ol-steps">
+                <span class="is-done"><i></i><span class="t">Collect</span></span>
+                <span class="is-now"><i></i><span class="t">List</span></span>
+                <span><i></i><span class="t">Hand out</span></span>
+              </div>
+            </div>
+            <button class="btn ol-cta ol-cta--orange" data-go="batch"><span class="t">📸 Add Collection</span></button>
+            <p class="t ol-p">Photograph the whole bag. We split it into listings and give them all the same pickup window.</p>
+            <div class="ol-grid2">
+              <div class="ui ol-tile"><span class="t ol-row-s">Bags this month</span><span class="t ol-tile-n">18</span></div>
+              <div class="ui ol-tile"><span class="t ol-row-s">Next slot</span><span class="t ol-tile-n">Thu 21:15</span></div>
+            </div>
+            <p class="t ol-row-s">Sample data for this concept.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 13. Batch: Add Collection -->
+      <section class="scr ol" data-screen="batch" data-title="Add Collection (batch)">
+        <div class="ol-scroll ol-scroll--cta" data-scroll>
+          <div class="ol-pad ol-top">
+            <button class="ol-back t" data-back>‹ Dashboard</button>
+            <h4 class="t ol-h2">9 listings from 3 photos</h4>
+            <p class="t ol-p">Tap an item to tick it off. Two need a date check.</p>
+            <div class="ol-batch">
+              {
+                batchItems.map(([e, t, flag]) => (
+                  <button class:list={['ui', 'ol-bitem', { 'ol-bitem--flag': flag, 'is-on': !flag }]} data-toggle>
+                    <span class="img ol-bitem-img">{e}</span>
+                    <span class="t ol-bitem-t">{t}</span>
+                    {flag && <span class="t ol-bitem-f">{flag}</span>}
+                  </button>
+                ))
+              }
+            </div>
+            <div class="ui ol-row">
+              <span><span class="t ol-row-t">Same pickup for all</span><br /><span class="t ol-row-s">Tonight 21:30–22:30 · my porch</span></span>
+              <span class="t ol-chev">›</span>
+            </div>
+          </div>
+        </div>
+        <div class="ol-cta-bar ui">
+          <button class="btn ol-cta ol-cta--orange" data-go="published"><span class="t">Publish all 9</span></button>
+        </div>
+      </section>
+
+      <!-- 14. Impact / profile -->
+      <section class="scr ol" data-screen="impact" data-title="Impact">
+        <div class="ol-scroll" data-scroll>
+          <div class="ol-pad ol-top">
+            <div class="ui ol-toast"><span class="t">🎉 Collected! Diane got your thank-you.</span></div>
+            <div class="ol-profile">
+              <span class="ico ol-avatar ol-avatar--lg">S</span>
+              <span><span class="t ol-h2">Sam</span><br /><span class="t ol-row-s">Neighbour since March · ★ 5.0</span></span>
+            </div>
+            <div class="ol-grid2">
+              <div class="ui ol-tile"><span class="t ol-row-s">Collected</span><span class="t ol-tile-n">21</span></div>
+              <div class="ui ol-tile"><span class="t ol-row-s">Given</span><span class="t ol-tile-n">17</span></div>
+            </div>
+            <div class="ui ol-card ol-impact-card">
+              <span class="t ol-row-s">Things kept out of the bin, by month</span>
+              <span class="img ol-bars">{[3, 5, 4, 7, 6, 9, 8].map((h) => <i style={`height:${h * 10}%`}></i>)}</span>
+            </div>
+            <p class="t ol-kicker">Badges</p>
+            <div class="ol-badges">
+              <span class="ico ol-badge" style="background:#ffd23f">🥖</span>
+              <span class="ico ol-badge" style="background:#ff6b5b">⚡</span>
+              <span class="ico ol-badge" style="background:#ede6ff">🤝</span>
+              <span class="ico ol-badge ol-badge--locked">🦸</span>
+            </div>
+            <div class="ui ol-row">
+              <span><span class="t ol-row-t">Bread & veg alerts within 600 m</span><br /><span class="t ol-row-s">Tuned after your last pickup</span></span>
+              <button class="ui ol-switch is-on" data-toggle aria-label="Bread and veg alerts"><i></i></button>
+            </div>
+            <p class="t ol-row-s">Sample data for this concept.</p>
+          </div>
+        </div>
+      </section>
+    </Prototype>
+  </Chapter>
+
+  <Chapter id="system" n="08" label="Design system" title="Urgent optimism, in a warm palette.">
+    <DesignSystem
+      colors={[
+        { name: 'Add purple', hex: '#6E3BD9', use: 'Add & Request, one per screen' },
+        { name: 'Coral', hex: '#FF6B5B', use: 'Freshness, “just added”, collectors' },
+        { name: 'Marmalade', hex: '#FF9A3D', use: 'Food Waste Hero tools' },
+        { name: 'Sunshine', hex: '#FFD23F', use: 'Reserved, badges, celebration' },
+        { name: 'Oat', hex: '#FFF8EE', use: 'App background' },
+        { name: 'Lilac', hex: '#EDE6FF', use: 'Selected & quiet surfaces' },
+        { name: 'Aubergine', hex: '#22163B', use: 'Text & icons' },
+      ]}
+      type={[
+        { role: 'Display', sample: 'Good food goes in minutes.', spec: 'Montserrat 800 · 34/38', style: 'font-family:Montserrat;font-weight:800;font-size:2.1rem;letter-spacing:-0.03em;line-height:1.1' },
+        { role: 'Card title', sample: 'Sourdough + 4 bagels', spec: 'Montserrat 800 · 18/22', style: 'font-family:Montserrat;font-weight:800;font-size:1.15rem' },
+        { role: 'Body', sample: 'Porch pickup OK, address after reserving.', spec: 'Inter 400 · 15/22', style: 'font-family:Inter;font-size:.95rem' },
+        { role: 'Meta / clock', sample: '350 m · added 2 min ago', spec: 'Inter 500 · 13/18 · tabular', style: 'font-family:Inter;font-weight:500;font-size:.82rem;font-feature-settings:"tnum" 1' },
+      ]}
+      note="Colours are our working approximation of Olio’s 2023 warm palette. The purple Add button is documented in Olio’s help centre; the hex values are our inference, not official brand values. Olio’s typeface isn’t public, so Montserrat and Inter stand in."
+    >
+      <p class="t-label">Live components · tap them</p>
+      <div class="ol-ds">
+        <div class="ol-ds-card" data-ds-card>
+          <div class="ol-ds-photo"><span>🥖🥯</span><span class="ol-ds-age"><i></i><span data-ds-age>just now</span></span></div>
+          <div class="ol-ds-body">
+            <p class="ol-ds-t">Sourdough + 4 bagels</p>
+            <p class="ol-ds-m">350 m · today 6–8 pm</p>
+            <button type="button" class="ol-ds-req" data-ds-req data-state="0" aria-live="polite">Request</button>
+          </div>
+        </div>
+        <div class="ol-ds-notes">
+          <div class="ol-ds-spec">
+            <p class="t-label">Listing card</p>
+            <p class="t-small">The age label counts up live and pulses once when a listing is new. Distance and pickup window always share the meta line.</p>
+          </div>
+          <div class="ol-ds-spec">
+            <p class="t-label">Request button · 3 states</p>
+            <p class="t-small">Request → Requested (waiting) → Reserved for you. Tap it to cycle. Purple means “act”; sunshine means “it’s yours”.</p>
+          </div>
+          <div class="ol-ds-spec">
+            <p class="t-label">Filter chips</p>
+            <div class="ol-ds-chips" role="group" aria-label="Example filter chips">
+              <button type="button" class="ol-ds-chip" aria-pressed="true" data-ds-chip>Food</button>
+              <button type="button" class="ol-ds-chip" aria-pressed="false" data-ds-chip>Non-food</button>
+              <button type="button" class="ol-ds-chip" aria-pressed="false" data-ds-chip>Wanted</button>
+            </div>
+          </div>
+          <div class="ol-ds-spec ol-ds-add-row">
+            <button type="button" class="ol-ds-add" aria-label="Add button example" data-ds-add>＋</button>
+            <p class="t-small">The Add button: 64 pt, thumb-reachable, centred in the tab bar on every screen. It is the brand’s most important pixel.</p>
+          </div>
+        </div>
+      </div>
+    </DesignSystem>
+  </Chapter>
+
+  <Chapter id="measure" n="09" label="Measure" title="How we’d know it got faster.">
+    <Metrics
+      metrics={[
+        { name: 'Time to list', hypothesis: 'AI-ify plus remembered pickup times bring a food listing from photo to live in under a minute.', how: 'Median and p90 time from opening the camera to publish, split by first vs. repeat listings.' },
+        { name: 'Time to reserve, without the noise', hypothesis: 'Fair waves get food reserved within the first wave or two while sending each neighbour fewer alerts.', how: 'Publish → accepted request time by density; alerts per user and opt-out rate. A/B: waves vs. broadcast.' },
+        { name: 'Pickup completion', hypothesis: 'Agreed windows, a clear “Reserved” state and reminders reduce no-shows.', how: 'Share of reserved listings marked collected; no-show reports per 100 pickups.' },
+        { name: 'Volunteer batch time', hypothesis: 'A Food Waste Hero can list a whole bag in a couple of minutes.', how: 'Time from “Add Collection” to all items live; items unclaimed at the end of the window.' },
+      ]}
+    />
+  </Chapter>
+</Case>
+
+<script>
+  // Design-system live components.
+  const req = document.querySelector<HTMLButtonElement>('[data-ds-req]');
+  const LABELS = ['Request', 'Requested · waiting', 'Reserved for you ✓'];
+  req?.addEventListener('click', () => {
+    const s = (Number(req.dataset.state) + 1) % 3;
+    req.dataset.state = String(s);
+    req.textContent = LABELS[s];
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-ds-chip]').forEach((c) =>
+    c.addEventListener('click', () => c.setAttribute('aria-pressed', String(c.getAttribute('aria-pressed') !== 'true'))),
+  );
+  const add = document.querySelector<HTMLButtonElement>('[data-ds-add]');
+  add?.addEventListener('click', () => {
+    add.classList.remove('is-pressed');
+    void add.offsetWidth;
+    add.classList.add('is-pressed');
+  });
+  // Live age counter on the sample card, starting when it scrolls into view.
+  const card = document.querySelector<HTMLElement>('[data-ds-card]');
+  const age = document.querySelector<HTMLElement>('[data-ds-age]');
+  if (card && age) {
+    let start = 0;
+    let timer = 0;
+    const io = new IntersectionObserver((es) => {
+      const vis = es.some((e) => e.isIntersecting);
+      if (vis && !timer) {
+        if (!start) start = Date.now();
+        card.classList.add('is-new');
+        timer = window.setInterval(() => {
+          const s = Math.floor((Date.now() - start) / 1000);
+          age.textContent = s < 10 ? 'just now' : s < 60 ? `${s} s ago` : `${Math.floor(s / 60)} min ago`;
+        }, 1000);
+      } else if (!vis && timer) {
+        clearInterval(timer);
+        timer = 0;
+      }
+    });
+    io.observe(card);
+  }
+</script>
+
+<style>
+  .ol-disclaimer { margin-top: var(--s-5); max-width: 80ch; padding-left: var(--s-4); border-left: 2px dashed var(--line-strong); }
+
+  /* ---------- Olio app screens (light device) ---------- */
+  /* Neutralise the site-wide .btn look inside the phone (height/padding are reset per component below). */
+  :where(.ol) .btn { gap: 0; text-transform: none; letter-spacing: 0; font-family: Inter, system-ui, sans-serif; will-change: auto; }
+  .ol { background: #fff8ee; color: #22163b; font-family: Inter, system-ui, sans-serif; }
+  .ol-scroll { position: absolute; inset: 0 0 86px; }
+  .ol-scroll--cta { bottom: 104px; }
+  .ol-pad { padding: 0 22px; }
+  .ol-top { padding-top: 64px; display: grid; gap: 14px; }
+  .ol-bottom { position: absolute; left: 0; right: 0; bottom: 42px; display: grid; gap: 12px; }
+  .ol-center { text-align: center; justify-items: center; }
+  .ol-kicker { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6f6584; font-weight: 600; }
+  .ol-h1 { font-family: Montserrat, sans-serif; font-size: 32px; line-height: 1.05; font-weight: 800; letter-spacing: -0.03em; }
+  .ol-h2 { font-family: Montserrat, sans-serif; font-size: 25px; line-height: 1.12; font-weight: 800; letter-spacing: -0.02em; }
+  .ol-p { font-size: 15px; line-height: 1.5; color: #4a4060; }
+  .ol-row-t { font-weight: 700; font-size: 15px; }
+  .ol-row-s { font-size: 13px; color: #6f6584; }
+  .ol-cta { width: 100%; height: 56px; padding: 0; border-radius: 18px; background: #6e3bd9; color: #fff; font-weight: 700; font-size: 16px; display: grid; place-items: center; box-shadow: 0 10px 24px -10px rgb(110 59 217 / 0.7); }
+  .ol-cta--orange { background: #ff9a3d; color: #22163b; box-shadow: 0 10px 24px -10px rgb(255 154 61 / 0.8); }
+  .ol-link { justify-self: center; color: #6e3bd9; font-weight: 600; font-size: 15px; padding: 6px; }
+  .ol-back { justify-self: start; color: #6e3bd9; font-size: 15px; font-weight: 600; }
+  .ol-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .ol-round { flex: none; width: 44px; height: 44px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-size: 20px; box-shadow: 0 4px 14px -6px rgb(34 22 59 / 0.35); color: #22163b; }
+  .ol-round.is-on { color: #ff6b5b; }
+  .ol-round--dark { background: rgb(255 255 255 / 0.2); color: #fff; box-shadow: none; }
+
+  /* Chips & options */
+  .ol-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .ol-chips--scroll { flex-wrap: nowrap; overflow: hidden; margin-right: -22px; }
+  .ol-chip { flex: none; padding: 9px 15px; border-radius: 99px; background: #fff; border: 1.5px solid #eadfcd; font-size: 14px; font-weight: 600; color: #22163b; transition: background 0.2s, color 0.2s, border-color 0.2s; }
+  .ol-chip.is-on { background: #6e3bd9; border-color: #6e3bd9; color: #fff; }
+  .ol-chip--dark { background: rgb(255 255 255 / 0.18); border-color: transparent; color: #fff; }
+  .ol-chip--dark.is-on { background: #fff; color: #22163b; border-color: #fff; }
+  .ol-quick { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ol-quick--row { flex-wrap: nowrap; overflow: hidden; }
+  .ol-options { display: grid; gap: 10px; }
+  .ol-option { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 18px; background: #fff; border: 2px solid #f0e6d6; text-align: left; color: #22163b; transition: border-color 0.2s, background 0.2s; }
+  .ol-option.is-on { border-color: #6e3bd9; background: #f6f1ff; }
+  .ol-opt-ico { flex: none; width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; font-size: 21px; }
+  .ol-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #d8cfe3; transition: all 0.2s; }
+  .ol-option.is-on .ol-check { border: 7px solid #6e3bd9; }
+  .ol-onboard { background: radial-gradient(120% 50% at 80% 0%, #ffe0c2, #fff8ee 60%); }
+  .ol-blob { position: absolute; right: -40px; top: 40px; width: 220px; height: 150px; border-radius: 50%; background: radial-gradient(circle at 30% 40%, #ffd23f, #ff9a3d 60%, transparent 62%); display: flex; gap: 6px; align-items: center; justify-content: center; font-size: 30px; opacity: 0.9; }
+  .ol-onboard-body { padding-top: 150px; }
+  .ol-notify { background: transparent; padding: 4px 0 0; box-shadow: none; }
+
+  /* Rows, cards */
+  .ol-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 18px; background: #fff; color: #22163b; text-align: left; width: 100%; box-shadow: 0 2px 10px -6px rgb(34 22 59 / 0.25); }
+  .ol-row > span:not(.ico):not(.img):not(.ol-tag):not(.ol-verified):not(.ol-chev) { flex: 1; min-width: 0; }
+  .ol-card { display: grid; width: 100%; border-radius: 22px; overflow: hidden; background: #fff; text-align: left; color: #22163b; box-shadow: 0 10px 30px -14px rgb(34 22 59 / 0.35); }
+  .ol-photo { position: relative; display: grid; place-items: center; height: 150px; font-size: 54px; }
+  .ol-age { position: absolute; left: 12px; top: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 99px; background: #ff6b5b; color: #fff; font-size: 12px; font-weight: 700; }
+  .ol-pulse { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: ol-pulse 1.4s ease-out infinite; }
+  @keyframes ol-pulse { 0% { box-shadow: 0 0 0 0 rgb(255 255 255 / 0.9); } 100% { box-shadow: 0 0 0 8px rgb(255 255 255 / 0); } }
+  .ol-card-body { position: relative; display: grid; gap: 4px; padding: 14px 16px 16px; }
+  .ol-card-t { font-family: Montserrat, sans-serif; font-weight: 800; font-size: 18px; }
+  .ol-mini { height: auto; position: absolute; right: 14px; bottom: 14px; padding: 7px 14px; border-radius: 99px; background: #6e3bd9; color: #fff; font-size: 13px; font-weight: 700; }
+  .ol-hero-banner { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 18px; background: #fff0e0; border: 1.5px dashed #ff9a3d; text-align: left; color: #22163b; width: 100%; }
+  .ol-thumb { flex: none; width: 56px; height: 56px; border-radius: 14px; display: grid; place-items: center; font-size: 24px; }
+  .ol-thumb--lg { width: 96px; height: 96px; border-radius: 18px; font-size: 42px; }
+  .ol-thumb--add { width: 96px; height: 96px; border-radius: 18px; border: 2px dashed #d8cfe3; color: #6f6584; font-size: 28px; }
+  .ol-tag { padding: 3px 9px; border-radius: 99px; background: #f3ecdf; font-size: 11px; font-weight: 600; color: #4a4060; white-space: nowrap; }
+  .ol-tag--hot { background: #ffe1dc; color: #c53b2c; }
+  .ol-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  /* Tab bar with the purple Add */
+  .ol-tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 86px; padding: 8px 10px 24px; display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; background: #fff; border-top: 1px solid #f0e6d6; }
+  .ol-tabs button { display: grid; justify-items: center; gap: 2px; color: #8b819e; font-size: 11px; font-weight: 600; }
+  .ol-tabs .ico { font-size: 19px; width: 26px; height: 26px; display: grid; place-items: center; filter: grayscale(1); opacity: 0.6; }
+  .ol-tabs .is-on { color: #6e3bd9; }
+  .ol-tabs .is-on .ico { filter: none; opacity: 1; }
+  .ol-tabs .ol-add { padding: 0; justify-self: center; width: 60px; height: 60px; margin-top: -26px; border-radius: 50%; background: #6e3bd9; color: #fff; font-size: 30px; font-weight: 400; place-items: center; box-shadow: 0 0 0 5px #fff, 0 12px 24px -8px rgb(110 59 217 / 0.8); }
+
+  /* Map */
+  .ol-map { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .ol-pins { position: absolute; inset: 0; }
+  .ol-pin { position: absolute; display: grid; place-items: center; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: #fff; font-size: 21px; box-shadow: 0 6px 16px -6px rgb(34 22 59 / 0.5); border: 3px solid #fff; }
+  .ol-pin--hot { width: 56px; height: 56px; margin: -28px 0 0 -28px; background: #ffd23f; font-size: 27px; box-shadow: 0 0 0 6px rgb(255 107 91 / 0.35), 0 10px 20px -6px rgb(34 22 59 / 0.5); animation: ol-bob 2.4s ease-in-out infinite; }
+  @keyframes ol-bob { 50% { translate: 0 -6px; } }
+  .ol-pin--cluster { background: #6e3bd9; color: #fff; font: 800 17px Montserrat, sans-serif; }
+  .ol-map-top { position: relative; z-index: 2; }
+  .ol-search { flex: 1; padding: 12px 16px; border-radius: 99px; background: #fff; font-size: 14px; font-weight: 600; box-shadow: 0 4px 14px -6px rgb(34 22 59 / 0.35); }
+  .ol-supporter { justify-self: start; padding: 5px 10px; border-radius: 99px; background: #22163b; color: #ffd23f; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
+  .ol-map-card { position: absolute; left: 16px; right: 16px; bottom: 40px; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 12px; border-radius: 22px; background: #fff; text-align: left; color: #22163b; box-shadow: 0 16px 40px -14px rgb(34 22 59 / 0.5); }
+  .ol-map-card .ol-mini { position: static; }
+
+  /* Detail */
+  .ol-gallery { position: relative; height: 330px; display: grid; place-items: center; }
+  .ol-gallery-e { font-size: 96px; }
+  .ol-dots { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; }
+  .ol-dots i { width: 7px; height: 7px; border-radius: 50%; background: rgb(255 255 255 / 0.6); }
+  .ol-dots i.is-on { width: 20px; border-radius: 4px; background: #fff; }
+  .ol-float-back { position: absolute; left: 18px; top: 56px; }
+  .ol-detail { padding-top: 18px; display: grid; gap: 12px; }
+  .ol-avatar { flex: none; width: 42px; height: 42px; border-radius: 50%; background: #ffd23f; display: grid; place-items: center; font: 800 17px Montserrat, sans-serif; color: #22163b; }
+  .ol-avatar--lg { width: 72px; height: 72px; font-size: 28px; background: #ff6b5b; color: #fff; }
+  .ol-verified { padding: 3px 8px; border-radius: 99px; background: #ede6ff; color: #6e3bd9; font-size: 11px; font-weight: 700; }
+  .ol-cta-bar { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 22px 34px; display: flex; gap: 12px; align-items: center; background: #fff; border-top: 1px solid #f0e6d6; }
+  .ol-cta-bar .ol-cta { flex: 1; }
+
+  /* Sheet */
+  .ol-sheet-scr { background: rgb(34 22 59 / 0.45); }
+  .ol-sheet { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 22px 40px; border-radius: 30px 30px 0 0; background: #fff8ee; display: grid; gap: 14px; }
+  .ol-grabber { width: 40px; height: 5px; border-radius: 3px; background: #d8cfe3; justify-self: center; }
+  .ol-input { padding: 14px 16px; border-radius: 16px; background: #fff; border: 1.5px solid #eadfcd; font-size: 14px; color: #4a4060; min-height: 72px; }
+
+  /* Chat */
+  .ol-chat-head { position: absolute; left: 0; right: 0; top: 0; padding: 56px 16px 12px; display: grid; grid-template-columns: auto auto 1fr auto; gap: 10px; align-items: center; background: #fff; border-bottom: 1px solid #f0e6d6; }
+  .ol-chat-head .ol-back { font-size: 28px; line-height: 1; padding: 0 4px; }
+  .ol-reserved { padding: 4px 9px; border-radius: 99px; background: #ffd23f; font-size: 11px; font-weight: 700; }
+  .ol-msgs { position: absolute; left: 0; right: 0; top: 132px; padding: 16px; display: grid; gap: 10px; align-content: start; }
+  .ol-msg { max-width: 78%; padding: 10px 14px; border-radius: 18px 18px 18px 6px; background: #fff; font-size: 15px; line-height: 1.4; box-shadow: 0 2px 8px -4px rgb(34 22 59 / 0.25); }
+  .ol-msg--me { justify-self: end; border-radius: 18px 18px 6px 18px; background: #6e3bd9; color: #fff; }
+  .ol-sys { display: grid; gap: 2px; justify-items: center; text-align: center; padding: 12px; border-radius: 16px; background: #fff3c4; border: 1.5px solid #ffd23f; }
+  .ol-chat-foot { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 16px 36px; display: grid; gap: 12px; background: #fff8ee; }
+
+  /* Pickup */
+  .ol-minimap { display: grid; gap: 8px; padding: 10px; border-radius: 20px; background: #fff; }
+  .ol-minimap svg { width: 100%; height: auto; display: block; }
+  .ol-route { animation: ol-dash 1s linear infinite; }
+  @keyframes ol-dash { to { stroke-dashoffset: -16; } }
+  .ol-checks { display: grid; padding: 4px 14px; border-radius: 18px; background: #fff; }
+  .ol-checkrow { display: flex; gap: 12px; align-items: center; padding: 12px 0; text-align: left; font-size: 15px; color: #22163b; border-bottom: 1px solid #f3ecdf; }
+  .ol-checkrow:last-child { border-bottom: 0; }
+  .ol-tick { flex: none; width: 24px; height: 24px; border-radius: 8px; border: 2px solid #d8cfe3; display: grid; place-items: center; transition: background 0.2s, border-color 0.2s; }
+  .ol-checkrow.is-on .ol-tick { background: #6e3bd9; border-color: #6e3bd9; }
+  .ol-checkrow.is-on .ol-tick::after { content: '✓'; color: #fff; font-size: 13px; font-weight: 800; }
+
+  /* Camera */
+  .ol-camera { background: #120b20; color: #fff; }
+  .ol-viewfinder { position: absolute; inset: 0; background: radial-gradient(60% 40% at 50% 48%, #ffd9b0, #c46a3a 55%, #3a2018 100%); display: grid; place-items: center; }
+  .ol-subject { font-size: 84px; filter: drop-shadow(0 20px 20px rgb(0 0 0 / 0.4)); }
+  .ol-corner { position: absolute; width: 40px; height: 40px; border: 4px solid #fff; opacity: 0.9; }
+  .ol-c1 { left: 50px; top: 230px; border-right: 0; border-bottom: 0; border-radius: 14px 0 0 0; }
+  .ol-c2 { right: 50px; top: 230px; border-left: 0; border-bottom: 0; border-radius: 0 14px 0 0; }
+  .ol-c3 { left: 50px; top: 560px; border-right: 0; border-top: 0; border-radius: 0 0 0 14px; }
+  .ol-c4 { right: 50px; top: 560px; border-left: 0; border-top: 0; border-radius: 0 0 14px 0; }
+  .ol-cam-top { grid-template-columns: auto 1fr; align-items: center; position: relative; }
+  .ol-cam-top .ol-chips { justify-content: flex-end; }
+  .ol-cam-bottom { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 0 44px; display: grid; justify-items: center; gap: 16px; background: linear-gradient(transparent, rgb(18 11 32 / 0.85) 40%); }
+  .ol-cam-hint { font-size: 13px; color: #fff; opacity: 0.9; }
+  .ol-shutter { padding: 0; width: 78px; height: 78px; border-radius: 50%; border: 5px solid #fff; display: grid; place-items: center; }
+  .ol-shutter span { width: 60px; height: 60px; border-radius: 50%; background: #6e3bd9; transition: transform 0.2s; }
+  .ol-shutter:active span { transform: scale(0.88); }
+
+  /* Draft + AI-ify */
+  .ol-shots { display: flex; gap: 10px; }
+  .ol-aiify { padding: 0; position: relative; height: 52px; border-radius: 16px; background: linear-gradient(90deg, #6e3bd9, #ff6b5b); color: #fff; font-weight: 700; font-size: 15px; display: grid; place-items: center; overflow: hidden; }
+  .ol-aiify::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.35) 50%, transparent 70%); transform: translateX(-100%); animation: ol-shine 2.6s ease-in-out infinite; }
+  @keyframes ol-shine { 60%, 100% { transform: translateX(100%); } }
+  .ol-aiify-done { display: none; }
+  .ol-aiify.is-on { background: #ede6ff; color: #6e3bd9; }
+  .ol-aiify.is-on::after { display: none; }
+  .ol-aiify.is-on > .t:first-child { display: none; }
+  .ol-aiify.is-on .ol-aiify-done { display: block; }
+  .ol-field { display: grid; gap: 4px; padding: 12px 14px; border-radius: 16px; background: #fff; border: 1.5px solid #eadfcd; text-align: left; transition: border-color 0.3s, background 0.3s; }
+  .ol-field-l { font-size: 12px; font-weight: 600; color: #6f6584; text-transform: uppercase; letter-spacing: 0.08em; }
+  .ol-field-v { min-height: 20px; font-size: 15px; color: #b5abc4; }
+  .ol-field-v::before { content: 'Tap AI-ify, or type…'; }
+  .ol-draft:has(.ol-aiify.is-on) .ol-field { border-color: #c9b6f7; background: #faf7ff; }
+  .ol-draft:has(.ol-aiify.is-on) .ol-field-v { color: #22163b; }
+  .ol-draft:has(.ol-aiify.is-on) .ol-field-v::before { content: attr(data-v); animation: ol-type 0.6s ease-out both; }
+  @keyframes ol-type { from { opacity: 0; filter: blur(4px); } to { opacity: 1; filter: none; } }
+
+  /* Switch */
+  .ol-switch { width: 50px; height: 30px; border-radius: 15px; background: #ddd3e8; position: relative; transition: background 0.25s; }
+  .ol-switch i { position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 2px 4px rgb(0 0 0 / 0.2); }
+  .ol-switch.is-on { background: #6e3bd9; }
+  .ol-switch.is-on i { transform: translateX(20px); }
+  .ol-waves-row { background: #f6f1ff; }
+
+  /* Published */
+  .ol-live { background: radial-gradient(90% 55% at 50% 30%, #f1e9ff, #fff8ee 70%); }
+  .ol-waves { position: absolute; left: 50%; top: 250px; width: 0; height: 0; }
+  .ol-waves i { position: absolute; left: -150px; top: -150px; width: 300px; height: 300px; border-radius: 50%; border: 3px solid #6e3bd9; animation: ol-wave 3s ease-out infinite; }
+  .ol-waves i:nth-child(2) { animation-delay: 1s; }
+  .ol-waves i:nth-child(3) { animation-delay: 2s; }
+  @keyframes ol-wave { from { transform: scale(0.15); opacity: 1; } to { transform: scale(1); opacity: 0; } }
+  .ol-waves span { position: absolute; left: -36px; top: -40px; width: 72px; height: 72px; border-radius: 50%; background: #6e3bd9; display: grid; place-items: center; font-size: 34px; box-shadow: 0 0 0 8px #fff, 0 20px 40px -10px rgb(110 59 217 / 0.8); }
+
+  /* Hero dashboard + batch */
+  .ol-slot { display: grid; gap: 6px; padding: 16px; border-radius: 20px; background: #fff; border-left: 5px solid #ff9a3d; }
+  .ol-slot-n { font-family: Montserrat, sans-serif; font-weight: 800; font-size: 22px; }
+  .ol-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; }
+  .ol-steps > span { display: grid; gap: 6px; font-size: 12px; font-weight: 600; color: #8b819e; }
+  .ol-steps i { height: 6px; border-radius: 3px; background: #eee5d6; }
+  .ol-steps .is-done i { background: #ff9a3d; }
+  .ol-steps .is-now i { background: linear-gradient(90deg, #ff9a3d 40%, #eee5d6 40%); }
+  .ol-steps .is-done, .ol-steps .is-now { color: #22163b; }
+  .ol-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ol-tile { display: grid; gap: 4px; padding: 14px 16px; border-radius: 18px; background: #fff; text-align: left; }
+  .ol-tile-n { font-family: Montserrat, sans-serif; font-weight: 800; font-size: 26px; }
+  .ol-batch { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .ol-bitem { position: relative; display: grid; gap: 4px; justify-items: center; padding: 8px 6px 10px; border-radius: 16px; background: #fff; border: 2px solid #f0e6d6; color: #22163b; transition: border-color 0.2s, background 0.2s; }
+  .ol-bitem.is-on { border-color: #ff9a3d; background: #fff4e8; }
+  .ol-bitem.is-on::after { content: '✓'; position: absolute; right: 6px; top: 6px; width: 18px; height: 18px; border-radius: 50%; background: #ff9a3d; color: #22163b; font-size: 11px; font-weight: 800; display: grid; place-items: center; }
+  .ol-bitem-img { width: 100%; height: 58px; border-radius: 10px; background: #fff0de; display: grid; place-items: center; font-size: 30px; }
+  .ol-bitem-t { font-size: 12px; font-weight: 600; }
+  .ol-bitem-f { position: absolute; left: 6px; top: 6px; padding: 2px 6px; border-radius: 99px; background: #ff6b5b; color: #fff; font-size: 10px; font-weight: 700; }
+  .ol-bitem--flag.is-on .ol-bitem-f { display: none; }
+
+  /* Impact */
+  .ol-toast { padding: 12px 14px; border-radius: 16px; background: #22163b; color: #fff; font-size: 14px; font-weight: 600; animation: ol-drop 0.6s cubic-bezier(0.16, 1, 0.3, 1) both 0.3s; }
+  @keyframes ol-drop { from { transform: translateY(-20px); opacity: 0; } }
+  .ol-profile { display: flex; gap: 14px; align-items: center; }
+  .ol-impact-card { padding: 14px 16px; gap: 10px; }
+  .ol-bars { display: flex; align-items: flex-end; gap: 8px; height: 90px; }
+  .ol-bars i { flex: 1; border-radius: 6px 6px 3px 3px; background: linear-gradient(#ffd23f, #ff6b5b); }
+  .ol-badges { display: flex; gap: 10px; }
+  .ol-badge { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font-size: 24px; box-shadow: inset 0 -4px 0 rgb(0 0 0 / 0.08); }
+  .ol-badge--locked { background: #eee5d6; filter: grayscale(1); opacity: 0.5; }
+
+  /* ---------- Design system live components ---------- */
+  .ol-ds { display: grid; grid-template-columns: minmax(0, 320px) 1fr; gap: var(--s-7); align-items: start; margin-top: var(--s-4); }
+  .ol-ds-card { border-radius: 24px; overflow: hidden; background: #fff8ee; color: #22163b; font-family: Inter, system-ui, sans-serif; box-shadow: 0 30px 60px -30px rgb(110 59 217 / 0.6); }
+  .ol-ds-photo { position: relative; height: 170px; display: grid; place-items: center; font-size: 60px; background: linear-gradient(135deg, #ffd23f, #ff9a3d); }
+  .ol-ds-age { position: absolute; left: 12px; top: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 99px; background: #ff6b5b; color: #fff; font-size: 12px; font-weight: 700; font-feature-settings: 'tnum' 1; }
+  .ol-ds-age i { width: 7px; height: 7px; border-radius: 50%; background: #fff; }
+  .ol-ds-card.is-new .ol-ds-age i { animation: ol-pulse 1.2s ease-out 3; }
+  .ol-ds-body { display: grid; gap: 4px; padding: 16px 18px 18px; }
+  .ol-ds-t { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; }
+  .ol-ds-m { font-size: 0.85rem; color: #6f6584; }
+  .ol-ds-req { margin-top: 10px; height: 48px; border-radius: 16px; background: #6e3bd9; color: #fff; font: 700 0.95rem Inter, sans-serif; transition: background 0.25s, color 0.25s, transform 0.2s; }
+  .ol-ds-req:active { transform: scale(0.97); }
+  .ol-ds-req[data-state='1'] { background: #ede6ff; color: #6e3bd9; }
+  .ol-ds-req[data-state='2'] { background: #ffd23f; color: #22163b; }
+  .ol-ds-notes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
+  .ol-ds-spec { display: grid; gap: var(--s-2); align-content: start; padding: var(--s-4); border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface); }
+  .ol-ds-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ol-ds-chip { padding: 0.45rem 0.9rem; border-radius: 99px; border: 1.5px solid #eadfcd; background: #fff8ee; color: #22163b; font: 600 0.85rem Inter, sans-serif; transition: background 0.2s, color 0.2s, border-color 0.2s; }
+  .ol-ds-chip[aria-pressed='true'] { background: #6e3bd9; border-color: #6e3bd9; color: #fff; }
+  .ol-ds-add-row { grid-template-columns: auto 1fr; align-items: center; gap: var(--s-4); }
+  .ol-ds-add { width: 64px; height: 64px; border-radius: 50%; background: #6e3bd9; color: #fff; font-size: 32px; box-shadow: 0 12px 24px -8px rgb(110 59 217 / 0.8); }
+  .ol-ds-add.is-pressed { animation: ol-press 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  @keyframes ol-press { 30% { transform: scale(0.88); } }
+  @media (max-width: 900px) {
+    .ol-ds { grid-template-columns: 1fr; }
+    .ol-ds-card { max-width: 340px; }
+  }
+  @media (max-width: 600px) { .ol-ds-notes { grid-template-columns: 1fr; } }
+</style>
