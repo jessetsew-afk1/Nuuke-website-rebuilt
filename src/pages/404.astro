@@ -1,0 +1,20 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Page not found" bare>
+  <section class="nf container">
+    <p class="nf-code" aria-hidden="true">404</p>
+    <h1 class="t-h2">Lost in space.</h1>
+    <p class="t-lead">The page you’re looking for doesn’t exist or has moved.</p>
+    <div class="nf-actions">
+      <a class="btn" href="/">Back to home <span class="btn-icon" aria-hidden="true">←</span></a>
+      <a class="btn btn--ghost" href="/works">See the work <span class="btn-icon" aria-hidden="true">→</span></a>
+    </div>
+  </section>
+</Base>
+<style>
+  .nf { min-height: 100svh; display: grid; place-content: center; justify-items: center; text-align: center; gap: var(--s-5); padding-bottom: var(--safe-bottom); }
+  .nf-code { font-family: var(--font-display); font-weight: 900; font-size: clamp(8rem, 30vw, 22rem); line-height: 0.8; letter-spacing: -0.07em; color: transparent; -webkit-text-stroke: 2px var(--accent); animation: nf-float 6s ease-in-out infinite; }
+  @keyframes nf-float { 50% { transform: translateY(-14px) rotate(-2deg); } }
+  .nf-actions { display: flex; gap: var(--s-3); flex-wrap: wrap; justify-content: center; }
+</style>

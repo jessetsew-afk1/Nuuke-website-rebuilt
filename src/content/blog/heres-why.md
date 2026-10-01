@@ -18,8 +18,7 @@ The truth is harsh: **your first instinct is usually to reject the exact idea th
 
 Let’s break it down.
 
-## **1. Bold Creative Feels Uncomfortable - That’s the Point**
-
+## 1. Bold Creative Feels Uncomfortable - That’s the Point
 When a design triggers discomfort, it’s not a red flag; it’s a **signal**.
 
 That reaction means the idea is doing its job:
@@ -33,8 +32,7 @@ They dominate by **owning a space no one else has the guts to enter**.
 
 If your design feels instantly familiar, safe, and predictable… it’s already outdated.
 
-## **2. Safe Design Kills Brands Slowly**
-
+## 2. Safe Design Kills Brands Slowly
 Most brands don’t die overnight, they fade.
 
 Safe design does that.
@@ -55,8 +53,7 @@ There’s a reason:
 
 **You can’t disrupt anything while blending in.**
 
-## **3. The Industry Is Full of Rejected Genius**
-
+## 3. The Industry Is Full of Rejected Genius
 Some of the most iconic creative work almost never saw the light of day.
 
 - **Nike’s first “Swoosh”** was considered too simple. Rejected twice.
@@ -68,8 +65,7 @@ The pattern is always the same:
 
 **The ideas that feel scary today are the ideas that become industry-defining tomorrow.**
 
-## **4. Your Brand’s Breakthrough Already Happened - You Just Didn’t Approve It**
-
+## 4. Your Brand’s Breakthrough Already Happened - You Just Didn’t Approve It
 This is the part nobody says out loud:
 
 Your brand doesn’t need more safe design.
@@ -83,8 +79,7 @@ it was a **doorway** into a bigger version of your brand.
 When you said no, you didn’t reject a layout.
 You rejected your next level.
 
-## **5. The Real Reason You Hesitated (and Why It’s Normal)**
-
+## 5. The Real Reason You Hesitated (and Why It’s Normal)
 You weren’t wrong.
 You weren’t stubborn.
 You weren’t “playing it safe.”
@@ -97,8 +92,7 @@ It’s about who you’re becoming.
 When the design feels uncomfortable, that’s not danger,
 **that’s growth.**
 
-## **The Bottom Line**
-
+## The Bottom Line
 If an idea makes you feel safe, it won’t save your brand.
 If an idea makes you feel something, discomfort, excitement, curiosity, pay attention.
 

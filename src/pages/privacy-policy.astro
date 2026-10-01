@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro';
+import { Content } from '../content/privacy.md';
+---
+<Base title="Privacy Policy" description="How NUUKE collects, uses and protects your information.">
+  <section class="container pp">
+    <p class="t-label">Legal</p>
+    <h1 class="t-h1">Privacy policy</h1>
+    <div class="prose"><Content /></div>
+  </section>
+</Base>
+<style>
+  .pp { padding-top: 9rem; padding-bottom: var(--section); display: grid; gap: var(--s-5); }
+  .pp .t-h1 { font-size: var(--fs-3xl); }
+</style>

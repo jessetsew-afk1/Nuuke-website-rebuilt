@@ -1,0 +1,55 @@
+---
+import Base from '../../layouts/Base.astro';
+import Cta from '../../components/Cta.astro';
+import ServiceVisual from '../../components/ServiceVisual.astro';
+import { services } from '../../data/site';
+---
+
+<Base title="Services" description="Mobile app development, 2D/3D animation and immersive 3D web, digital marketing, and applied AI & automation — strategy, design, engineering and growth from one team.">
+  <section class="svc-hero container">
+    <p class="t-label" data-reveal>Services</p>
+    <h1 class="t-mega" data-split>Services</h1>
+    <p class="t-lead measure" data-reveal>Four disciplines that compound. Most of our best work sits where two of them meet — an app launched with a campaign, a product film that becomes a 3D website, an AI system inside a mobile product.</p>
+  </section>
+
+  <section class="container svc-cards">
+    {
+      services.map((s, i) => (
+        <a class="svc-card" href={`/services/${s.slug}`} style={`--c:${s.accent}`} data-reveal>
+          <div class="svc-card-visual">
+            <ServiceVisual slug={s.slug} accent={s.accent} />
+          </div>
+          <div class="svc-card-body">
+            <span class="t-num svc-card-n">/{s.index}</span>
+            <h2 class="t-h2">{s.title}</h2>
+            <p class="t-lead">{s.tagline}</p>
+            <ul class="svc-card-list" role="list">{s.deliverables.map((d) => <li>{d}</li>)}</ul>
+            <span class="svc-card-cta">Explore {s.short} →</span>
+          </div>
+        </a>
+      ))
+    }
+  </section>
+
+  <Cta />
+</Base>
+
+<style>
+  .svc-hero { padding-top: 10rem; padding-bottom: var(--s-8); display: grid; gap: var(--s-5); }
+  .svc-cards { display: grid; gap: var(--s-6); padding-bottom: var(--section); }
+  .svc-card { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: var(--s-7); align-items: center; padding: var(--s-7); border-radius: calc(var(--r-lg) + 8px); border: 1px solid var(--line); background: radial-gradient(60% 80% at 15% 50%, color-mix(in srgb, var(--c) 14%, transparent), transparent 70%), rgb(255 255 255 / 0.015); transition: border-color var(--dur-2), transform 0.6s var(--ease-out); }
+  .svc-card:nth-child(even) { grid-template-columns: 1.2fr 0.8fr; }
+  .svc-card:nth-child(even) .svc-card-visual { order: 2; }
+  .svc-card:hover { border-color: color-mix(in srgb, var(--c) 60%, transparent); transform: translateY(-4px); }
+  .svc-card-visual { max-width: 360px; justify-self: center; width: 100%; }
+  .svc-card-body { display: grid; gap: var(--s-4); }
+  .svc-card-n { color: var(--c); font-weight: 700; }
+  .svc-card-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s-2); }
+  .svc-card-list li { padding: 0.35rem 0.8rem; border-radius: 99px; border: 1px solid var(--line-strong); font-family: var(--font-ui); font-size: var(--fs-label); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+  .svc-card-cta { font-family: var(--font-ui); font-weight: 600; color: var(--c); }
+  @media (max-width: 860px) {
+    .svc-card, .svc-card:nth-child(even) { grid-template-columns: 1fr; padding: var(--s-5); }
+    .svc-card:nth-child(even) .svc-card-visual { order: 0; }
+    .svc-card-visual { max-width: 240px; }
+  }
+</style>

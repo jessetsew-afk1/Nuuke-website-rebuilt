@@ -2,19 +2,16 @@
 headTexts: ["2D/3D Animation", "World-class animation that transforms your vision into visual storytelling."]
 ---
 
-### *Where imagination becomes movement, and ideas become worlds.*
-
-Nuuke’s animation division blends artistic mastery with technical excellence to create visuals that do more than entertain, they captivate, communicate, and move audiences at a primal level. We craft animations that are emotionally resonant, visually stunning, and strategically engineered to elevate brands far above the noise.
+### Where imagination becomes movement, and ideas become worlds.
+NUUKE’s animation division blends artistic mastery with technical excellence to create visuals that do more than entertain, they captivate, communicate, and move audiences at a primal level. We craft animations that are emotionally resonant, visually stunning, and strategically engineered to elevate brands far above the noise.
 
 Whether it’s a cinematic 3D sequence, a stylized 2D explainer, a character-driven narrative, or a futuristic product reveal, our team transforms concepts into motion with the precision of a world-class studio and the creativity of a storytelling powerhouse.
 
 This isn’t “just animation.”
 This is **visual orchestration**, crafted frame by frame.
 
-## **What Our Animation Studio Delivers**
-
-### **• 2D Animation & Motion Design**
-
+## What Our Animation Studio Delivers
+### 2D Animation & Motion Design
 Premium-grade visuals tailored for brands, products, and storytelling:
 
 - Character animation
@@ -26,8 +23,7 @@ Premium-grade visuals tailored for brands, products, and storytelling:
 
 Every piece is designed to communicate with clarity, emotion, and intent.
 
-### **• High-End 3D Animation & CGI**
-
+### High-End 3D Animation & CGI
 Where imagination scales into entire worlds.
 
 We specialize in:
@@ -41,8 +37,7 @@ We specialize in:
 
 The result is animation your audience doesn’t just watch, they experience.
 
-### **• Product Animations That Sell the Vision**
-
+### Product Animations That Sell the Vision
 Perfect for tech startups, consumer brands, SaaS platforms, and physical products.
 
 We create:
@@ -54,8 +49,7 @@ We create:
 
 Animations designed to increase desire, understanding, and conversion.
 
-### **• Cinematic Brand Films**
-
+### Cinematic Brand Films
 We merge storytelling, music, pacing, and atmosphere to craft films that:
 
 - Define your brand universe
@@ -65,8 +59,7 @@ We merge storytelling, music, pacing, and atmosphere to craft films that:
 
 These pieces become core digital assets used across websites, campaigns, and investor presentations.
 
-### **• Storyboarding & Concept Development**
-
+### Storyboarding & Concept Development
 Before a single frame is animated, we build the narrative and visual blueprint:
 
 - Scriptwriting
@@ -78,8 +71,7 @@ Before a single frame is animated, we build the narrative and visual blueprint:
 
 This ensures every frame has purpose and cohesion.
 
-### **• Sound Design & Post-Production**
-
+### Sound Design & Post-Production
 Animation becomes complete with refined audiovisual craftsmanship.
 
 We deliver:
@@ -92,21 +84,18 @@ We deliver:
 
 Every piece is polished to a cinematic finish.
 
-## **Why Brands Choose Nuuke for Animation**
-
+## Why Brands Choose NUUKE for Animation
 - We merge premium visual craftsmanship with strategic storytelling
 - Our production pipeline is built for clarity, efficiency, and artistic excellence
 - Assets are designed to perform across ads, websites, social platforms, product launches, and pitch decks
 - Everything is tailor-made, no templates, no shortcuts
 - We treat every project as a flagship brand moment
 
-## **The Outcome**
-
-### *Your brand evolves from a message into an experience.*
-
+## The Outcome
+### Your brand evolves from a message into an experience.
 Animation that is memorable.
 Animation that is emotional.
 Animation that feels alive.
 
-Nuuke doesn’t just animate videos,
-Nuuke **builds worlds.**
+NUUKE doesn’t just animate videos,
+NUUKE **builds worlds.**

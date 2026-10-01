@@ -14,8 +14,7 @@ Lies that destroy brands from the inside out.
 
 Let’s rip them apart one by one.
 
-## **1. Lie: Logos Should Be Simple**
-
+## 1. Lie: Logos Should Be Simple
 You’ve heard this line everywhere.
 Simple logos are great.
 Clean. Recognizable. Timeless.
@@ -30,8 +29,7 @@ Apple’s logo works because Apple built an empire.
 If your brand is new and your story isn’t strong yet, a “simple logo” doesn’t make you iconic.
 It makes you invisible.
 
-## **2. Lie: Short Videos Always Perform Better**
-
+## 2. Lie: Short Videos Always Perform Better
 Every marketer repeats this blindly.
 
 Shorter is better.
@@ -47,8 +45,7 @@ If your video hits the right emotion, they will watch it for 10 seconds or 10 mi
 The problem isn’t the duration.
 The problem is the delivery.
 
-## **3. Lie: Minimalism Is Always Better**
-
+## 3. Lie: Minimalism Is Always Better
 Minimalism became a religion in design.
 White space. Thin fonts. Low contrast.
 Everything stripped down until the personality is gone.
@@ -68,8 +65,7 @@ For everyone else, minimalism usually translates to:
 Sometimes your brand needs texture, volume, color, grit, or attitude.
 Minimalism is not the answer to everything.
 
-## **4. Lie: AI Will Replace Designers**
-
+## 4. Lie: AI Will Replace Designers
 AI tools are powerful, fast, and evolving.
 Yes, they can generate assets.
 Yes, they can build ideas.
@@ -89,8 +85,7 @@ AI is a tool.
 Designers are architects.
 Only one of those builds brand meaning.
 
-## **5. Lie: Good Design Is What You Like**
-
+## 5. Lie: Good Design Is What You Like
 This lie hurts the most.
 
 Clients think design is opinion.
@@ -108,8 +103,7 @@ Good design is what converts.
 The question isn’t, “Do you like it”.
 The question is, “Does it work”.
 
-## **6. Lie: Rebranding Fixes Everything**
-
+## 6. Lie: Rebranding Fixes Everything
 Some businesses think a new logo and website will magically solve their problems.
 
 Here’s the truth:
@@ -122,8 +116,7 @@ It will just decorate the weakness.
 Branding is a system.
 Not a makeover.
 
-## **7. Lie: Your Brand Needs To Please Everyone**
-
+## 7. Lie: Your Brand Needs To Please Everyone
 Trying to appeal to everyone is the fastest way to end up appealing to no one.
 
 Strong brands have enemies.
@@ -135,8 +128,7 @@ If your branding never offends, challenges, or disrupts anything, it will never 
 The goal is not universal approval.
 The goal is magnetic identity.
 
-## **The Truth Behind All of This**
-
+## The Truth Behind All of This
 The industry gave you these lies because they sound nice.
 They make the process comfortable.
 They give clients the illusion of “playing it safe”.

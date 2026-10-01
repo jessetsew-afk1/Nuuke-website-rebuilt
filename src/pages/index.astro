@@ -205,11 +205,12 @@ const beliefs = [
       const track = work.querySelector('[data-work-track]');
       const card = work.querySelector('[data-work-card]');
       const dir = i % 2 ? 1 : -1;
+      const k = window.innerWidth < 760 ? 0.45 : 1;
       gsap.fromTo(track, { xPercent: dir > 0 ? -30 : 0 }, { xPercent: dir > 0 ? 0 : -30, ease: 'none', scrollTrigger: { trigger: work, start: 'top bottom', end: 'bottom top', scrub: true } });
       gsap.fromTo(
         card,
-        { rotateX: 28, rotateZ: dir * -4, scale: 0.86, y: 80 },
-        { rotateX: -10, rotateZ: dir * 3, scale: 1, y: -40, ease: 'none', scrollTrigger: { trigger: work, start: 'top bottom', end: 'bottom top', scrub: true } },
+        { rotateX: 28 * k, rotateZ: dir * -4 * k, scale: 0.86, y: 80 * k },
+        { rotateX: -10 * k, rotateZ: dir * 3 * k, scale: 1, y: -40 * k, ease: 'none', scrollTrigger: { trigger: work, start: 'top bottom', end: 'bottom top', scrub: true } },
       );
     });
   }

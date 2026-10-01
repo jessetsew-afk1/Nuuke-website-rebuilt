@@ -1,0 +1,76 @@
+---
+import Base from '../../layouts/Base.astro';
+import Cta from '../../components/Cta.astro';
+import PostCover from '../../components/PostCover.astro';
+import { posts } from '../../data/blog';
+
+export function getStaticPaths() {
+  return posts.map((p) => ({ params: { slug: p.slug } }));
+}
+const i = posts.findIndex((p) => p.slug === Astro.params.slug);
+const post = posts[i];
+const more = [posts[(i + 1) % posts.length], posts[(i + 2) % posts.length]];
+const { Content } = post;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.title,
+  datePublished: new Date(post.date).toISOString(),
+  author: { '@type': 'Organization', name: 'NUUKE' },
+  publisher: { '@type': 'Organization', name: 'NUUKE' },
+};
+---
+
+<Base title={post.title} description={post.excerpt + ' ' + post.title} accent={post.accent} jsonLd={jsonLd}>
+  <div class="read-progress" aria-hidden="true"><span data-progress></span></div>
+  <article>
+    <header class="po-hero container">
+      <nav class="t-label" aria-label="Breadcrumb"><a href="/blog">Blog</a> / {post.category}</nav>
+      <h1 class="t-h1 po-title" data-split="words">{post.title}</h1>
+      <p class="t-small po-meta" data-reveal>By the NUUKE team · <time datetime={new Date(post.date).toISOString().slice(0, 10)}>{post.date}</time> · {post.minutes} min read</p>
+      <div data-reveal><PostCover category={post.category} accent={post.accent} seed={i + 3} /></div>
+    </header>
+    <div class="container po-body">
+      <div class="prose" data-article><Content /></div>
+    </div>
+  </article>
+  <section class="container po-more" aria-labelledby="more-title">
+    <h2 id="more-title" class="t-label">Keep reading</h2>
+    <div class="po-more-grid">
+      {more.map((m, j) => (
+        <a href={`/blog-posts/${m.slug}`} class="po-more-card" style={`--pa:${m.accent}`}>
+          <span class="t-small">{m.category} · {m.minutes} min</span>
+          <span class="t-h4">{m.title}</span>
+        </a>
+      ))}
+    </div>
+  </section>
+  <Cta />
+</Base>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-progress]');
+  const art = document.querySelector<HTMLElement>('[data-article]');
+  const upd = () => {
+    if (!bar || !art) return;
+    const r = art.getBoundingClientRect();
+    const p = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height - window.innerHeight)));
+    bar.style.transform = `scaleX(${p})`;
+  };
+  window.addEventListener('scroll', () => requestAnimationFrame(upd), { passive: true });
+  upd();
+</script>
+
+<style>
+  .read-progress { position: fixed; inset: 0 0 auto; height: 3px; z-index: 50; }
+  .read-progress span { display: block; height: 100%; background: var(--accent); transform-origin: left; transform: scaleX(0); }
+  .po-hero { padding-top: 9rem; display: grid; gap: var(--s-5); max-width: 1000px; }
+  .po-hero nav a { color: var(--ink-2); }
+  .po-title { font-size: clamp(2.25rem, 1rem + 5vw, 5.5rem); }
+  .po-body { display: grid; justify-items: center; padding-block: var(--s-8) var(--section); }
+  .po-more { display: grid; gap: var(--s-4); padding-bottom: var(--s-8); }
+  .po-more-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
+  .po-more-card { display: grid; gap: var(--s-2); padding: var(--s-6); border-radius: var(--r-lg); border: 1px solid var(--line); transition: border-color var(--dur-1); }
+  .po-more-card:hover { border-color: var(--pa); }
+  @media (max-width: 700px) { .po-more-grid { grid-template-columns: 1fr; } }
+</style>

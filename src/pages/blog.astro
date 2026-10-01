@@ -1,0 +1,60 @@
+---
+import Base from '../layouts/Base.astro';
+import Cta from '../components/Cta.astro';
+import PostCover from '../components/PostCover.astro';
+import { posts } from '../data/blog';
+const cats = ['All', ...new Set(posts.map((p) => p.category))];
+---
+
+<Base title="Blog" description="Straight talk on mobile apps, design, brand and marketing from the NUUKE team.">
+  <section class="bl-hero container">
+    <p class="t-label" data-reveal>Field notes</p>
+    <h1 class="t-mega" data-split>Blog</h1>
+    <p class="t-lead measure" data-reveal>Opinions we’d defend in a client meeting. On apps, design, brands and the marketing that actually moves people.</p>
+    <div class="bl-filters" role="group" aria-label="Filter by topic" data-reveal>
+      {cats.map((c, i) => <button type="button" class:list={['filter', { 'is-on': i === 0 }]} data-cat={c} aria-pressed={i === 0 ? 'true' : 'false'}>{c}</button>)}
+    </div>
+  </section>
+  <section class="container bl-grid-wrap">
+    <ul class="bl-grid" role="list">
+      {
+        posts.map((p, i) => (
+          <li data-post-cat={p.category} data-reveal style={`--delay:${(i % 3) * 0.08}s`}>
+            <a href={`/blog-posts/${p.slug}`} class="bl-card" style={`--pa:${p.accent}`}>
+              <PostCover category={p.category} accent={p.accent} seed={i + 3} />
+              <div class="bl-meta t-small"><span class="bl-cat">{p.category}</span> · {p.minutes} min read</div>
+              <h2 class="t-h4">{p.title}</h2>
+              <p class="t-small">{p.excerpt}</p>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+  <Cta />
+</Base>
+
+<script>
+  const btns = [...document.querySelectorAll<HTMLButtonElement>('[data-cat]')];
+  btns.forEach((b) => b.addEventListener('click', () => {
+    btns.forEach((x) => { x.classList.toggle('is-on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+    document.querySelectorAll<HTMLElement>('[data-post-cat]').forEach((li) => (li.hidden = !(b.dataset.cat === 'All' || li.dataset.postCat === b.dataset.cat)));
+  }));
+</script>
+
+<style>
+  .bl-hero { padding-top: 10rem; padding-bottom: var(--s-8); display: grid; gap: var(--s-5); }
+  .bl-filters { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+  .filter { padding: 0.6rem 1.1rem; border-radius: var(--r-pill); border: 1px solid var(--line-strong); font-family: var(--font-ui); font-size: var(--fs-sm); color: var(--ink-2); }
+  .filter.is-on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .bl-grid-wrap { padding-bottom: var(--section); }
+  .bl-grid { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-7) var(--s-5); }
+  .bl-card { display: grid; gap: var(--s-3); }
+  .bl-card :global(.pc) { transition: transform 0.6s var(--ease-out); }
+  .bl-card:hover :global(.pc) { transform: scale(1.02) rotate(-0.5deg); }
+  .bl-card:hover h2 { color: var(--pa); }
+  .bl-card h2 { transition: color var(--dur-1); }
+  .bl-cat { color: var(--pa); font-weight: 600; }
+  @media (max-width: 960px) { .bl-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 620px) { .bl-grid { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,104 @@
+---
+// Pure-CSS 3D visual per service (no WebGL, no images).
+interface Props {
+  slug: string;
+  accent: string;
+  size?: 'sm' | 'lg';
+}
+const { slug, accent, size = 'lg' } = Astro.props;
+---
+
+<div class:list={['sv', `sv--${size}`, `sv--${slug}`]} style={`--sv:${accent}`} aria-hidden="true">
+  {
+    slug === 'mobile-app' && (
+      <div class="sv-scene">
+        <div class="sv-phone">
+          <div class="sv-ui">
+            <span style="width:60%" />
+            <span class="sv-card" />
+            <span style="width:80%" />
+            <span style="width:45%" />
+            <span class="sv-btn" />
+          </div>
+        </div>
+        <div class="sv-phone sv-phone--back" />
+      </div>
+    )
+  }
+  {
+    slug === '2d-3d-animation' && (
+      <div class="sv-scene">
+        <div class="sv-cube">
+          {['front', 'back', 'right', 'left', 'top', 'bottom'].map((f) => <span class={`sv-face sv-${f}`} />)}
+        </div>
+        <div class="sv-orbit" />
+      </div>
+    )
+  }
+  {
+    slug === 'digitalmarketing' && (
+      <div class="sv-scene sv-fan">
+        {[0, 1, 2, 3].map((i) => (
+          <div class="sv-post" style={`--i:${i}`}>
+            <span class="sv-post-img" />
+            <span style="width:70%" />
+            <span style="width:40%" />
+          </div>
+        ))}
+      </div>
+    )
+  }
+  {
+    slug === 'applied-ai-automation-systems' && (
+      <svg class="sv-net" viewBox="0 0 200 200">
+        {[
+          [100, 30], [40, 80], [160, 80], [70, 150], [130, 150], [100, 100],
+        ].map(([x, y], i, arr) => arr.slice(i + 1).map(([x2, y2]) => <line x1={x} y1={y} x2={x2} y2={y2} />))}
+        {[
+          [100, 30], [40, 80], [160, 80], [70, 150], [130, 150], [100, 100],
+        ].map(([x, y], i) => <circle cx={x} cy={y} r={i === 5 ? 14 : 7} style={`--d:${i * 0.3}s`} />)}
+      </svg>
+    )
+  }
+</div>
+
+<style>
+  .sv { position: relative; display: grid; place-items: center; perspective: 900px; aspect-ratio: 1; width: 100%; }
+  .sv::before { content: ''; position: absolute; inset: 15%; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--sv) 40%, transparent), transparent); filter: blur(20px); }
+  .sv--sm { width: 96px; flex: none; overflow: hidden; border-radius: 16px; }
+  .sv-scene { position: relative; transform-style: preserve-3d; animation: sv-float 8s ease-in-out infinite; }
+  @keyframes sv-float { 0%, 100% { transform: rotateY(-22deg) rotateX(10deg); } 50% { transform: rotateY(22deg) rotateX(-6deg) translateY(-8px); } }
+
+  .sv-phone { position: relative; width: 120px; height: 240px; border-radius: 24px; background: #111; border: 6px solid #2a2a30; box-shadow: 0 30px 60px rgb(0 0 0 / 0.6); transform: translateZ(30px); }
+  .sv-phone--back { position: absolute; left: 50px; top: -20px; transform: translateZ(-40px) rotateZ(8deg); background: color-mix(in srgb, var(--sv) 30%, #111); opacity: 0.8; }
+  .sv-ui { display: grid; gap: 8px; padding: 22px 12px; }
+  .sv-ui span { display: block; height: 8px; border-radius: 4px; background: rgb(255 255 255 / 0.35); }
+  .sv-ui .sv-card { height: 64px; border-radius: 10px; background: linear-gradient(135deg, var(--sv), #8b5cff); }
+  .sv-ui .sv-btn { height: 22px; margin-top: 26px; border-radius: 8px; background: var(--sv); }
+
+  .sv-cube { position: relative; width: 120px; height: 120px; transform-style: preserve-3d; animation: sv-spin 12s linear infinite; }
+  @keyframes sv-spin { to { transform: rotateX(360deg) rotateY(720deg); } }
+  .sv-face { position: absolute; inset: 0; border: 2px solid var(--sv); background: color-mix(in srgb, var(--sv) 14%, transparent); backdrop-filter: blur(2px); }
+  .sv-front { transform: translateZ(60px); }
+  .sv-back { transform: rotateY(180deg) translateZ(60px); }
+  .sv-right { transform: rotateY(90deg) translateZ(60px); }
+  .sv-left { transform: rotateY(-90deg) translateZ(60px); }
+  .sv-top { transform: rotateX(90deg) translateZ(60px); }
+  .sv-bottom { transform: rotateX(-90deg) translateZ(60px); }
+  .sv-orbit { position: absolute; left: 50%; top: 50%; width: 240px; height: 240px; margin: -120px; border-radius: 50%; border: 1px dashed color-mix(in srgb, var(--sv) 60%, transparent); transform: rotateX(72deg); }
+
+  .sv-fan { width: 140px; height: 200px; }
+  .sv-post { position: absolute; inset: 0; display: grid; align-content: start; gap: 8px; padding: 10px; border-radius: 16px; background: #15151a; border: 1px solid rgb(255 255 255 / 0.12); transform: rotateZ(calc((var(--i) - 1.5) * 9deg)) translateX(calc((var(--i) - 1.5) * 34px)) translateZ(calc(var(--i) * 12px)); box-shadow: 0 20px 40px rgb(0 0 0 / 0.5); }
+  .sv-post span { display: block; height: 8px; border-radius: 4px; background: rgb(255 255 255 / 0.3); }
+  .sv-post .sv-post-img { height: 120px; border-radius: 10px; background: linear-gradient(160deg, var(--sv), color-mix(in srgb, var(--sv) 30%, #111)); }
+
+  .sv-net { position: relative; width: 70%; }
+  .sv-net line { stroke: color-mix(in srgb, var(--sv) 50%, transparent); stroke-width: 1; }
+  .sv-net circle { fill: var(--sv); animation: sv-pulse 2.4s ease-in-out infinite; animation-delay: var(--d); transform-box: fill-box; transform-origin: center; }
+  @keyframes sv-pulse { 50% { transform: scale(1.35); opacity: 0.6; } }
+
+  .sv--sm .sv-scene { scale: 0.36; }
+  .sv--sm .sv-orbit { display: none; }
+  .sv--sm .sv-net { width: 100%; }
+  @media (prefers-reduced-motion: reduce) { .sv-scene, .sv-cube, .sv-net circle { animation: none; } }
+</style>

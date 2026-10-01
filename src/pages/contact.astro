@@ -1,0 +1,141 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+
+const services = ['Mobile App', 'Video Production', 'Digital Marketing', '3D Website Design', '2D/3D Animation', 'Paid Ads', 'AI Automation'];
+const budgets = ['< $10k', '$10k – $30k', '$30k – $75k', '$75k +', 'Not sure yet'];
+const faq = [
+  { q: 'What types of services do you offer?', a: 'NUUKE delivers creative and digital solutions across mobile app development, video production, digital marketing, 3D website experiences, 2D/3D animation, paid advertising, and AI automation. We help brands elevate their presence, tell stronger stories, and scale with modern technology and design.' },
+  { q: 'How can I request a quote or proposal for my project?', a: 'Send us a brief overview of your project — what you need, your goals, and any specific requirements — using the form on this page. Our team reviews the details and puts together a tailored proposal with timeline, pricing, and next steps.' },
+  { q: 'How long does it typically take to complete a project?', a: 'Timelines vary with scope, but most NUUKE projects take from a few weeks to a few months. Smaller deliverables like ads or animations are completed quickly, while full mobile apps, 3D websites, and larger creative builds take longer. We always give you a clear timeline upfront.' },
+  { q: 'What is the cost of your services?', a: 'It depends on scope, complexity and deliverables. Smaller creative tasks may range from a few hundred to a few thousand dollars, while full-scale builds like mobile apps, 3D websites, or long-term marketing campaigns are priced on depth and duration. Once we understand your goals, we send a tailored quote so you only pay for what you need.' },
+];
+// Set PUBLIC_FORM_ENDPOINT (e.g. Formspree, Basin, or your CRM webhook) to receive submissions.
+// Without it, the form opens the visitor's email app pre-filled to hello@nuuke.us.
+const endpoint = import.meta.env.PUBLIC_FORM_ENDPOINT ?? '';
+---
+
+<Base title="Contact" description="Tell NUUKE what you’re building. Mobile apps, 3D, animation, marketing and AI — we reply within one business day.">
+  <section class="ct container">
+    <div class="ct-intro">
+      <p class="t-label" data-reveal>Contact</p>
+      <h1 class="t-h1" data-split>How can we help you?</h1>
+      <p class="t-lead" data-reveal>Tell us about your project. We reply within one business day with next steps, a rough timeline and the team you’d work with.</p>
+      <dl class="ct-info" data-stagger="0.08">
+        <div><dt class="t-label">Call</dt><dd><a href={site.phoneHref}>{site.phone}</a></dd></div>
+        <div><dt class="t-label">Email</dt><dd><a href={`mailto:${site.email}`}>{site.email}</a></dd></div>
+        <div><dt class="t-label">Reviews</dt><dd>{site.reviews.map((r) => <a href={r.href} target="_blank" rel="noopener">{r.name} ↗</a>)}</dd></div>
+      </dl>
+    </div>
+
+    <form class="ct-form card" data-form data-endpoint={endpoint} novalidate>
+      <div class="ct-row">
+        <label class="field"><span>Name *</span><input name="name" required autocomplete="name" /></label>
+        <label class="field"><span>Email *</span><input name="email" type="email" required autocomplete="email" /></label>
+      </div>
+      <label class="field"><span>Phone number</span><input name="phone" type="tel" autocomplete="tel" /></label>
+      <fieldset class="field">
+        <legend>Which services can we help with?</legend>
+        <div class="ct-chips">
+          {services.map((s) => <label class="ct-chip"><input type="checkbox" name="services" value={s} /><span>{s}</span></label>)}
+        </div>
+      </fieldset>
+      <fieldset class="field">
+        <legend>Budget</legend>
+        <div class="ct-chips">
+          {budgets.map((b) => <label class="ct-chip"><input type="radio" name="budget" value={b} /><span>{b}</span></label>)}
+        </div>
+      </fieldset>
+      <label class="field"><span>Project details *</span><textarea name="details" rows="5" required placeholder="What are you building, who is it for, and when do you need it?"></textarea></label>
+      <p class="t-small ct-legal">By providing a telephone number and submitting the form, you are consenting to be contacted by SMS text message and agreeing to our <a href="/privacy-policy">Privacy Policy</a>. Message frequency may vary. Message and data rates may apply. Reply STOP to opt out of further messaging. Reply HELP for more information.</p>
+      <button class="btn btn--accent" type="submit">Send message <span class="btn-icon" aria-hidden="true">↗</span></button>
+      <p class="ct-status" role="status" data-status></p>
+    </form>
+  </section>
+
+  <section class="section container faq" aria-labelledby="faq-title">
+    <h2 id="faq-title" class="t-h2" data-split>Questions, answered</h2>
+    <div class="faq-list">
+      {
+        faq.map((f) => (
+          <details class="faq-item" data-reveal>
+            <summary><span>{f.q}</span><span class="faq-icon" aria-hidden="true">+</span></summary>
+            <p class="t-body">{f.a}</p>
+          </details>
+        ))
+      }
+    </div>
+  </section>
+</Base>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('[data-form]');
+  const status = document.querySelector<HTMLElement>('[data-status]');
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    const fd = new FormData(form);
+    const data = {
+      name: String(fd.get('name') || ''),
+      email: String(fd.get('email') || ''),
+      phone: String(fd.get('phone') || ''),
+      services: fd.getAll('services').join(', '),
+      budget: String(fd.get('budget') || ''),
+      details: String(fd.get('details') || ''),
+    };
+    const endpoint = form.dataset.endpoint;
+    if (status) status.textContent = 'Sending…';
+    try {
+      if (endpoint) {
+        const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(data) });
+        if (!res.ok) throw new Error(String(res.status));
+        form.reset();
+        if (status) status.textContent = 'Thanks! We’ll be in touch within one business day.';
+      } else {
+        const body = `Name: ${data.name}\nEmail: ${data.email}\nPhone: ${data.phone}\nServices: ${data.services}\nBudget: ${data.budget}\n\n${data.details}`;
+        window.location.href = `mailto:hello@nuuke.us?subject=${encodeURIComponent('New project — ' + data.name)}&body=${encodeURIComponent(body)}`;
+        if (status) status.textContent = 'Opening your email app… If nothing happens, email hello@nuuke.us.';
+      }
+    } catch {
+      if (status) status.textContent = 'Something went wrong. Please email hello@nuuke.us or call us.';
+    }
+  });
+</script>
+
+<style>
+  .ct { padding-top: 9rem; padding-bottom: var(--s-8); display: grid; grid-template-columns: 1fr 1.1fr; gap: var(--s-8); align-items: start; }
+  .ct-intro { display: grid; gap: var(--s-5); position: sticky; top: 110px; }
+  .ct-info { display: grid; gap: var(--s-4); margin-top: var(--s-5); }
+  .ct-info dd { margin-top: var(--s-1); font-size: var(--fs-lg); display: flex; gap: var(--s-4); }
+  .ct-info a:hover { color: var(--accent); }
+  .ct-form { display: grid; gap: var(--s-5); padding: var(--s-7); }
+  .ct-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
+  .field { display: grid; gap: var(--s-2); border: 0; padding: 0; min-width: 0; }
+  .field > span, .field legend { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 500; color: var(--ink-2); margin-bottom: var(--s-2); }
+  .field input, .field textarea { width: 100%; padding: 0.9rem 1rem; border-radius: var(--r-md); border: 1px solid var(--line-strong); background: rgb(255 255 255 / 0.03); color: var(--ink); transition: border-color var(--dur-1), background var(--dur-1); }
+  .field input:focus, .field textarea:focus { outline: none; border-color: var(--accent); background: rgb(255 255 255 / 0.06); }
+  .ct-chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+  .ct-chip { position: relative; }
+  .ct-chip input { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+  .ct-chip span { display: inline-block; padding: 0.55rem 0.95rem; border-radius: var(--r-pill); border: 1px solid var(--line-strong); font-size: var(--fs-sm); color: var(--ink-2); cursor: pointer; transition: all var(--dur-1); }
+  .ct-chip input:checked + span { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .ct-chip input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .ct-legal a { text-decoration: underline; }
+  .ct-status { min-height: 1.5em; color: var(--ink-2); }
+  .faq-list { margin-top: var(--s-7); border-top: 1px solid var(--line); }
+  .faq-item { border-bottom: 1px solid var(--line); }
+  .faq-item summary { display: flex; justify-content: space-between; gap: var(--s-4); align-items: center; padding: var(--s-5) 0; cursor: pointer; list-style: none; font-family: var(--font-display); font-weight: 800; font-size: var(--fs-xl); letter-spacing: -0.02em; }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-icon { font-size: 1.8rem; transition: transform var(--dur-2) var(--ease-out); color: var(--accent); }
+  .faq-item[open] .faq-icon { transform: rotate(45deg); }
+  .faq-item p { padding-bottom: var(--s-5); max-width: 70ch; }
+  @media (max-width: 900px) {
+    .ct { grid-template-columns: 1fr; }
+    .ct-intro { position: static; }
+    .ct-row { grid-template-columns: 1fr; }
+    .ct-form { padding: var(--s-5); }
+  }
+</style>

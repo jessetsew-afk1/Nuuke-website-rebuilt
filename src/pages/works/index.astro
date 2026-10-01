@@ -1,0 +1,113 @@
+---
+import Base from '../../layouts/Base.astro';
+import Cta from '../../components/Cta.astro';
+import ProjectCover from '../../components/ProjectCover.astro';
+import { projects } from '../../data/projects';
+
+const filters = [
+  { id: 'all', label: 'All' },
+  { id: 'mobile', label: 'Mobile apps' },
+  { id: 'web3d', label: '3D websites' },
+  { id: 'animation', label: '3D animation' },
+  { id: 'marketing', label: 'Marketing' },
+];
+const inside: Record<string, string[]> = {
+  mobile: ['Personas', 'Journey map', 'User flow', '3D wireframe', 'Tappable prototype', 'Design system'],
+  web3d: ['Story architecture', 'Page wireframes', 'Live WebGL explainer', 'Mobile version', 'Performance notes'],
+  animation: ['Storyboard', 'Modelling pipeline', 'Look dev & colourways', 'Lighting', 'Live animatic'],
+  marketing: ['Strategy funnel', 'Big idea', 'Story concepts', 'A/B creative', 'Content calendar', 'Budget split'],
+};
+---
+
+<Base title="Works" description="Concept case studies from NUUKE: tappable mobile-app prototypes, live 3D websites, product animation pipelines and marketing campaigns — every step from research to launch.">
+  <section class="works-hero container">
+    <p class="t-label" data-reveal>Selected concept work</p>
+    <h1 class="t-mega" data-split>Works</h1>
+    <p class="t-lead measure" data-reveal>
+      Each case study is a full process walkthrough you can play with — research, flows, wireframes, prototypes you can tap, and 3D you can spin.
+      They are independent NUUKE concept projects built on each brand’s public story, not commissioned work.
+    </p>
+    <div class="filters" role="group" aria-label="Filter by discipline" data-reveal>
+      {filters.map((f, i) => <button type="button" class:list={['filter', { 'is-on': i === 0 }]} data-filter={f.id} aria-pressed={i === 0 ? 'true' : 'false'}>{f.label}</button>)}
+    </div>
+  </section>
+
+  <section class="container grid-wrap" aria-label="Case studies">
+    <ul class="work-grid" role="list">
+      {
+        projects.map((p, i) => (
+          <li class:list={['wg-item', { 'wg-item--wide': i === 0 }]} data-discipline={p.discipline} style={`--a:${p.accent}`} data-reveal>
+            <a href={`/works/${p.slug}`} class="wg-link" data-tilt>
+              <ProjectCover project={p} />
+              <div class="wg-meta">
+                <div class="wg-chips">
+                  <span class="chip chip--accent">{p.disciplineLabel}</span>
+                  <span class="chip">Concept · {p.year}</span>
+                </div>
+                <h2 class="t-h4">{p.title}</h2>
+                <p class="t-small">{p.summary}</p>
+                <p class="wg-inside t-small"><span>Inside:</span> {inside[p.discipline].join(' · ')}</p>
+              </div>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <Cta title="Your turn." text="Want a case study like these for your product — with your real results? Tell us what you’re building." />
+</Base>
+
+<script>
+  const btns = [...document.querySelectorAll<HTMLButtonElement>('[data-filter]')];
+  const items = [...document.querySelectorAll<HTMLElement>('[data-discipline]')];
+  btns.forEach((b) =>
+    b.addEventListener('click', () => {
+      const f = b.dataset.filter;
+      btns.forEach((x) => {
+        x.classList.toggle('is-on', x === b);
+        x.setAttribute('aria-pressed', String(x === b));
+      });
+      items.forEach((it) => {
+        const show = f === 'all' || it.dataset.discipline === f;
+        it.classList.toggle('is-hidden', !show);
+      });
+    }),
+  );
+  // Subtle 3D tilt on hover.
+  if (!window.matchMedia('(hover: none), (prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll<HTMLElement>('[data-tilt]').forEach((el) => {
+      el.addEventListener('pointermove', (e) => {
+        const r = el.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width - 0.5;
+        const y = (e.clientY - r.top) / r.height - 0.5;
+        el.style.transform = `perspective(1200px) rotateY(${x * 6}deg) rotateX(${-y * 6}deg) translateY(-4px)`;
+      });
+      el.addEventListener('pointerleave', () => (el.style.transform = ''));
+    });
+  }
+</script>
+
+<style>
+  .works-hero { padding-top: 10rem; padding-bottom: var(--s-8); display: grid; gap: var(--s-5); }
+  .filters { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-4); }
+  .filter { padding: 0.6rem 1.1rem; border-radius: var(--r-pill); border: 1px solid var(--line-strong); font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 500; color: var(--ink-2); transition: background var(--dur-1), color var(--dur-1); }
+  .filter:hover { color: var(--ink); }
+  .filter.is-on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .grid-wrap { padding-bottom: var(--section); }
+  .work-grid { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-6); }
+  .wg-item { transition: opacity var(--dur-2), transform var(--dur-2) var(--ease-out); }
+  .wg-item.is-hidden { display: none; }
+  .wg-item--wide { grid-column: 1 / -1; }
+  .wg-item--wide .wg-link { grid-template-columns: 1.3fr 1fr; align-items: center; }
+  .wg-link { display: grid; gap: var(--s-5); padding: var(--s-4); border-radius: calc(var(--r-lg) + 8px); border: 1px solid var(--line); background: rgb(255 255 255 / 0.02); transition: transform 0.5s var(--ease-out), border-color var(--dur-2); will-change: transform; height: 100%; }
+  .wg-link:hover { border-color: color-mix(in srgb, var(--a) 55%, transparent); }
+  .wg-meta { display: grid; gap: var(--s-3); padding: var(--s-2) var(--s-3) var(--s-3); align-content: start; }
+  .wg-chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+  .wg-chips .chip--accent { --accent: var(--a); }
+  .wg-inside span { color: var(--a); font-weight: 600; }
+  @media (max-width: 860px) {
+    .work-grid { grid-template-columns: 1fr; }
+    .wg-item--wide .wg-link { grid-template-columns: 1fr; }
+  }
+</style>

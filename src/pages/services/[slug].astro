@@ -1,0 +1,118 @@
+---
+import Base from '../../layouts/Base.astro';
+import Cta from '../../components/Cta.astro';
+import ServiceVisual from '../../components/ServiceVisual.astro';
+import ProjectCover from '../../components/ProjectCover.astro';
+import { services } from '../../data/site';
+import { projects, type Discipline } from '../../data/projects';
+
+type MdModule = { Content: any; frontmatter: Record<string, unknown> };
+const docs = import.meta.glob<MdModule>('../../content/services/*.md', { eager: true });
+
+export function getStaticPaths() {
+  return services.map((s) => ({ params: { slug: s.slug } }));
+}
+
+const { slug } = Astro.params;
+const s = services.find((x) => x.slug === slug)!;
+const doc = docs[`../../content/services/${slug}.md`];
+const Content = doc.Content;
+const related: Record<string, Discipline[]> = {
+  'mobile-app': ['mobile'],
+  '2d-3d-animation': ['animation', 'web3d'],
+  digitalmarketing: ['marketing'],
+  'applied-ai-automation-systems': [],
+};
+const rel = projects.filter((p) => related[s.slug].includes(p.discipline));
+const others = services.filter((x) => x.slug !== s.slug);
+---
+
+<Base title={s.title} description={`${s.title} at NUUKE — ${s.tagline}`} accent={s.accent}>
+  <section class="sd-hero container">
+    <div class="sd-copy">
+      <nav class="t-label" aria-label="Breadcrumb"><a href="/services">Services</a> / {s.index}</nav>
+      <h1 class="t-h1" data-split>{s.title}</h1>
+      <p class="t-lead" data-reveal>{s.tagline}</p>
+      <div class="sd-actions" data-reveal>
+        <a class="btn btn--accent" href="/contact">Start a project <span class="btn-icon" aria-hidden="true">↗</span></a>
+        {rel.length > 0 && <a class="btn btn--ghost" href="#work">See it in action <span class="btn-icon" aria-hidden="true">↓</span></a>}
+      </div>
+    </div>
+    <div class="sd-visual" data-reveal><ServiceVisual slug={s.slug} accent={s.accent} /></div>
+  </section>
+
+  <section class="container sd-body">
+    <aside class="sd-aside">
+      <div class="card">
+        <p class="t-label">What you get</p>
+        <ul role="list">{s.deliverables.map((d) => <li>{d}</li>)}</ul>
+        <a class="btn btn--accent" href="/contact">Get a proposal <span class="btn-icon" aria-hidden="true">↗</span></a>
+      </div>
+    </aside>
+    <article class="prose" data-reveal>
+      <Content />
+    </article>
+  </section>
+
+  {
+    rel.length > 0 && (
+      <section class="container sd-work" id="work" aria-labelledby="work-title">
+        <h2 id="work-title" class="t-h2" data-split>See it in action</h2>
+        <div class="sd-work-grid">
+          {rel.map((p) => (
+            <a href={`/works/${p.slug}`} class="sd-work-card" style={`--a:${p.accent}`} data-reveal>
+              <ProjectCover project={p} />
+              <span class="chip">{p.disciplineLabel} · Concept</span>
+              <h3 class="t-h4">{p.title}</h3>
+            </a>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <section class="container sd-others" aria-label="Other services">
+    <p class="t-label">Other services</p>
+    <div class="sd-others-grid">
+      {
+        others.map((o) => (
+          <a href={`/services/${o.slug}`} class="sd-other" style={`--c:${o.accent}`}>
+            <ServiceVisual slug={o.slug} accent={o.accent} size="sm" />
+            <span><span class="t-num">/{o.index}</span> {o.title}</span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <Cta />
+</Base>
+
+<style>
+  .sd-hero { padding-top: 9rem; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: var(--s-7); align-items: center; }
+  .sd-copy { display: grid; gap: var(--s-5); }
+  .sd-copy nav a { color: var(--ink-2); }
+  .sd-actions { display: flex; flex-wrap: wrap; gap: var(--s-3); }
+  .sd-visual { max-width: 420px; width: 100%; justify-self: center; }
+  .sd-body { display: grid; grid-template-columns: 300px 1fr; gap: var(--s-8); padding-block: var(--section); align-items: start; }
+  .sd-aside { position: sticky; top: 100px; }
+  .sd-aside .card { display: grid; gap: var(--s-4); }
+  .sd-aside ul { list-style: none; padding: 0; display: grid; gap: var(--s-2); color: var(--ink-2); }
+  .sd-aside li::before { content: '→ '; color: var(--accent); }
+  .sd-work { padding-bottom: var(--section); display: grid; gap: var(--s-7); }
+  .sd-work-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--s-5); }
+  .sd-work-card { display: grid; gap: var(--s-3); padding: var(--s-3); border-radius: calc(var(--r-lg) + 6px); border: 1px solid var(--line); transition: border-color var(--dur-2), transform var(--dur-2) var(--ease-out); }
+  .sd-work-card:hover { border-color: var(--a); transform: translateY(-4px); }
+  .sd-work-card .chip { justify-self: start; }
+  .sd-others { padding-bottom: var(--s-8); display: grid; gap: var(--s-4); }
+  .sd-others-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); }
+  .sd-other { display: flex; align-items: center; gap: var(--s-4); padding: var(--s-4); border-radius: var(--r-lg); border: 1px solid var(--line); font-family: var(--font-display); font-weight: 800; font-size: var(--fs-lg); transition: border-color var(--dur-1); }
+  .sd-other:hover { border-color: var(--c); }
+  .sd-other .t-num { color: var(--c); font-size: var(--fs-sm); }
+  @media (max-width: 900px) {
+    .sd-hero, .sd-body { grid-template-columns: 1fr; }
+    .sd-visual { max-width: 260px; }
+    .sd-aside { position: static; }
+    .sd-others-grid { grid-template-columns: 1fr; }
+  }
+</style>

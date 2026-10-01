@@ -2,9 +2,8 @@
 headTexts: ["Applied AI & Automation Systems", "Where automation meets intelligence, and your business begins to run itself."]
 ---
 
-### *Where intelligence replaces repetition, and systems learn, adapt, and elevate your business.*
-
-Nuuke’s Applied AI & Automation Systems division exists to help companies operate at a level of efficiency and intelligence that manual workflows simply cannot reach. We engineer AI-powered infrastructures that automate complexity, enhance decision-making, reduce operational drag, and transform fragmented processes into unified, self-improving systems.
+### Where intelligence replaces repetition, and systems learn, adapt, and elevate your business.
+NUUKE’s Applied AI & Automation Systems division exists to help companies operate at a level of efficiency and intelligence that manual workflows simply cannot reach. We engineer AI-powered infrastructures that automate complexity, enhance decision-making, reduce operational drag, and transform fragmented processes into unified, self-improving systems.
 
 This is not about “adding a dashboard” or “connecting a bot.”
 It’s about integrating machine learning, automation engineering, and intelligent orchestration across the core of your business, creating systems that scale with you, not against you.
@@ -12,10 +11,8 @@ It’s about integrating machine learning, automation engineering, and intellige
 We build applied AI the way leading tech companies do:
 strategically, responsibly, and with absolute precision.
 
-## **What Our AI & Automation Systems Deliver**
-
-### **• Intelligent Workflow Automation**
-
+## What Our AI & Automation Systems Deliver
+### Intelligent Workflow Automation
 We architect end-to-end automated workflows that remove repetitive tasks and unlock massive efficiency across operations, marketing, sales, HR, finance, logistics, and customer experience.
 
 These include:
@@ -28,8 +25,7 @@ These include:
 
 Every system is engineered to reduce workload and increase output without sacrificing quality.
 
-### **• Applied Machine Learning Solutions**
-
+### Applied Machine Learning Solutions
 We design ML models that learn from your data and make your business smarter over time.
 
 Our capabilities include:
@@ -44,8 +40,7 @@ Our capabilities include:
 
 These models enable faster decisions, sharper insights, and optimized business performance.
 
-### **• Custom AI Tools & Internal Systems**
-
+### Custom AI Tools & Internal Systems
 We create proprietary AI tools tailored to your specific workflows and operational needs, not generic off-the-shelf solutions.
 
 Examples include:
@@ -58,8 +53,7 @@ Examples include:
 
 Your teams operate faster, smarter, and with less manual effort.
 
-### **• LLM Integrations & Conversational AI**
-
+### LLM Integrations & Conversational AI
 We integrate advanced language models to enhance customer service, internal communication, and operational workflows.
 
 This includes:
@@ -72,8 +66,7 @@ This includes:
 
 The goal: faster resolutions, lower workload, and scalable support without compromise.
 
-### **• RPA (Robotic Process Automation)**
-
+### RPA (Robotic Process Automation)
 We combine AI with RPA to fully automate the backbone of your business, handling structured, rule-based tasks at massive speed and precision.
 
 Use cases:
@@ -86,8 +79,7 @@ Use cases:
 
 Your business runs with machine precision, 24/7.
 
-### **• AI-Driven Decision Systems**
-
+### AI-Driven Decision Systems
 We build systems that don’t just automate tasks, they inform and influence strategic decisions through:
 
 - Real-time data modeling
@@ -98,8 +90,7 @@ We build systems that don’t just automate tasks, they inform and influence str
 
 Leadership gets the clarity needed to scale with confidence.
 
-### **• Integration Across Your Entire Tech Stack**
-
+### Integration Across Your Entire Tech Stack
 We connect AI systems with your current tools and platforms to create a seamless operational ecosystem:
 
 - CRM
@@ -112,8 +103,7 @@ We connect AI systems with your current tools and platforms to create a seamless
 
 Everything works together, intelligently.
 
-## **Why Brands Choose Nuuke for Applied AI & Automation**
-
+## Why Brands Choose NUUKE for Applied AI & Automation
 - We build systems that **reduce cost**, **increase speed**, and **remove operational friction**
 - Our AI architectures are designed for **scalability and longevity**
 - We treat AI as **infrastructure**, not a gimmick
@@ -121,15 +111,11 @@ Everything works together, intelligently.
 - Every solution is built from scratch to fit your workflow, not force you into someone else’s
 - We implement with discipline, documentation, and enterprise-level standards
 
-## **The Outcome**
-
-### *A business that learns, evolves, and performs with intelligence at its core.*
-
+## The Outcome
+### A business that learns, evolves, and performs with intelligence at its core.
 Your operations become faster, clearer, and dramatically more efficient.
 Your team becomes empowered instead of overwhelmed.
 Your business becomes a self-sustaining machine, capable of scaling with precision.
 
-Nuuke doesn’t automate tasks.
-Nuuke **architects intelligent systems**.
-
-###
+NUUKE doesn’t automate tasks.
+NUUKE **architects intelligent systems**.

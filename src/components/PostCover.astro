@@ -1,0 +1,15 @@
+---
+// Typographic cover art for blog posts — no stock photos.
+interface Props { category: string; accent: string; seed: number; }
+const { category, accent, seed } = Astro.props;
+const shapes = Array.from({ length: 5 }, (_, i) => ({ x: (seed * 37 + i * 61) % 100, y: (seed * 53 + i * 29) % 100, r: 18 + ((seed + i * 7) % 30) }));
+---
+<div class="pc" style={`--pa:${accent}`} aria-hidden="true">
+  {shapes.map((s) => <span class="pc-orb" style={`left:${s.x}%;top:${s.y}%;width:${s.r * 2}%;`} />)}
+  <span class="pc-cat">{category}</span>
+</div>
+<style>
+  .pc { position: relative; aspect-ratio: 16 / 10; border-radius: var(--r-lg); overflow: hidden; background: #0d0d11; isolation: isolate; }
+  .pc-orb { position: absolute; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); background: radial-gradient(circle at 35% 35%, var(--pa), transparent 65%); filter: blur(18px); opacity: 0.65; mix-blend-mode: screen; }
+  .pc-cat { position: absolute; left: 6%; bottom: 4%; font-family: var(--font-display); font-weight: 900; font-size: clamp(2rem, 6vw, 4.5rem); letter-spacing: -0.05em; color: transparent; -webkit-text-stroke: 1.5px rgb(255 255 255 / 0.65); line-height: 1; }
+</style>
