@@ -1,0 +1,95 @@
+---
+// Hero art: a folk-style "Tin O'Clock" clock whose hands are fish, set to 12:30.
+// Original NUUKE illustration, drawn in SVG.
+import { fish, FW } from '../../../data/cases/fishwife';
+const ticks = Array.from({ length: 60 }, (_, i) => i);
+const scallops = Array.from({ length: 36 }, (_, i) => i);
+// A fish used as a clock hand: tail at the centre, head pointing out.
+const hand = (len: number) => `translate(${-104 * (len / 110)} ${-30 * (len / 110)}) scale(${len / 110})`;
+---
+
+<div class="fw-hero" aria-hidden="true">
+  <svg viewBox="0 0 600 600" class="fw-hero-svg">
+    <defs>
+      <filter id="fw-wobble" x="-5%" y="-5%" width="110%" height="110%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="4" />
+        <feDisplacementMap in="SourceGraphic" scale="4" />
+      </filter>
+      <path id="fw-arc-top" d="M 146 300 A 154 154 0 0 1 454 300" />
+      <path id="fw-arc-bot" d="M 128 300 A 172 172 0 0 0 472 300" />
+    </defs>
+    <!-- sunburst -->
+    <g transform="translate(300 300)">
+      <circle r="292" fill={FW.red} />
+      <g class="fw-hero-rays">
+        {Array.from({ length: 24 }, (_, i) => <path d="M0 0 L 290 -22 L 290 22 Z" fill={FW.sun} opacity=".2" transform={`rotate(${i * 15})`} />)}
+      </g>
+    </g>
+    <g filter="url(#fw-wobble)">
+      <!-- scalloped clock edge -->
+      <g transform="translate(300 300)">
+        {scallops.map((i) => <circle r="20" cx={Math.sin((i / 36) * Math.PI * 2) * 222} cy={-Math.cos((i / 36) * Math.PI * 2) * 222} fill={FW.cobalt} />)}
+        <circle r="222" fill={FW.cobalt} />
+        <circle r="206" fill={FW.cream} stroke={FW.ink} stroke-width="5" />
+        <circle r="112" fill={FW.pink} opacity=".55" />
+        {ticks.map((i) => (
+          <line y1={-198} y2={i % 5 === 0 ? -184 : -191} stroke={FW.ink} stroke-width={i % 5 === 0 ? 5 : 2} stroke-linecap="round" transform={`rotate(${i * 6})`} />
+        ))}
+      </g>
+    </g>
+    <g>
+      <text font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-weight="700" font-size="36" fill={FW.ink} letter-spacing="1">
+        <textPath href="#fw-arc-top" startOffset="50%" text-anchor="middle">Tin O’Clock</textPath>
+      </text>
+      <text font-family="Montserrat, sans-serif" font-weight="800" font-size="16" fill={FW.red} letter-spacing="4">
+        <textPath href="#fw-arc-bot" startOffset="50%" text-anchor="middle">· WEEKDAYS · 12:30 ·</textPath>
+      </text>
+      <!-- fish hands: hour (just past 12) and minute (on the 6) -->
+      <g transform="translate(300 300)" stroke={FW.ink} stroke-linejoin="round" stroke-linecap="round">
+        <g class="fw-hand fw-hand-h" style="--r:105deg">
+          <g transform={hand(84)} stroke-width="3.4">
+            <path d={fish.finTop} fill={FW.red} /><path d={fish.finLow} fill={FW.red} /><path d={fish.body} fill={FW.sun} /><path d={fish.gill} fill="none" /><path d={fish.scales} fill="none" stroke-width="2.4" />
+            <circle cx={fish.eye.cx} cy={fish.eye.cy} r={fish.eye.r} fill="#fff" /><circle cx={fish.eye.cx + 1} cy={fish.eye.cy} r="2.3" fill={FW.ink} />
+          </g>
+        </g>
+        <g class="fw-hand fw-hand-m" style="--r:270deg">
+          <g transform={hand(168)} stroke-width="2.2">
+            <path d={fish.finTop} fill={FW.sun} /><path d={fish.finLow} fill={FW.sun} /><path d={fish.body} fill={FW.mint} /><path d={fish.gill} fill="none" /><path d={fish.scales} fill="none" stroke-width="2" /><path d={fish.tailLines} fill="none" stroke-width="2" />
+            <circle cx={fish.eye.cx} cy={fish.eye.cy} r={fish.eye.r} fill="#fff" /><circle cx={fish.eye.cx + 1} cy={fish.eye.cy} r="2.3" fill={FW.ink} />
+          </g>
+        </g>
+        <circle r="16" fill={FW.red} stroke-width="4" />
+        <circle r="5" fill={FW.cream} stroke="none" />
+      </g>
+    </g>
+    <!-- a tin, lid peeling, tucked bottom-right -->
+    <g class="fw-hero-tin" transform="translate(408 452) rotate(-12)">
+      <rect x="-92" y="-52" width="184" height="104" rx="26" fill={FW.ink} />
+      <rect x="-86" y="-58" width="172" height="104" rx="24" fill="#c9ced6" stroke={FW.ink} stroke-width="4" />
+      <rect x="-74" y="-48" width="148" height="84" rx="18" fill="#e88a5b" stroke={FW.ink} stroke-width="3" />
+      <path d="M -60 -30 q 50 -16 110 0 M -60 -8 q 50 -16 110 0 M -60 14 q 50 -16 110 0" stroke="#f6b38d" stroke-width="7" fill="none" stroke-linecap="round" />
+      <path d="M -30 -58 C -40 -120, 70 -150, 96 -96 L 86 -58 Z" fill={FW.pink} stroke={FW.ink} stroke-width="4" stroke-linejoin="round" />
+      <circle cx="60" cy="-104" r="13" fill="none" stroke={FW.ink} stroke-width="5" />
+    </g>
+    <!-- stamp -->
+    <g transform="translate(118 112) rotate(-14)">
+      <rect x="-62" y="-30" width="124" height="60" rx="8" fill={FW.sun} stroke={FW.ink} stroke-width="4" stroke-dasharray="7 5" />
+      <text text-anchor="middle" y="-4" font-family="Inter, sans-serif" font-weight="800" font-size="13" letter-spacing="2" fill={FW.ink}>CONCEPT</text>
+      <text text-anchor="middle" y="15" font-family="Inter, sans-serif" font-weight="600" font-size="10" letter-spacing="1.5" fill={FW.ink}>BY NUUKE</text>
+    </g>
+  </svg>
+</div>
+
+<style>
+  .fw-hero { position: relative; width: 100%; max-width: 620px; margin-inline: auto; aspect-ratio: 1; }
+  .fw-hero-svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 40px 60px rgb(0 0 0 / 0.45)); }
+  .fw-hero-rays { animation: fw-spin 80s linear infinite; transform-origin: 0 0; }
+  .fw-hand { rotate: var(--r); transform-origin: 0 0; }
+  .fw-hand-m { animation: fw-sweep 2.6s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both; }
+  .fw-hand-h { animation: fw-sweep-h 2.6s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both; }
+  .fw-hero-tin { animation: fw-bob 4s ease-in-out infinite; transform-box: fill-box; }
+  @keyframes fw-spin { to { rotate: 360deg; } }
+  @keyframes fw-sweep { from { rotate: -30deg; } to { rotate: var(--r); } }
+  @keyframes fw-sweep-h { from { rotate: 70deg; } to { rotate: var(--r); } }
+  @keyframes fw-bob { 50% { translate: 0 -8px; } }
+</style>

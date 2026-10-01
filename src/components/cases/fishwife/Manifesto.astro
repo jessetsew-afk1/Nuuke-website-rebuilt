@@ -1,0 +1,137 @@
+---
+// The big idea: a scroll-driven manifesto. Words light up as you scroll, the
+// clock's minute hand sweeps from 12:00 to 12:30, then the lockup lands.
+type Word = { w: string; k?: 'hl' | 'pill' | 'fish' | 'strike' };
+const lines: Word[][] = [
+  [{ w: 'Tinned' }, { w: 'fish' }, { w: 'already' }, { w: 'has' }, { w: 'fans.', k: 'hl' }],
+  [{ w: 'It' }, { w: 'just' }, { w: 'has' }, { w: 'the' }, { w: 'wrong' }, { w: 'time' }, { w: 'slot.' }],
+  [{ w: 'Saved' }, { w: 'for' }, { w: 'parties,' }, { w: 'boards' }, { w: 'and' }, { w: 'guests.', k: 'strike' }],
+  [{ w: 'So' }, { w: 'we’re' }, { w: 'moving' }, { w: 'it' }, { w: 'to' }, { w: 'Tuesday.', k: 'hl' }],
+  [{ w: 'Every' }, { w: 'weekday' }, { w: 'at' }, { w: '12:30,', k: 'pill' }],
+  [{ w: 'the' }, { w: 'desk' }, { w: 'becomes' }, { w: 'a' }, { w: 'table,' }, { w: 'the' }, { w: 'tin', k: 'fish' }, { w: 'becomes' }, { w: 'the' }, { w: 'plate,' }],
+  [{ w: 'and' }, { w: 'the' }, { w: 'sad' }, { w: 'sandwich' }, { w: 'retires.', k: 'strike' }],
+];
+let n = 0;
+const lockup = 'TIN O’CLOCK'.split('');
+---
+
+<div class="fw-mani" data-fw-mani>
+  <div class="fw-mani-sticky">
+    <div class="fw-mani-grid container">
+      <p class="fw-mani-text" aria-label={lines.map((l) => l.map((x) => x.w).join(' ')).join(' ')}>
+        {
+          lines.map((line) => (
+            <span class="fw-line" aria-hidden="true">
+              {line.map((x) => (
+                <span class:list={['fw-w', x.k && `fw-w--${x.k}`]} style={`--i:${n++}`}>
+                  {x.k === 'fish' && (
+                    <svg class="fw-w-fish" viewBox="0 0 124 64" aria-hidden="true">
+                      <use href="#fw-s-fish" />
+                    </svg>
+                  )}
+                  {x.w}
+                </span>
+              ))}{' '}
+            </span>
+          ))
+        }
+      </p>
+      <div class="fw-mani-clock" aria-hidden="true">
+        <svg viewBox="-120 -120 240 240">
+          <circle r="112" fill="#FFF6E5" stroke="#1D1B3A" stroke-width="6" />
+          {Array.from({ length: 12 }, (_, i) => <circle cx={Math.sin((i / 6) * Math.PI) * 92} cy={-Math.cos((i / 6) * Math.PI) * 92} r={i % 3 === 0 ? 7 : 4} fill="#1D1B3A" />)}
+          <g class="fw-mh" data-fw-hour><line y2="-52" stroke="#1D1B3A" stroke-width="12" stroke-linecap="round" /></g>
+          <g class="fw-mh" data-fw-min><line y2="-82" stroke="#2747A8" stroke-width="8" stroke-linecap="round" /></g>
+          <circle r="11" fill="#F6C343" stroke="#1D1B3A" stroke-width="4" />
+        </svg>
+        <p class="fw-mani-time t-num" data-fw-time>12:00</p>
+      </div>
+    </div>
+    <div class="fw-lockup" data-fw-lockup aria-hidden="true">
+      <span class="fw-lock-pre">It’s</span>
+      <span class="fw-lock-main">{lockup.map((c, i) => <span style={`--j:${i}`}>{c === ' ' ? ' ' : c}</span>)}</span>
+    </div>
+    <div class="fw-marquee" aria-hidden="true">
+      <div class="fw-marquee-track">
+        {Array.from({ length: 2 }, () => <span>IT’S TIN O’CLOCK ✶ 12:30 ✶ OPEN A TIN ✶ LUNCH IS SERVED ✶ NO FRIDGE NO PREP ✶&nbsp;</span>)}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { ScrollTrigger, reducedMotion } from '../../../scripts/motion';
+  document.querySelectorAll<HTMLElement>('[data-fw-mani]').forEach((root) => {
+    const words = [...root.querySelectorAll<HTMLElement>('.fw-w')];
+    const hour = root.querySelector<SVGGElement>('[data-fw-hour]')!;
+    const min = root.querySelector<SVGGElement>('[data-fw-min]')!;
+    const time = root.querySelector<HTMLElement>('[data-fw-time]')!;
+    const lock = root.querySelector<HTMLElement>('[data-fw-lockup]')!;
+    const set = (p: number) => {
+      const lit = Math.round(Math.min(1, p / 0.78) * words.length);
+      words.forEach((w, i) => w.classList.toggle('is-lit', i < lit));
+      const m = Math.round(Math.min(1, p / 0.8) * 30);
+      min.style.transform = `rotate(${m * 6}deg)`;
+      hour.style.transform = `rotate(${m * 0.5}deg)`;
+      time.textContent = `12:${String(m).padStart(2, '0')}`;
+      root.classList.toggle('is-done', p > 0.84);
+      lock.classList.toggle('is-in', p > 0.84);
+    };
+    if (reducedMotion) {
+      root.classList.add('is-static');
+      set(1);
+      return;
+    }
+    set(0);
+    ScrollTrigger.create({ trigger: root, start: 'top top', end: 'bottom bottom', onUpdate: (s) => set(s.progress) });
+  });
+</script>
+
+<style>
+  .fw-mani { position: relative; height: 320vh; background: #E8452C; color: #FFF6E5; }
+  .fw-mani-sticky { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; display: grid; align-content: center; padding-bottom: 4rem; }
+  .fw-mani-grid { display: grid; grid-template-columns: 1fr auto; gap: var(--s-8); align-items: center; transition: opacity 0.6s var(--ease-out), transform 0.8s var(--ease-out), filter 0.6s; }
+  .fw-mani.is-done .fw-mani-grid { opacity: 0.12; transform: scale(0.96); filter: blur(4px); }
+  .fw-mani-text { font-family: var(--font-display); font-weight: 900; font-size: clamp(1.5rem, 0.8rem + 2.6vw, 3.6rem); line-height: 1.08; letter-spacing: -0.035em; max-width: 22ch; }
+  .fw-line { display: block; }
+  .fw-w { display: inline-block; margin-right: 0.22em; opacity: 0.22; transform: translateY(0.12em); transition: opacity 0.35s, transform 0.5s var(--ease-out), color 0.35s; position: relative; }
+  .fw-w.is-lit { opacity: 1; transform: none; }
+  .fw-w--hl.is-lit { color: #F6C343; }
+  .fw-w--pill { padding: 0 0.3em; border-radius: 0.5em; }
+  .fw-w--pill.is-lit { background: #1D1B3A; color: #F6C343; }
+  .fw-w--strike::after { content: ''; position: absolute; left: -2%; right: 0; top: 55%; height: 0.09em; background: #1D1B3A; transform: scaleX(0); transform-origin: left; transition: transform 0.5s var(--ease-out) 0.15s; }
+  .fw-w--strike.is-lit::after { transform: scaleX(1.04); }
+  .fw-w--fish { padding-left: 1.5em; }
+  .fw-w-fish { position: absolute; left: 0; top: 0.18em; width: 1.3em; height: 0.7em; --fish: #F6C343; --fin: #2747A8; transform: rotate(-8deg); }
+  .fw-w--fish.is-lit .fw-w-fish { animation: fw-wiggle 1.2s ease-in-out infinite; }
+  @keyframes fw-wiggle { 50% { transform: rotate(6deg) translateY(-2px); } }
+
+  .fw-mani-clock { width: clamp(150px, 22vw, 320px); display: grid; justify-items: center; gap: var(--s-3); }
+  .fw-mani-clock svg { width: 100%; filter: drop-shadow(10px 12px 0 #1D1B3A); }
+  .fw-mh { transition: transform 0.3s var(--ease-out); }
+  .fw-mani-time { font-family: var(--font-display); font-weight: 900; font-size: var(--fs-2xl); letter-spacing: -0.03em; }
+
+  .fw-lockup { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none; }
+  .fw-lock-pre { font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-weight: 700; font-size: clamp(1.6rem, 1rem + 3vw, 4rem); color: #1D1B3A; opacity: 0; transform: translateY(20px); transition: opacity 0.5s, transform 0.6s var(--ease-out); }
+  .fw-lock-main { display: flex; justify-content: center; font-family: var(--font-display); font-weight: 900; font-size: clamp(3rem, 0.5rem + 11vw, 12rem); line-height: 0.9; letter-spacing: -0.05em; color: #FFF6E5; text-shadow: 0.05em 0.05em 0 #1D1B3A; white-space: nowrap; }
+  .fw-lock-main span { display: inline-block; opacity: 0; transform: translateY(0.6em) rotate(calc((var(--j) - 5) * 6deg)) scale(0.6); transition: opacity 0.4s calc(var(--j) * 0.04s), transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) calc(var(--j) * 0.04s); }
+  .fw-lockup.is-in .fw-lock-pre { opacity: 1; transform: none; }
+  .fw-lockup.is-in .fw-lock-main span { opacity: 1; transform: none; }
+
+  .fw-marquee { position: absolute; left: 0; right: 0; bottom: calc(var(--safe-bottom) - 1.5rem); overflow: hidden; background: #1D1B3A; color: #F6C343; padding-block: 0.7rem; transform: rotate(-1.5deg) scaleX(1.05); }
+  .fw-marquee-track { display: flex; width: max-content; animation: fw-marq 28s linear infinite; font: 800 clamp(0.9rem, 0.7rem + 0.8vw, 1.3rem)/1 var(--font-display); letter-spacing: 0.04em; white-space: nowrap; }
+  @keyframes fw-marq { to { transform: translateX(-50%); } }
+
+  .fw-mani.is-static { height: auto; }
+  .fw-mani.is-static .fw-mani-sticky { position: relative; height: auto; padding-block: var(--s-9) calc(var(--s-9) + 3rem); }
+  .fw-mani.is-static .fw-mani-grid { opacity: 1; transform: none; filter: none; }
+  .fw-mani.is-static .fw-lockup { position: relative; margin-top: var(--s-7); }
+
+  @media (max-width: 760px) {
+    .fw-mani-grid { grid-template-columns: 1fr; gap: var(--s-5); }
+    .fw-mani-clock { order: -1; width: 120px; grid-template-columns: auto auto; align-items: center; justify-self: start; width: auto; }
+    .fw-mani-clock svg { width: 96px; filter: drop-shadow(5px 6px 0 #1D1B3A); }
+    .fw-mani-text { font-size: clamp(1.5rem, 1rem + 2.4vw, 2rem); }
+    .fw-lock-main { font-size: clamp(2.6rem, 14vw, 5rem); }
+  }
+</style>

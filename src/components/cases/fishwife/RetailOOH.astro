@@ -1,0 +1,260 @@
+---
+// Retail & OOH: a postcard billboard (headline variants, day/night) and a
+// shelf-takeover mock with numbered hotspots.
+import { FW } from '../../../data/cases/fishwife';
+const variants = [
+  { pre: 'Greetings from', main: 'TIN O’CLOCK', sub: 'Weekdays · 12:30 · find us in the tinned-fish aisle', size: 100 },
+  { pre: 'Wish you were at', main: 'LUNCH.', sub: 'It’s Tin O’Clock somewhere. (Here. At 12:30.)', size: 150 },
+  { pre: '12:30.', main: 'OPEN A TIN.', sub: 'Tin O’Clock: a weekday lunch, no kitchen needed', size: 100 },
+];
+const spots = [
+  { n: 1, x: 84, y: 6, t: 'Aisle header', d: 'A hanging “It’s Tin O’Clock” header turns the tinned-fish set into the lunch aisle, visible from the end of the row.' },
+  { n: 2, x: 80, y: 36, t: 'Clock wobbler', d: 'A 12:30 clock on a spring arm. It moves when carts pass, the in-store version of the alarm.' },
+  { n: 3, x: 4, y: 60, t: 'Shelf strip + QR', d: 'Each flavour gets a strip with one 30-second recipe. The QR opens the recipe short, not a homepage.' },
+  { n: 4, x: 96, y: 78, t: 'Weekday Lunch Box', d: 'Five tins for five weekdays: the bundle that makes the habit a purchase.' },
+  { n: 5, x: 4, y: 82, t: 'Grab-and-go link', d: 'A secondary display by the lunch fridge, with tins next to crackers and bread.' },
+];
+const shelves = [
+  [FW.red, FW.pink, FW.sun, FW.mint, FW.red, FW.cobalt, FW.pink, FW.sun],
+  [FW.sun, FW.mint, FW.cobalt, FW.red, FW.pink, FW.sun, FW.mint, FW.red],
+  [FW.pink, FW.red, FW.mint, FW.sun, FW.cobalt, FW.pink, FW.red, FW.mint],
+  [FW.cobalt, FW.sun, FW.pink, FW.mint, FW.red, FW.sun, FW.cobalt, FW.pink],
+];
+const strips = ['30-sec recipe: salmon rice bowl ▸ scan', '30-sec recipe: sardine toast ▸ scan', '30-sec recipe: tuna crackers ▸ scan', '30-sec recipe: mackerel chili toast ▸ scan'];
+---
+
+<div class="fw-ooh" data-fw-ooh>
+  <!-- Billboard -->
+  <div class="fw-bb">
+    <div class="fw-bb-ctrl">
+      <div class="fw-seg" role="radiogroup" aria-label="Billboard headline">
+        {variants.map((_, i) => <button type="button" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-variant={i}>{['Postcard', 'Wish you were', 'Instruction'][i]}</button>)}
+      </div>
+      <button type="button" class="fw-night-btn" aria-pressed="false" data-night>☾ Night view</button>
+    </div>
+    <div class="fw-bb-scene" data-scene>
+      <svg viewBox="0 0 1200 640" role="img" aria-label="Billboard mock-up: a vintage postcard that reads Greetings from Tin O’Clock" data-bb-svg>
+        <defs>
+          <linearGradient id="fw-sky-d" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fc6ef" /><stop offset="1" stop-color="#ffe2b8" /></linearGradient>
+          <linearGradient id="fw-sky-n" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1030" /><stop offset="1" stop-color="#3a2a5a" /></linearGradient>
+          <linearGradient id="fw-beam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6c8" stop-opacity=".75" /><stop offset="1" stop-color="#fff6c8" stop-opacity="0" /></linearGradient>
+        </defs>
+        <rect width="1200" height="640" fill="url(#fw-sky-d)" />
+        <rect width="1200" height="640" fill="url(#fw-sky-n)" class="fw-n-only" />
+        <g class="fw-n-only" fill="#fff">{Array.from({ length: 40 }, (_, i) => <circle cx={(i * 197) % 1200} cy={(i * 73) % 300} r={i % 4 === 0 ? 2 : 1.2} opacity=".8" />)}</g>
+        <circle cx="1060" cy="110" r="46" fill="#ffd36b" class="fw-d-only" />
+        <circle cx="1060" cy="110" r="34" fill="#f4f1e0" class="fw-n-only" />
+        <!-- skyline -->
+        <g fill="#2b2f4a" class="fw-city">
+          <rect x="0" y="470" width="90" height="170" /><rect x="80" y="430" width="70" height="210" /><rect x="150" y="500" width="120" height="140" />
+          <rect x="930" y="450" width="80" height="190" /><rect x="1000" y="400" width="90" height="240" /><rect x="1080" y="480" width="120" height="160" />
+        </g>
+        <g class="fw-n-only" fill="#ffd36b" opacity=".8">{Array.from({ length: 22 }, (_, i) => <rect x={[20, 100, 120, 170, 210, 950, 980, 1020, 1050, 1110, 1150][i % 11]} y={460 + (i % 5) * 30 + (i > 10 ? 15 : 0)} width="10" height="12" />)}</g>
+        <g fill="#3a3e5c" class="fw-city"><rect x="250" y="520" width="110" height="120" /><rect x="520" y="500" width="150" height="140" /><rect x="820" y="530" width="120" height="110" /></g>
+        <rect y="600" width="1200" height="40" fill="#23263b" />
+        <!-- poles -->
+        <rect x="420" y="470" width="26" height="170" fill="#33354a" />
+        <rect x="754" y="470" width="26" height="170" fill="#33354a" />
+        <rect x="150" y="470" width="900" height="12" fill="#33354a" />
+        <!-- beams -->
+        <g class="fw-n-only">{[300, 600, 900].map((x) => <path d={`M${x - 10} 70 L ${x - 160} 470 L ${x + 160} 470 L ${x + 10} 70 Z`} fill="url(#fw-beam)" />)}</g>
+        <!-- board -->
+        <rect x="140" y="80" width="920" height="392" rx="6" fill="#1D1B3A" />
+        <rect x="156" y="96" width="888" height="360" fill="#FFF6E5" />
+        <rect x="176" y="116" width="848" height="320" fill="none" stroke="#2747A8" stroke-width="6" stroke-dasharray="22 10" />
+        <g transform="translate(884 130) rotate(4 60 60)">
+          <rect width="120" height="120" rx="6" fill="#F4A6B8" stroke="#1D1B3A" stroke-width="5" stroke-dasharray="10 6" />
+          <use href="#fw-s-fish" x="14" y="22" width="92" height="50" style="--fish:#F6C343;--fin:#2747A8" />
+          <text x="60" y="102" text-anchor="middle" font-family="Montserrat, sans-serif" font-weight="900" font-size="22" fill="#1D1B3A">12:30</text>
+        </g>
+        <text x="220" y="200" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-weight="700" font-size="58" fill="#E8452C" data-bb-pre>{variants[0].pre}</text>
+        <text x="216" y="348" font-family="Montserrat, sans-serif" font-weight="900" font-size={variants[0].size} letter-spacing="-4" fill="#F6C343" stroke="#1D1B3A" stroke-width="10" paint-order="stroke" data-bb-shadow>{variants[0].main}</text>
+        <text x="208" y="340" font-family="Montserrat, sans-serif" font-weight="900" font-size={variants[0].size} letter-spacing="-4" fill="#2747A8" data-bb-main>{variants[0].main}</text>
+        <text x="222" y="408" font-family="Inter, sans-serif" font-weight="700" font-size="24" letter-spacing="1" fill="#1D1B3A" data-bb-sub>{variants[0].sub}</text>
+        <!-- lamps -->
+        <g fill="#33354a">{[300, 600, 900].map((x) => <path d={`M${x - 24} 62 L ${x + 24} 62 L ${x + 12} 80 L ${x - 12} 80 Z M ${x - 3} 40 L ${x + 3} 40 L ${x + 3} 62 L ${x - 3} 62 Z`} />)}</g>
+        <!-- palm -->
+        <g stroke="#2b2f4a" stroke-width="8" fill="none" stroke-linecap="round" class="fw-palm">
+          <path d="M1130 640 C 1120 520, 1110 420, 1120 320" />
+          <path d="M1120 320 q -60 -20 -100 20 M 1120 320 q 50 -40 90 -10 M 1120 320 q -30 -50 -80 -60 M 1120 320 q 30 -60 70 -70 M 1120 320 q 0 -50 -10 -80" stroke-width="12" />
+        </g>
+      </svg>
+      <p class="t-small">Billboard mock. Board copy is our concept; we’d place it near office districts and lunch spots.</p>
+    </div>
+    <script type="application/json" data-variants set:html={JSON.stringify(variants)} />
+  </div>
+
+  <!-- Shelf takeover -->
+  <div class="fw-shelf-wrap">
+    <div class="fw-shelf" data-shelf>
+      <div class="fw-sh-header" aria-hidden="true">
+        <span>It’s</span> TIN O’CLOCK <em>the lunch aisle</em>
+      </div>
+      <div class="fw-sh-rows" aria-hidden="true">
+        {
+          shelves.map((row, ri) => (
+            <div class="fw-sh-row">
+              <div class="fw-sh-tins">
+                {row.slice(0, 6).map((c, ci) => (
+                  <svg viewBox="0 0 220 140" style={`--lab:${c};--lid:${row[(ci + 3) % row.length]};--labink:${c === FW.sun || c === FW.mint || c === FW.pink ? '#1D1B3A' : '#FFF6E5'}`}>
+                    <use href="#fw-s-tinc" />
+                  </svg>
+                ))}
+              </div>
+              <div class="fw-sh-strip">
+                <span class="fw-sh-qr" />
+                {strips[ri]}
+                <span class="fw-sh-price">price</span>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+      <div class="fw-sh-wob" aria-hidden="true">
+        <span class="fw-sh-arm" />
+        <svg viewBox="0 0 220 220"><use href="#fw-s-clock" /></svg>
+      </div>
+      <div class="fw-sh-box" aria-hidden="true">
+        <b>Weekday<br />Lunch Box</b>
+        <span>Mon · Tue · Wed · Thu · Fri</span>
+      </div>
+      <div class="fw-sh-gg" aria-hidden="true">grab &amp; go ↗</div>
+      {
+        spots.map((s, i) => (
+          <button type="button" class="fw-spot" style={`left:${s.x}%;top:${s.y}%`} data-spot={i} aria-pressed={i === 0 ? 'true' : 'false'} aria-label={`${s.n}: ${s.t}`}>
+            {s.n}
+          </button>
+        ))
+      }
+    </div>
+    <ol class="fw-sh-list" role="list">
+      {
+        spots.map((s, i) => (
+          <li class:list={[{ 'is-on': i === 0 }]} data-spot-info={i}>
+            <button type="button" data-spot={i}>
+              <span class="t-num">{s.n}</span>
+              <span>
+                <b>{s.t}</b>
+                <span>{s.d}</span>
+              </span>
+            </button>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</div>
+
+<script>
+  type V = { pre: string; main: string; sub: string; size: number };
+  document.querySelectorAll<HTMLElement>('[data-fw-ooh]').forEach((root) => {
+    const variants = JSON.parse(root.querySelector('[data-variants]')!.textContent || '[]') as V[];
+    const svg = root.querySelector<SVGSVGElement>('[data-bb-svg]')!;
+    const pre = svg.querySelector('[data-bb-pre]')!;
+    const main = svg.querySelector('[data-bb-main]')!;
+    const shadow = svg.querySelector('[data-bb-shadow]')!;
+    const sub = svg.querySelector('[data-bb-sub]')!;
+    const radios = [...root.querySelectorAll<HTMLButtonElement>('[data-variant]')];
+    // Keep the headline inside the board whatever the font metrics are.
+    const fit = (size: number) => {
+      main.setAttribute('font-size', String(size));
+      const len = (main as SVGTextContentElement).getComputedTextLength();
+      const s = len > 790 ? Math.floor((size * 790) / len) : size;
+      main.setAttribute('font-size', String(s));
+      shadow.setAttribute('font-size', String(s));
+      sub.setAttribute('font-size', '24');
+      const sl = (sub as SVGTextContentElement).getComputedTextLength();
+      if (sl > 780) sub.setAttribute('font-size', String(Math.floor((24 * 780) / sl)));
+    };
+    document.fonts?.ready.then(() => fit(variants[0].size));
+    radios.forEach((r) =>
+      r.addEventListener('click', () => {
+        const v = variants[Number(r.dataset.variant)];
+        pre.textContent = v.pre;
+        main.textContent = v.main;
+        shadow.textContent = v.main;
+        sub.textContent = v.sub;
+        fit(v.size);
+        svg.setAttribute('aria-label', `Billboard mock-up: ${v.pre} ${v.main} ${v.sub}`);
+        radios.forEach((x) => x.setAttribute('aria-checked', String(x === r)));
+        svg.classList.remove('is-swap');
+        void svg.getBoundingClientRect();
+        svg.classList.add('is-swap');
+      }),
+    );
+    const night = root.querySelector<HTMLButtonElement>('[data-night]')!;
+    night.addEventListener('click', () => {
+      const on = night.getAttribute('aria-pressed') !== 'true';
+      night.setAttribute('aria-pressed', String(on));
+      night.textContent = on ? '☀ Day view' : '☾ Night view';
+      root.querySelector('[data-scene]')!.classList.toggle('is-night', on);
+    });
+    const spotBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-spot]')];
+    const infos = [...root.querySelectorAll<HTMLElement>('[data-spot-info]')];
+    spotBtns.forEach((b) =>
+      b.addEventListener('click', () => {
+        const i = Number(b.dataset.spot);
+        spotBtns.forEach((x) => x.classList.contains('fw-spot') && x.setAttribute('aria-pressed', String(Number(x.dataset.spot) === i)));
+        infos.forEach((el, j) => el.classList.toggle('is-on', j === i));
+      }),
+    );
+  });
+</script>
+
+<style>
+  .fw-ooh { display: grid; gap: var(--s-9); }
+  .fw-bb { display: grid; gap: var(--s-4); }
+  .fw-bb-ctrl { display: flex; flex-wrap: wrap; gap: var(--s-3); justify-content: space-between; align-items: center; }
+  .fw-seg { display: inline-flex; flex-wrap: wrap; padding: 4px; border-radius: 22px; border: 1px solid var(--line-strong); }
+  .fw-seg button { padding: 0.55rem 1rem; border-radius: 99px; font: 600 0.8rem/1 var(--font-ui); color: var(--ink-2); }
+  .fw-seg button[aria-checked='true'] { background: var(--ink); color: var(--bg); }
+  .fw-night-btn { padding: 0.6rem 1rem; min-height: 40px; border-radius: 99px; border: 1px solid var(--line-strong); font: 600 0.8rem/1 var(--font-ui); color: var(--ink); }
+  .fw-bb-scene { display: grid; gap: var(--s-3); }
+  .fw-bb-scene svg { width: 100%; height: auto; border-radius: var(--r-lg); box-shadow: 0 40px 100px -40px rgb(0 0 0 / 0.9); }
+  .fw-n-only { opacity: 0; transition: opacity 0.8s; }
+  .fw-d-only { transition: opacity 0.8s; }
+  .is-night .fw-n-only { opacity: 1; }
+  .is-night .fw-d-only { opacity: 0; }
+  .is-night .fw-city, .is-night .fw-palm { filter: brightness(0.6); }
+  [data-bb-svg].is-swap text { animation: fw-bb-swap 0.6s var(--ease-out); }
+  @keyframes fw-bb-swap { from { opacity: 0; } }
+
+  .fw-shelf-wrap { display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--s-7); align-items: center; }
+  .fw-shelf { position: relative; container-type: inline-size; border-radius: var(--r-lg); background: linear-gradient(#f3ead8, #e2d6bd); box-shadow: inset 0 0 0 10px #c9bba0, 0 40px 100px -40px rgb(0 0 0 / 0.9); padding: 13% 6% 17%; }
+  .fw-sh-header { position: absolute; top: 3cqw; left: 50%; translate: -50% 0; padding: 1.6cqw 4cqw; border-radius: 1.4cqw; background: #E8452C; color: #FFF6E5; font: 900 4.6cqw/1 var(--font-display); letter-spacing: -0.02em; white-space: nowrap; box-shadow: 0.8cqw 0.8cqw 0 #1D1B3A; }
+  .fw-sh-header span, .fw-sh-header em { font: italic 700 3cqw/1 Georgia, serif; color: #F6C343; }
+  .fw-sh-rows { display: grid; gap: 3.4cqw; }
+  .fw-shelf::after { content: ''; position: absolute; left: 10px; right: 10px; bottom: 10px; height: 14cqw; border-radius: 0 0 16px 16px; background: repeating-linear-gradient(90deg, #d8c9aa 0 8cqw, #cdbd9c 8cqw 8.4cqw); }
+  .fw-sh-row { display: grid; }
+  .fw-sh-tins { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1.4cqw; padding-inline: 1cqw; align-items: end; }
+  .fw-sh-tins svg { width: 100%; }
+  .fw-sh-strip { position: relative; display: flex; align-items: center; gap: 1.5cqw; height: 5.6cqw; padding: 0 1.6cqw; background: #2747A8; color: #FFF6E5; font: 700 2.1cqw/1 var(--font-ui); white-space: nowrap; overflow: hidden; border-bottom: 1.2cqw solid #1D1B3A; }
+  .fw-sh-qr { width: 3.6cqw; height: 3.6cqw; background: conic-gradient(#fff 25%, #1D1B3A 0 50%, #fff 0 75%, #1D1B3A 0) 0 0 / 1.2cqw 1.2cqw; border: 0.4cqw solid #fff; }
+  .fw-sh-price { margin-left: auto; padding: 0.6cqw 1.4cqw; border-radius: 0.6cqw; background: #FFF6E5; color: #1D1B3A; text-transform: uppercase; font-size: 1.5cqw; letter-spacing: 0.1em; }
+  .fw-sh-wob { position: absolute; right: 1.5cqw; top: 30cqw; width: 14cqw; z-index: 1; transform-origin: 100% 50%; animation: fw-wob 2.4s ease-in-out infinite; }
+  .fw-sh-wob svg { width: 100%; filter: drop-shadow(0.6cqw 0.6cqw 0 #1D1B3A); }
+  .fw-sh-arm { position: absolute; right: -3cqw; top: 50%; width: 5cqw; height: 0.6cqw; background: #888; }
+  @keyframes fw-wob { 50% { transform: rotate(-6deg); } }
+  .fw-sh-box { position: absolute; z-index: 1; right: 5cqw; bottom: 4cqw; width: 24cqw; padding: 2cqw; border-radius: 1.4cqw; background: #F6C343; border: 0.6cqw solid #1D1B3A; box-shadow: 1cqw 1cqw 0 #1D1B3A; color: #1D1B3A; display: grid; gap: 0.8cqw; transform: rotate(-3deg); }
+  .fw-sh-box b { font: 900 3cqw/1 var(--font-display); }
+  .fw-sh-box span { font: 600 1.5cqw/1.2 var(--font-ui); }
+  .fw-sh-gg { position: absolute; z-index: 1; left: 5cqw; bottom: 6cqw; padding: 1.4cqw 2.4cqw; border-radius: 99px; background: #9ED6C2; color: #1D1B3A; border: 0.5cqw solid #1D1B3A; font: 800 2.2cqw/1 var(--font-ui); }
+  .fw-spot { position: absolute; translate: -50% -50%; width: max(30px, 6cqw); height: max(30px, 6cqw); border-radius: 50%; background: #1D1B3A; color: #fff; font: 800 max(13px, 2.4cqw)/1 var(--font-ui); box-shadow: 0 0 0 3px #fff; z-index: 2; transition: transform var(--dur-2) var(--ease-out), background var(--dur-1); }
+  .fw-spot::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid #fff; animation: fw-ping 1.8s ease-out infinite; }
+  @keyframes fw-ping { from { opacity: 1; transform: scale(0.8); } to { opacity: 0; transform: scale(1.5); } }
+  .fw-spot[aria-pressed='true'] { background: #E8452C; transform: scale(1.15); }
+  .fw-sh-list { list-style: none; padding: 0; display: grid; gap: var(--s-2); }
+  .fw-sh-list button { display: flex; gap: var(--s-3); width: 100%; text-align: left; padding: var(--s-4); border-radius: var(--r-md); border: 1px solid var(--line); color: var(--ink-2); transition: border-color var(--dur-1), background var(--dur-1); }
+  .fw-sh-list .t-num { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); color: var(--ink); font-weight: 700; font-size: 0.85rem; }
+  .fw-sh-list b { display: block; color: var(--ink); }
+  .fw-sh-list b + span { display: block; font-size: var(--fs-sm); max-height: 0; overflow: hidden; opacity: 0; transition: max-height var(--dur-2) var(--ease-out), opacity var(--dur-2); }
+  .fw-sh-list .is-on button { border-color: var(--a); background: color-mix(in srgb, var(--a) 9%, transparent); }
+  .fw-sh-list .is-on .t-num { background: var(--a); color: #fff; }
+  .fw-sh-list .is-on b + span { max-height: 8em; opacity: 1; margin-top: 4px; }
+  @media (max-width: 900px) {
+    .fw-shelf-wrap { grid-template-columns: 1fr; }
+    .fw-bb-ctrl { flex-direction: column; align-items: stretch; }
+    .fw-seg { justify-content: center; }
+    .fw-seg button { flex: 1; padding-inline: 0.6rem; }
+  }
+</style>

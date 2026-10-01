@@ -1,0 +1,134 @@
+---
+// Budget split: presets or sliders per channel; the donut shows each channel's share.
+import { channels, presets } from '../../../data/cases/fishwife';
+const start = presets[0];
+const R = 80;
+const C = 2 * Math.PI * R;
+const payload = JSON.stringify({ channels, presets });
+---
+
+<div class="fw-bud" data-fw-bud>
+  <div class="fw-bud-ctrl">
+    <div class="fw-bud-presets" role="radiogroup" aria-label="Budget presets">
+      {
+        presets.map((p, i) => (
+          <button type="button" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-preset={p.id}>
+            {p.label}
+          </button>
+        ))
+      }
+    </div>
+    <p class="t-small fw-bud-note" data-note>{start.note}</p>
+    <div class="fw-sliders">
+      {
+        channels.map((c) => (
+          <div class="fw-sl" style={`--c:${c.color}`}>
+            <label for={`fw-sl-${c.id}`}>
+              <span class="fw-sl-dot" aria-hidden="true" />
+              <span class="fw-sl-name">{c.label}</span>
+              <output class="t-num" data-out={c.id} for={`fw-sl-${c.id}`}>{start.mix[c.id]}%</output>
+            </label>
+            <input type="range" id={`fw-sl-${c.id}`} min="0" max="50" step="1" value={start.mix[c.id]} data-ch={c.id} aria-describedby={`fw-role-${c.id}`} />
+            <span class="t-small" id={`fw-role-${c.id}`}>{c.role}</span>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="fw-donut-wrap">
+    <svg class="fw-donut" viewBox="0 0 220 220" role="img" aria-labelledby="fw-donut-t" data-donut>
+      <title id="fw-donut-t">Share of working budget by channel</title>
+      <circle cx="110" cy="110" r={R} fill="none" stroke="rgb(255 255 255 / 0.06)" stroke-width="34" />
+      {
+        channels.map((c) => (
+          <circle cx="110" cy="110" r={R} fill="none" stroke={c.color} stroke-width="34" stroke-dasharray={`0 ${C}`} transform="rotate(-90 110 110)" data-seg={c.id} />
+        ))
+      }
+    </svg>
+    <div class="fw-donut-c" aria-hidden="true">
+      <span class="t-label">Biggest slice</span>
+      <b data-top-v>26%</b>
+      <span data-top-n>Creators &amp; UGC</span>
+    </div>
+    <p class="t-small fw-donut-cap">Shares of working media, normalised to 100%. Illustrative: the total budget is set with the client.</p>
+  </div>
+  <script type="application/json" data-bud set:html={payload} />
+</div>
+
+<script>
+  type Ch = { id: string; label: string; color: string };
+  type Preset = { id: string; label: string; note: string; mix: Record<string, number> };
+  document.querySelectorAll<HTMLElement>('[data-fw-bud]').forEach((root) => {
+    const { channels, presets } = JSON.parse(root.querySelector('[data-bud]')!.textContent || '{}') as { channels: Ch[]; presets: Preset[] };
+    const R = 80;
+    const C = 2 * Math.PI * R;
+    const inputs = [...root.querySelectorAll<HTMLInputElement>('[data-ch]')];
+    const radios = [...root.querySelectorAll<HTMLButtonElement>('[data-preset]')];
+    const note = root.querySelector<HTMLElement>('[data-note]')!;
+    const render = () => {
+      const vals = inputs.map((i) => Number(i.value));
+      const sum = vals.reduce((a, b) => a + b, 0) || 1;
+      let acc = 0;
+      let top = 0;
+      channels.forEach((c, i) => {
+        const share = vals[i] / sum;
+        const seg = root.querySelector<SVGCircleElement>(`[data-seg="${c.id}"]`)!;
+        const gap = share > 0.02 ? 2 : 0;
+        seg.setAttribute('stroke-dasharray', `${Math.max(0, share * C - gap)} ${C}`);
+        seg.setAttribute('stroke-dashoffset', String(-acc * C));
+        acc += share;
+        root.querySelector<HTMLOutputElement>(`[data-out="${c.id}"]`)!.textContent = `${Math.round(share * 100)}%`;
+        if (vals[i] > vals[top]) top = i;
+      });
+      root.querySelector('[data-top-v]')!.textContent = `${Math.round((vals[top] / sum) * 100)}%`;
+      root.querySelector('[data-top-n]')!.textContent = channels[top].label;
+    };
+    const apply = (p: Preset) => {
+      inputs.forEach((i) => (i.value = String(p.mix[i.dataset.ch!] ?? 0)));
+      radios.forEach((r) => r.setAttribute('aria-checked', String(r.dataset.preset === p.id)));
+      note.textContent = p.note;
+      render();
+    };
+    radios.forEach((r) => r.addEventListener('click', () => apply(presets.find((p) => p.id === r.dataset.preset)!)));
+    inputs.forEach((i) =>
+      i.addEventListener('input', () => {
+        radios.forEach((r) => r.setAttribute('aria-checked', 'false'));
+        note.textContent = 'Custom mix. Sliders set relative weight; the donut normalises to 100%.';
+        render();
+      }),
+    );
+    render();
+  });
+</script>
+
+<style>
+  .fw-bud { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--s-8); align-items: center; padding: var(--s-7); border-radius: calc(var(--r-lg) + 8px); border: 1px solid var(--line); background: var(--bg-2); }
+  .fw-bud-ctrl { display: grid; gap: var(--s-4); }
+  .fw-bud-presets { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+  .fw-bud-presets button { padding: 0.6rem 1rem; min-height: 40px; border-radius: 99px; border: 1px solid var(--line-strong); font: 600 0.82rem/1 var(--font-ui); color: var(--ink-2); }
+  .fw-bud-presets button[aria-checked='true'] { background: var(--a); border-color: var(--a); color: #fff; }
+  .fw-bud-note { min-height: 2.8em; }
+  .fw-sliders { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4) var(--s-6); }
+  .fw-sl { display: grid; gap: 6px; }
+  .fw-sl label { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: var(--fs-sm); color: var(--ink); }
+  .fw-sl-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+  .fw-sl-name { flex: 1; }
+  .fw-sl output { font-weight: 700; color: var(--c); }
+  .fw-sl input { width: 100%; accent-color: var(--c); height: 28px; }
+  .fw-sl .t-small { font-size: 0.78rem; }
+  .fw-donut-wrap { position: relative; display: grid; justify-items: center; gap: var(--s-4); }
+  .fw-donut { width: min(360px, 100%); }
+  .fw-donut circle[data-seg] { transition: stroke-dasharray 0.6s var(--ease-out), stroke-dashoffset 0.6s var(--ease-out); }
+  .fw-donut-c { position: absolute; top: 0; left: 50%; translate: -50% 0; width: min(360px, 100%); aspect-ratio: 1; display: grid; place-content: center; text-align: center; gap: 4px; pointer-events: none; }
+  .fw-donut-c b { font: 900 var(--fs-2xl)/1 var(--font-display); letter-spacing: -0.04em; }
+  .fw-donut-c span:last-child { font-size: var(--fs-sm); color: var(--ink-2); max-width: 12ch; margin-inline: auto; }
+  .fw-donut-cap { text-align: center; max-width: 36ch; }
+  @media (max-width: 960px) {
+    .fw-bud { grid-template-columns: 1fr; padding: var(--s-5); }
+    .fw-donut-wrap { order: -1; }
+  }
+  @media (max-width: 560px) {
+    .fw-sliders { grid-template-columns: 1fr; }
+  }
+</style>

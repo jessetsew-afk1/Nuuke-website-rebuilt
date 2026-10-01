@@ -1,0 +1,249 @@
+---
+import Case from '../../layouts/Case.astro';
+import Chapter from '../../components/case/Chapter.astro';
+import Brief from '../../components/case/Brief.astro';
+import Personas from '../../components/case/Personas.astro';
+import DesignSystem from '../../components/case/DesignSystem.astro';
+import Metrics from '../../components/case/Metrics.astro';
+import Sprite from '../../components/cases/fishwife/Sprite.astro';
+import HeroPoster from '../../components/cases/fishwife/HeroPoster.astro';
+import Funnel from '../../components/cases/fishwife/Funnel.astro';
+import Manifesto from '../../components/cases/fishwife/Manifesto.astro';
+import TinStage from '../../components/cases/fishwife/TinStage.astro';
+import StoryViewer from '../../components/cases/fishwife/StoryViewer.astro';
+import CreatorKit from '../../components/cases/fishwife/CreatorKit.astro';
+import AdLab from '../../components/cases/fishwife/AdLab.astro';
+import Calendar from '../../components/cases/fishwife/Calendar.astro';
+import RetailOOH from '../../components/cases/fishwife/RetailOOH.astro';
+import Budget from '../../components/cases/fishwife/Budget.astro';
+import { bySlug } from '../../data/projects';
+
+const p = bySlug('fishwife');
+const chapters = [
+  { id: 'brief', label: 'Brief' },
+  { id: 'insight', label: 'Insight & audience' },
+  { id: 'strategy', label: 'Strategy' },
+  { id: 'idea', label: 'The big idea' },
+  { id: 'tin', label: 'The 3D tin' },
+  { id: 'concepts', label: 'Creative concepts' },
+  { id: 'creators', label: 'Creator kit' },
+  { id: 'paid', label: 'Paid creative' },
+  { id: 'calendar', label: 'Content calendar' },
+  { id: 'retail', label: 'Retail & OOH' },
+  { id: 'measure', label: 'Budget & measurement' },
+];
+const sources = [
+  { label: 'Fishwife — Our story', url: 'https://eatfishwife.com/pages/our-story' },
+  { label: 'Food Dive — how Fishwife grew', url: 'https://www.fooddive.com/news/fishwife-success-tinned-fish/726922/' },
+  { label: 'Retail Dive — DTC to retail', url: 'https://www.retaildive.com/news/fishwife-dtc-success-tinned-fish/727643/' },
+  { label: 'Fortune — Becca Millstein (Apr 2024)', url: 'https://fortune.com/2024/04/12/fishwife-founder-becca-millstein-tinned-fish/' },
+  { label: 'Wikipedia — Shark Tank season 15', url: 'https://en.wikipedia.org/wiki/Shark_Tank_season_15' },
+  { label: 'NOSH — Best of 2024', url: 'https://www.nosh.com/awards/2024/fishwife' },
+  { label: 'Goodreads — The Fishwife Cookbook', url: 'https://www.goodreads.com/en/book/show/213974037-the-fishwife-cookbook' },
+  { label: 'Creative Review — illustrated branding', url: 'https://www.creativereview.co.uk/fishwife-illustrated-branding-tinned-fish-danny-miller/' },
+  { label: 'The Dieline — illustrating Fishwife', url: 'https://thedieline.com/daniel-miller-cracks-the-tin-open-on-illustrating-the-world-of-fishwife/' },
+  { label: 'Dropmark — reverse-engineered Fishwife', url: 'https://www.dropmark.com/blog/reverse-engineered-fishwife/' },
+  { label: 'Perishable News — Kvarøy Arctic salmon', url: 'https://perishablenews.com/seafood/fishwife-launches-100-traceable-tinned-smoked-salmon-with-kvaroy-arctic/' },
+  { label: 'The Kitchn — Fly By Jing chili crisp salmon', url: 'https://www.thekitchn.com/fishwife-fly-by-jing-smoked-salmon-sichuan-chili-crisp-23318025' },
+];
+const meta = [
+  { label: 'Brand', value: 'Fishwife, Los Angeles' },
+  { label: 'Discipline', value: 'Digital & social campaign' },
+  { label: 'Our role', value: 'Strategy, creative, content system, media plan' },
+  { label: 'Timeline (concept)', value: '4-week launch flight' },
+];
+const personas = [
+  {
+    name: 'Snack-plate Sofia',
+    meta: '27 · Brooklyn · hosts board dinners',
+    quote: 'My tinned-fish boards get the most saves on my feed. I’ve never thought of it as a Tuesday thing.',
+    goals: ['Food that looks good on camera', 'Formats she can remix: duets, stitches', 'Being early to the next food trend'],
+    pains: ['Ads that feel like ads', 'Recipes that need a full kitchen', 'Lunch that looks sad on camera'],
+    color: '#F4A6B8',
+  },
+  {
+    name: 'Protein Pete',
+    meta: '33 · office job · shops at Whole Foods',
+    quote: 'I want a high-protein lunch I don’t have to meal-prep on Sunday.',
+    goals: ['Protein and clean labels at a glance', 'Lunch in under five minutes', 'Knowing where the fish comes from'],
+    pains: ['Meal-prep boxes that are sad by Wednesday', 'Vague sustainability claims', 'Pricey salad bars'],
+    color: '#9ED6C2',
+  },
+  {
+    name: 'Gifting Grace',
+    meta: '41 · buys hostess gifts',
+    quote: 'I buy the pretty tins for other people. I never open one for myself.',
+    goals: ['Gifts that start a conversation', 'Sets that look great unwrapped', 'A reason to treat herself'],
+    pains: ['Not knowing what to do with a tin', 'Gift sets padded with filler', 'Brands that only show up at the holidays'],
+    color: '#F6C343',
+  },
+];
+const territories = [
+  { name: 'Conservas Club', line: 'A members’ club for European-style tinned-fish evenings.', verdict: 'Loved by Sofia, but it doubles down on the evening occasion we want to grow beyond.' },
+  { name: 'The Tin Is the Plate', line: 'Zero-dish meals: open, eat, done.', verdict: 'A great proof point, not a platform. It became a line in the manifesto.' },
+  { name: 'Tin O’Clock', line: 'A weekday ritual with a time on it: 12:30.', verdict: 'It owns a moment that repeats five times a week and reads on every surface. Chosen.', pick: true },
+];
+---
+
+<Case project={p} chapters={chapters} sources={sources} meta={meta}>
+  <HeroPoster slot="hero" />
+  <Sprite />
+
+  <Chapter id="brief" n="01" label="The brief" title="Tinned fish has a fan club. We want it to have a lunch hour.">
+    <Brief
+      story="Fishwife is a Los Angeles tinned-seafood brand, founded by Becca Millstein and Caroline Goldfarb and launched in <strong>December 2020</strong>. It sells premium, responsibly sourced fish in <strong>illustrated tins</strong>, packed by six canneries in Washington State, Spain, Denmark and Scotland. Its stated mission is to make tinned seafood <em>“a staple in every cupboard.”</em>"
+      facts={[
+        { v: 'Dec 2020', k: 'Launched in Los Angeles' },
+        { v: '$350k', k: 'Shark Tank deal (Jan 2024) for 6% plus 2% advisory shares' },
+        { v: '$2.6M', k: 'Revenue in 2022, up from $750k in 2021, as disclosed on Shark Tank' },
+        { v: 'NOSH ’24', k: 'Best of 2024: Best Marketing Campaign' },
+        { v: '2024', k: 'Whole Foods, nationwide (from April)' },
+        { v: 'Feb 2025', k: 'The Fishwife Cookbook, 80 recipes' },
+      ]}
+      problems={[
+        { title: 'From special to staple', text: 'The tin is loved as a snack-plate, hosting and gifting item. Those moments happen a few times a month. Lunch happens five times a week.' },
+        { title: 'Give the shelf a reason', text: 'With national grocery distribution, every tin now competes in the lunch basket. Shoppers need a cue to pick one up on a Tuesday.' },
+        { title: 'Scale the world, keep the hand', text: 'More creators, more posts, more stores, without diluting the hand-drawn, maximalist world that made people notice the brand.' },
+      ]}
+      goal="Make 12:30 on a weekday the moment people reach for a tin."
+    />
+  </Chapter>
+
+  <Chapter id="insight" n="02" label="Insight & audience" title="People already love the tin. They just save it for company." intro="Our insight comes from how the category is talked about (snack plates, “girl dinner”, gifting), not from client data. It’s a hypothesis we’d validate with social listening and a short survey before launch.">
+    <div class="fw-insight" data-stagger="0.1">
+      <article class="fw-ins">
+        <span class="t-label">Tension</span>
+        <p>Tinned fish is having a cultural moment, but mostly as a <strong>special-occasion</strong> food: boards, parties, gifts.</p>
+      </article>
+      <article class="fw-ins">
+        <span class="t-label">Truth</span>
+        <p>The things people love about it (no cooking, no fridge, real protein, a pretty object) are exactly what a <strong>weekday desk lunch</strong> lacks.</p>
+      </article>
+      <article class="fw-ins fw-ins--hl">
+        <span class="t-label">Opportunity</span>
+        <p>Don’t sell a new product. Give an existing love a <strong>new time slot</strong>, and make that time impossible to forget.</p>
+      </article>
+    </div>
+    <h3 class="t-h4 fw-sub">Who we’re talking to</h3>
+    <Personas personas={personas} />
+  </Chapter>
+
+  <Chapter id="strategy" n="03" label="Strategy" title="One ritual, four jobs." intro="We mapped the ritual onto a simple funnel: <strong>own the moment → prove the meal → be on the shelf → make it weekly</strong>. Click a stage to see its channels, content formats and KPIs.">
+    <Funnel />
+  </Chapter>
+
+  <Chapter id="idea" n="04" label="The big idea" title="Tin O’Clock." intro="We explored three creative territories before landing on a weekday ritual with a time on it. Then we wrote the manifesto. Scroll through it." wide>
+    <div class="container">
+      <div class="fw-terr" data-stagger="0.1">
+        {
+          territories.map((t, i) => (
+            <article class:list={['fw-terr-card', { 'is-pick': t.pick }]}>
+              <span class="t-label">Territory {i + 1}{t.pick ? ' · chosen' : ''}</span>
+              <h3 class="t-h4">{t.name}</h3>
+              <p class="fw-terr-line">{t.line}</p>
+              <p class="t-small">{t.verdict}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+    <Manifesto />
+    <div class="container">
+      <div class="fw-why3" data-stagger="0.1">
+        <article class="card">
+          <span class="t-num fw-why-n">01</span>
+          <h3 class="t-h4">Owns a time, not a mood</h3>
+          <p class="t-body">“Snack plate” is a vibe; 12:30 is an appointment. A time is easier to remember and easier to repeat.</p>
+        </article>
+        <article class="card">
+          <span class="t-num fw-why-n">02</span>
+          <h3 class="t-h4">A cue five days a week</h3>
+          <p class="t-body">Habits need triggers. The alarm, the posting schedule and the dayparted ads all point at the same minute.</p>
+        </article>
+        <article class="card">
+          <span class="t-num fw-why-n">03</span>
+          <h3 class="t-h4">Reads on every surface</h3>
+          <p class="t-body">A clock works on a phone, a billboard, a shelf wobbler and a text message. The idea survives any format.</p>
+        </article>
+      </div>
+    </div>
+  </Chapter>
+
+  <Chapter id="tin" n="05" label="The 3D tin" title="One tin, built to be filmed." intro="Every ritual has an object. We designed a limited Tin O’Clock label (original NUUKE folk illustration, not Fishwife’s packaging art) and built it in 3D, so one asset can feed paid, social and retail. <strong>Scroll to peel the lid, drag to spin, switch flavours.</strong>" wide>
+    <TinStage />
+  </Chapter>
+
+  <Chapter id="concepts" n="06" label="Creative concepts" title="Five posts, made for thumbs." intro="Tap through the concepts as vertical stories. Switch between <strong>Storyboard</strong>, <strong>Animatic</strong> and <strong>Final</strong> to see how each post develops, from shot notes to finished motion.">
+    <StoryViewer />
+  </Chapter>
+
+  <Chapter id="creators" n="07" label="Creator kit" title="A brief creators actually want to read." intro="Creators bring real desks and real hands. The kit keeps every post on-ritual: one card, a bank of hooks, and clear rules.">
+    <CreatorKit />
+    <h3 class="t-h4 fw-sub">Campaign look</h3>
+    <DesignSystem
+      colors={[
+        { name: 'Tomato', hex: '#E8452C', use: 'Lead colour, the 12:30 hand' },
+        { name: 'Sunflower', hex: '#F6C343', use: 'Timers, highlights' },
+        { name: 'Cobalt', hex: '#2747A8', use: 'Lettering, strips' },
+        { name: 'Salmon pink', hex: '#F4A6B8', use: 'Stickers, salmon family' },
+        { name: 'Mint', hex: '#9ED6C2', use: 'Ticks, albacore family' },
+        { name: 'Cream', hex: '#FFF6E5', use: 'Postcard paper' },
+        { name: 'Ink', hex: '#1D1B3A', use: 'Outlines and type' },
+      ]}
+      type={[
+        { role: 'Lettering', sample: 'Tin O’Clock', spec: 'Hand-lettered per asset · Georgia italic as layout stand-in', style: "font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:700;font-size:2.6rem;color:#F6C343" },
+        { role: 'Headline', sample: 'OPEN A TIN.', spec: 'Montserrat 900 · tight', style: 'font-family:Montserrat;font-weight:900;font-size:2.2rem;letter-spacing:-0.04em' },
+        { role: 'Body', sample: 'Lunch in 30 seconds. No fridge, no prep.', spec: 'Inter 400 · 16/24', style: 'font-family:Inter;font-size:1rem' },
+        { role: 'Label', sample: 'WEEKDAYS · 12:30', spec: 'Inter 700 · 12 · +0.14em', style: 'font-family:Inter;font-weight:700;font-size:.75rem;letter-spacing:.14em' },
+      ]}
+      note="Hex values are our working approximation of Fishwife’s saturated, one-colour-per-flavour palette; no official values are published. All lettering and illustration on this page are NUUKE originals."
+    />
+  </Chapter>
+
+  <Chapter id="paid" n="08" label="Paid creative" title="Three tests, one question each." intro="Paid social runs as a learning engine. Pick a test, flip between A and B, and read the hypothesis it’s built to answer.">
+    <AdLab />
+  </Chapter>
+
+  <Chapter id="calendar" n="09" label="Content calendar" title="Four weeks of lunch." intro="The first month, day by day. Click any day to preview the post; use the legend to highlight one channel.">
+    <Calendar />
+  </Chapter>
+
+  <Chapter id="retail" n="10" label="Retail & OOH" title="Off the feed, onto the street and the shelf." intro="Retail is where the habit becomes a purchase. The billboard borrows the brand’s vintage-postcard tone; the shelf takeover turns the tinned-fish set into the lunch aisle. Switch headlines, go to night view, and tap the numbered hotspots.">
+    <RetailOOH />
+  </Chapter>
+
+  <Chapter id="measure" n="11" label="Budget & measurement" title="Where the money goes, and how we’d know." intro="Pick a preset or drag the sliders to see how the mix shifts. Below are the measures we’d agree before launch. They are expectations, not results.">
+    <Budget />
+    <h3 class="t-h4 fw-sub">What we’d measure</h3>
+    <Metrics
+      metrics={[
+        { name: 'Weekday-lunch purchase share', hypothesis: 'A rising share of orders and scans lands Monday to Friday, 11:00–14:00, against a pre-campaign baseline.', how: 'DTC order timestamps plus retailer and receipt-panel data by daypart.' },
+        { name: 'Saves & shares rate', hypothesis: 'Recipe shorts earn more saves and shares per 1,000 views than the account’s own baseline.', how: 'Platform analytics by format; saves are our proxy for “I’ll make this for lunch”.' },
+        { name: 'Retail velocity', hypothesis: 'Units per store per week grow faster in shelf-takeover stores than in matched stores without it.', how: 'Retailer point-of-sale data, test vs. control stores over the flight.' },
+        { name: 'Ritual adoption', hypothesis: '12:30 alarm opt-ins repeat-purchase more often within 30 days than non-opted buyers.', how: 'SMS opt-in cohort vs. matched non-opted cohort, plus #TinOClock duet volume.' },
+      ]}
+    />
+  </Chapter>
+</Case>
+
+<style>
+  .fw-sub { margin: var(--s-9) 0 var(--s-5); }
+  .fw-insight { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); }
+  .fw-ins { display: grid; gap: var(--s-3); align-content: start; padding: var(--s-6); border-radius: var(--r-lg); border: 1px solid var(--line); background: var(--surface); font-size: var(--fs-lg); line-height: 1.45; color: var(--ink-2); }
+  .fw-ins strong { color: var(--ink); }
+  .fw-ins--hl { background: #F6C343; border-color: #F6C343; color: #1D1B3A; }
+  .fw-ins--hl strong, .fw-ins--hl .t-label { color: #1D1B3A; }
+  .fw-terr { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); margin-bottom: var(--s-8); }
+  .fw-terr-card { display: grid; gap: var(--s-2); align-content: start; padding: var(--s-6); border-radius: var(--r-lg); border: 1px dashed var(--line-strong); color: var(--ink-2); }
+  .fw-terr-card .t-h4 { color: var(--ink); }
+  .fw-terr-line { color: var(--ink); }
+  .fw-terr-card.is-pick { border: 2px solid var(--a); background: color-mix(in srgb, var(--a) 12%, transparent); }
+  .fw-terr-card.is-pick .t-label { color: var(--a); }
+  .fw-why3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); margin-top: var(--s-8); }
+  .fw-why3 .card { display: grid; gap: var(--s-3); align-content: start; }
+  .fw-why-n { color: var(--a); font-weight: 700; }
+  @media (max-width: 900px) {
+    .fw-insight, .fw-terr, .fw-why3 { grid-template-columns: 1fr; }
+    .fw-ins, .fw-terr-card { padding: var(--s-5); }
+  }
+</style>

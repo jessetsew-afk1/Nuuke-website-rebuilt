@@ -1,0 +1,223 @@
+---
+// Paid creative: three A/B tests. Pick a test, flip A/B, read the hypothesis it tests.
+import { adTests, type AdVariant } from '../../../data/cases/fishwife';
+const visual = (v: AdVariant['visual']) => v;
+---
+
+<div class="fw-ab" data-fw-ab>
+  <div class="fw-ab-tests" role="tablist" aria-label="A/B tests">
+    {
+      adTests.map((t, i) => (
+        <button type="button" role="tab" aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1} data-test={i} id={`fw-abt-${t.id}`} aria-controls="fw-ab-panel">
+          <span class="t-num">Test {i + 1}</span>
+          <span>{t.name}</span>
+        </button>
+      ))
+    }
+  </div>
+
+  <div class="fw-ab-body" id="fw-ab-panel" role="tabpanel" aria-labelledby="fw-abt-cue">
+    <div class="fw-ab-stage">
+      <div class="fw-ab-switch" role="radiogroup" aria-label="Variant">
+        <button type="button" role="radio" aria-checked="true" data-v="a">Variant A</button>
+        <button type="button" role="radio" aria-checked="false" data-v="b">Variant B</button>
+      </div>
+      <div class="fw-ad-wrap">
+        {
+          adTests.map((t, ti) =>
+            (['a', 'b'] as const).map((k) => {
+              const v = t[k];
+              return (
+                <article class:list={['fw-ad', { 'is-on': ti === 0 && k === 'a' }]} data-ad={`${ti}-${k}`} aria-label={`Test ${ti + 1}, variant ${k.toUpperCase()}: ${v.headline}`}>
+                  <header class="fw-ad-h">
+                    <span class="fw-ad-av" aria-hidden="true">
+                      <svg viewBox="0 0 124 64"><use href="#fw-s-fish" /></svg>
+                    </span>
+                    <span>
+                      <b>Fishwife</b>
+                      <br />
+                      <small>Sponsored · concept</small>
+                    </span>
+                    <span class="fw-ad-ab">{k.toUpperCase()}</span>
+                  </header>
+                  <div class={`fw-ad-v fw-av--${visual(v.visual)}`} aria-hidden="true">
+                    {v.visual === 'clock' && (
+                      <>
+                        <svg class="fw-v-clock" viewBox="0 0 220 220"><use href="#fw-s-clock" /></svg>
+                        <svg class="fw-v-tinc" viewBox="0 0 220 140"><use href="#fw-s-tinc" /></svg>
+                      </>
+                    )}
+                    {v.visual === 'bowl' && (
+                      <>
+                        <span class="fw-v-30">30s</span>
+                        <svg class="fw-v-bowl" viewBox="0 0 220 160"><use href="#fw-s-bowl" /></svg>
+                      </>
+                    )}
+                    {v.visual === 'protein' && (
+                      <>
+                        <span class="fw-v-big">PROTEIN,<br />NOT PREP.</span>
+                        <svg class="fw-v-tin" viewBox="0 0 220 150"><use href="#fw-s-tin" /></svg>
+                      </>
+                    )}
+                    {v.visual === 'party' && (
+                      <>
+                        {Array.from({ length: 14 }, (_, i) => <i class="fw-conf" style={`--i:${i}`} />)}
+                        <span class="fw-v-hat" />
+                        <svg class="fw-v-tinc" viewBox="0 0 220 140"><use href="#fw-s-tinc" /></svg>
+                        <span class="fw-v-desk">Tuesday, 12:30</span>
+                      </>
+                    )}
+                    {v.visual === 'ugc' && (
+                      <>
+                        <span class="fw-v-rec">● REC 0:07</span>
+                        <svg class="fw-v-tin" viewBox="0 0 220 150"><use href="#fw-s-tin" /></svg>
+                        <span class="fw-v-hand" />
+                        <span class="fw-v-scrawl">my 12:30 tin ✶</span>
+                      </>
+                    )}
+                    {v.visual === 'folk' && (
+                      <>
+                        <span class="fw-v-greet">Greetings from</span>
+                        <span class="fw-v-toc">TIN O’CLOCK</span>
+                        <svg class="fw-v-fish" viewBox="0 0 124 64"><use href="#fw-s-fish" /></svg>
+                        <svg class="fw-v-fish fw-v-fish--2" viewBox="0 0 124 64"><use href="#fw-s-fish" /></svg>
+                      </>
+                    )}
+                  </div>
+                  <div class="fw-ad-copy">
+                    <p class="fw-ad-hl">{v.headline}</p>
+                    <p class="fw-ad-sub">{v.sub}</p>
+                    <span class="fw-ad-cta">{v.cta} →</span>
+                  </div>
+                </article>
+              );
+            }),
+          )
+        }
+      </div>
+    </div>
+
+    <div class="fw-ab-info">
+      {
+        adTests.map((t, i) => (
+          <div class="fw-ab-card" data-info={i} hidden={i !== 0}>
+            <p class="t-label">Hypothesis</p>
+            <p class="fw-ab-hyp">{t.hypothesis}</p>
+            <dl>
+              <div><dt class="t-label">Primary metric</dt><dd>{t.metric}</dd></div>
+              <div><dt class="t-label">Audience</dt><dd>{t.audience}</dd></div>
+              <div><dt class="t-label">Variant A</dt><dd>“{t.a.headline}”</dd></div>
+              <div><dt class="t-label">Variant B</dt><dd>“{t.b.headline}”</dd></div>
+            </dl>
+          </div>
+        ))
+      }
+      <p class="t-small fw-ab-rule"><strong>Decision rule:</strong> same budget, audience and placement for A and B; run a full week to cover every weekday lunch; keep the winner, retire the loser, and log what we learned for the next creative round.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-fw-ab]').forEach((root) => {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-test]')];
+    const radios = [...root.querySelectorAll<HTMLButtonElement>('[data-v]')];
+    const ads = [...root.querySelectorAll<HTMLElement>('[data-ad]')];
+    const infos = [...root.querySelectorAll<HTMLElement>('[data-info]')];
+    const panel = root.querySelector<HTMLElement>('[role="tabpanel"]')!;
+    let t = 0;
+    let v = 'a';
+    const render = () => {
+      ads.forEach((a) => a.classList.toggle('is-on', a.dataset.ad === `${t}-${v}`));
+      infos.forEach((el, i) => (el.hidden = i !== t));
+      tabs.forEach((b, i) => {
+        b.setAttribute('aria-selected', String(i === t));
+        b.tabIndex = i === t ? 0 : -1;
+      });
+      radios.forEach((r) => r.setAttribute('aria-checked', String(r.dataset.v === v)));
+      panel.setAttribute('aria-labelledby', tabs[t].id);
+    };
+    tabs.forEach((b, i) => {
+      b.addEventListener('click', () => { t = i; v = 'a'; render(); });
+      b.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+        e.preventDefault();
+        t = (t + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
+        render();
+        tabs[t].focus();
+      });
+    });
+    radios.forEach((r) => r.addEventListener('click', () => { v = r.dataset.v!; render(); }));
+  });
+</script>
+
+<style>
+  .fw-ab { display: grid; gap: var(--s-6); }
+  .fw-ab-tests { display: flex; gap: var(--s-2); flex-wrap: wrap; }
+  .fw-ab-tests button { display: grid; gap: 2px; text-align: left; padding: 0.75rem 1.1rem; border-radius: var(--r-md); border: 1px solid var(--line); color: var(--ink-2); font-weight: 700; font-size: var(--fs-sm); transition: border-color var(--dur-1), background var(--dur-1), color var(--dur-1); }
+  .fw-ab-tests .t-num { font: 600 0.72rem/1 var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; color: var(--a); }
+  .fw-ab-tests button[aria-selected='true'] { border-color: var(--a); background: color-mix(in srgb, var(--a) 10%, transparent); color: var(--ink); }
+  .fw-ab-body { display: grid; grid-template-columns: minmax(0, 420px) 1fr; gap: var(--s-8); align-items: center; }
+  .fw-ab-stage { display: grid; gap: var(--s-4); justify-items: center; }
+  .fw-ab-switch { display: inline-flex; padding: 4px; border-radius: 99px; border: 1px solid var(--line-strong); }
+  .fw-ab-switch button { padding: 0.55rem 1.2rem; border-radius: 99px; font: 700 0.82rem/1 var(--font-ui); color: var(--ink-2); }
+  .fw-ab-switch button[aria-checked='true'] { background: var(--a); color: #fff; }
+  .fw-ad-wrap { display: grid; width: 100%; max-width: 420px; }
+  .fw-ad { grid-area: 1 / 1; border-radius: 22px; overflow: hidden; background: #fff; color: #1D1B3A; box-shadow: 0 40px 80px -30px rgb(0 0 0 / 0.8); opacity: 0; transform: perspective(900px) rotateY(-18deg) scale(0.94); pointer-events: none; transition: opacity 0.45s var(--ease-out), transform 0.6s var(--ease-out); container-type: inline-size; }
+  .fw-ad.is-on { opacity: 1; transform: none; pointer-events: auto; }
+  .fw-ad-h { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 12px 14px; font: 500 0.8rem/1.2 var(--font-ui); }
+  .fw-ad-h small { color: #6b6a80; }
+  .fw-ad-av { width: 34px; height: 34px; border-radius: 50%; background: #FFF6E5; border: 2px solid #E8452C; display: grid; place-items: center; }
+  .fw-ad-av svg { width: 26px; --fish: #F4A6B8; }
+  .fw-ad-ab { padding: 4px 9px; border-radius: 6px; background: #1D1B3A; color: #fff; font: 800 0.75rem/1 var(--font-ui); }
+  .fw-ad-v { position: relative; aspect-ratio: 1; overflow: hidden; display: grid; place-items: center; }
+  .fw-ad-copy { padding: 14px 16px 18px; display: grid; gap: 4px; }
+  .fw-ad-hl { font: 800 1.15rem/1.2 var(--font-display); letter-spacing: -0.02em; }
+  .fw-ad-sub { font-size: 0.9rem; color: #555470; }
+  .fw-ad-cta { margin-top: 8px; justify-self: start; padding: 0.55rem 0.9rem; border-radius: 10px; background: #2747A8; color: #fff; font: 700 0.82rem/1 var(--font-ui); }
+
+  /* Visuals (sized in container units of the ad) */
+  .fw-v-clock { position: absolute; width: 62cqw; top: 8cqw; left: 19cqw; --rim: #2747A8; filter: drop-shadow(2cqw 2cqw 0 #1D1B3A); }
+  .fw-av--clock { background: #E8452C; }
+  .fw-v-tinc { position: absolute; width: 46cqw; right: 6cqw; bottom: 4cqw; --lab: #F6C343; --labink: #1D1B3A; transform: rotate(-8deg); }
+  .fw-av--bowl { background: #F6C343; }
+  .fw-v-30 { position: absolute; top: 6cqw; left: 7cqw; font: 900 20cqw/1 var(--font-display); color: #E8452C; letter-spacing: -0.05em; text-shadow: 1.2cqw 1.2cqw 0 #1D1B3A; }
+  .fw-av--bowl .fw-v-bowl { position: absolute; width: 80cqw; bottom: 6cqw; left: 10cqw; }
+  .fw-av--protein { background: #9ED6C2; }
+  .fw-v-big { position: absolute; top: 8cqw; left: 7cqw; font: 900 12cqw/0.95 var(--font-display); letter-spacing: -0.04em; color: #1D1B3A; }
+  .fw-av--protein .fw-v-tin { position: absolute; width: 74cqw; right: -4cqw; bottom: 6cqw; transform: rotate(-8deg); }
+  .fw-av--party { background: #F4A6B8; }
+  .fw-conf { position: absolute; left: calc(6% + var(--i) * 6.5%); top: calc(10% + (var(--i) * 37 % 60) * 1%); width: 3cqw; height: 6cqw; background: #2747A8; transform: rotate(calc(var(--i) * 47deg)); border-radius: 1cqw; }
+  .fw-conf:nth-child(3n) { background: #F6C343; }
+  .fw-conf:nth-child(3n + 1) { background: #E8452C; }
+  .fw-av--party .fw-v-tinc { width: 64cqw; left: 18cqw; right: auto; bottom: 18cqw; --lab: #2747A8; --lid: #F6C343; }
+  .fw-v-hat { position: absolute; left: 44cqw; bottom: 52cqw; width: 0; height: 0; border-left: 7cqw solid transparent; border-right: 7cqw solid transparent; border-bottom: 18cqw solid #E8452C; transform: rotate(12deg); filter: drop-shadow(0 0 0 #1D1B3A); }
+  .fw-v-desk { position: absolute; left: 0; right: 0; bottom: 0; padding: 3cqw; background: #1D1B3A; color: #FFF6E5; text-align: center; font: italic 700 5.5cqw/1 Georgia, serif; }
+  .fw-av--ugc { background: radial-gradient(70% 60% at 40% 40%, #c7a27a, #4a3a2c 80%); }
+  .fw-av--ugc::after { content: ''; position: absolute; inset: 0; background: repeating-radial-gradient(circle at 30% 30%, rgb(255 255 255 / 0.05) 0 1px, transparent 1px 3px); mix-blend-mode: overlay; }
+  .fw-v-rec { position: absolute; top: 4cqw; left: 4cqw; font: 700 3.6cqw/1 var(--font-ui); color: #fff; }
+  .fw-v-rec::first-letter { color: #ff4b3a; }
+  .fw-av--ugc .fw-v-tin { position: absolute; width: 66cqw; left: 16cqw; top: 26cqw; transform: rotate(-14deg) skewX(-4deg); }
+  .fw-v-hand { position: absolute; width: 30cqw; height: 22cqw; left: 6cqw; top: 56cqw; border-radius: 12cqw 12cqw 8cqw 8cqw; background: #e3b08a; transform: rotate(-24deg); box-shadow: inset -2cqw -2cqw 0 rgb(0 0 0 / 0.12); }
+  .fw-v-scrawl { position: absolute; right: 6cqw; bottom: 8cqw; font: italic 700 8cqw/1 Georgia, serif; color: #fff; transform: rotate(-6deg); text-shadow: 0 0.6cqw 2cqw rgb(0 0 0 / 0.5); }
+  .fw-av--folk { background: #FFF6E5; box-shadow: inset 0 0 0 4cqw #FFF6E5, inset 0 0 0 5cqw #2747A8; }
+  .fw-v-greet { position: absolute; top: 14cqw; left: 0; right: 0; text-align: center; font: italic 700 8cqw/1 Georgia, serif; color: #E8452C; }
+  .fw-v-toc { position: absolute; top: 26cqw; left: 0; right: 0; text-align: center; font: 900 13cqw/1 var(--font-display); letter-spacing: -0.04em; color: #2747A8; text-shadow: 1cqw 1cqw 0 #F6C343; }
+  .fw-v-fish { position: absolute; width: 46cqw; left: 10cqw; bottom: 14cqw; --fish: #F4A6B8; transform: rotate(-8deg); }
+  .fw-v-fish--2 { width: 34cqw; left: auto; right: 10cqw; bottom: 28cqw; --fish: #9ED6C2; --fin: #F6C343; transform: scaleX(-1) rotate(-10deg); }
+
+  .fw-ab-info { display: grid; gap: var(--s-5); }
+  .fw-ab-card { display: grid; gap: var(--s-4); padding: var(--s-6); border-radius: var(--r-lg); border: 1px solid var(--line); background: var(--surface); animation: fw-ab-in 0.45s var(--ease-out); }
+  @keyframes fw-ab-in { from { opacity: 0; transform: translateY(10px); } }
+  .fw-ab-hyp { font: 800 var(--fs-xl)/1.25 var(--font-display); letter-spacing: -0.02em; color: var(--ink); }
+  .fw-ab-card dl { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
+  .fw-ab-card dd { margin-top: 4px; color: var(--ink-2); font-size: var(--fs-sm); }
+  .fw-ab-rule strong { color: var(--ink); }
+  @media (max-width: 900px) {
+    .fw-ab-body { grid-template-columns: 1fr; gap: var(--s-6); }
+    .fw-ab-tests { display: grid; grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) {
+    .fw-ab-card { padding: var(--s-5); }
+    .fw-ab-card dl { grid-template-columns: 1fr; }
+  }
+</style>

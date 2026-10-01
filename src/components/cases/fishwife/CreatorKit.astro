@@ -1,0 +1,131 @@
+---
+// Creator kit: a postcard-style brief card, a hook shuffler and do / don't rules.
+const hooks = [
+  'It’s 12:30 and I have exactly 30 seconds.',
+  'Rating my desk lunch before and after.',
+  'POV: your lunch has an alarm now.',
+  'The only lunch that doesn’t need a fridge, a microwave or a plate.',
+  'Where my lunch was canned, ranked.',
+  'Duet this with whatever tin is in your drawer.',
+];
+const dos = [
+  'Film at a real desk, in real light, at lunchtime.',
+  'Open the tin on camera; the ring-pull sound is the hook.',
+  'Keep it under 30 seconds and say the flavour out loud.',
+  'Show the tin as the plate. No extra dishes needed.',
+  'Label every paid post clearly (#ad / paid partnership).',
+];
+const donts = [
+  'Make health, nutrition or sustainability claims beyond the approved fact sheet.',
+  'Stage a kitchen you don’t have. The desk is the point.',
+  'Hide the tin behind props or other brands.',
+  'Script fake reviews, “results” or before/after body claims.',
+  'Post the Tin O’Clock content outside the lunch window.',
+];
+---
+
+<div class="fw-kit" data-fw-kit>
+  <article class="fw-card" aria-labelledby="fw-card-title">
+    <div class="fw-card-stamp" aria-hidden="true">
+      <svg viewBox="0 0 124 64"><use href="#fw-s-fish" /></svg>
+      <span>12:30</span>
+    </div>
+    <p class="fw-card-kick">Creator brief · Wave 1</p>
+    <h3 id="fw-card-title" class="fw-card-title">Show us your Tin O’Clock.</h3>
+    <p class="fw-card-lede">One weekday lunch, one tin, under 30 seconds. Make it look like the best part of your workday, because it is.</p>
+    <dl class="fw-card-grid">
+      <div><dt>Deliverables</dt><dd>1 × vertical video (20–30 s)<br />3 × story frames<br />Raw clips for paid usage (with consent)</dd></div>
+      <div><dt>Mandatories</dt><dd>Ring-pull in the first 2 seconds<br />A clock reading 12:30 in shot<br />Hand-written “Tin O’Clock” sticker</dd></div>
+      <div><dt>Tag &amp; sound</dt><dd>#TinOClock · the 12:30 alarm sound<br />Duet-friendly ending (leave space)</dd></div>
+      <div><dt>Approvals</dt><dd>Script outline → rough cut → final.<br />Claims checked against the fact sheet.</dd></div>
+    </dl>
+    <div class="fw-hook">
+      <p class="fw-hook-k">Need a hook?</p>
+      <p class="fw-hook-line" aria-live="polite" data-hook>“{hooks[0]}”</p>
+      <button type="button" class="fw-hook-btn" data-shuffle>Shuffle a hook ↻</button>
+    </div>
+  </article>
+
+  <div class="fw-rules">
+    <div class="fw-rule fw-rule--do">
+      <p class="t-label">Do</p>
+      <ul role="list">{dos.map((d) => <li>{d}</li>)}</ul>
+    </div>
+    <div class="fw-rule fw-rule--dont">
+      <p class="t-label">Don’t</p>
+      <ul role="list">{donts.map((d) => <li>{d}</li>)}</ul>
+    </div>
+    <p class="t-small">The kit protects the illustrated world: creators bring the real desk and real hands; the brand brings the colour, lettering and the tin.</p>
+  </div>
+  <script type="application/json" data-hooks set:html={JSON.stringify(hooks)} />
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-fw-kit]').forEach((root) => {
+    const hooks = JSON.parse(root.querySelector('[data-hooks]')!.textContent || '[]') as string[];
+    const line = root.querySelector<HTMLElement>('[data-hook]')!;
+    let i = 0;
+    root.querySelector('[data-shuffle]')!.addEventListener('click', () => {
+      i = (i + 1) % hooks.length;
+      line.classList.remove('is-new');
+      void line.offsetWidth;
+      line.textContent = `“${hooks[i]}”`;
+      line.classList.add('is-new');
+    });
+  });
+</script>
+
+<style>
+  .fw-kit { display: grid; grid-template-columns: 1.15fr 1fr; gap: var(--s-7); align-items: start; }
+  .fw-card {
+    position: relative;
+    display: grid;
+    gap: var(--s-4);
+    padding: clamp(1.25rem, 1rem + 2vw, 2.75rem);
+    border-radius: 18px;
+    background: #FFF6E5;
+    color: #1D1B3A;
+    box-shadow: 0 0 0 10px #FFF6E5, 0 0 0 12px #E8452C, 0 40px 80px -30px rgb(0 0 0 / 0.8);
+    margin: 12px;
+    transform: rotate(-1deg);
+  }
+  .fw-card-stamp { position: absolute; top: 18px; right: 18px; width: 92px; height: 108px; display: grid; place-items: center; align-content: center; gap: 4px; background: #F4A6B8; border: 3px dashed #1D1B3A; border-radius: 6px; transform: rotate(6deg); font: 800 1rem/1 var(--font-display); }
+  .fw-card-stamp svg { width: 70px; --fish: #F6C343; --fin: #2747A8; }
+  .fw-card-kick { font: 700 0.75rem/1 var(--font-ui); letter-spacing: 0.14em; text-transform: uppercase; color: #E8452C; }
+  .fw-card-title { font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-weight: 700; font-size: clamp(1.8rem, 1.2rem + 2vw, 2.8rem); letter-spacing: -0.01em; line-height: 1.05; max-width: 12ch; color: #2747A8; }
+  .fw-card-lede { max-width: 44ch; color: #3a3860; padding-right: 90px; }
+  .fw-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4) var(--s-5); padding-top: var(--s-4); border-top: 2px dashed rgb(29 27 58 / 0.25); }
+  .fw-card-grid dt { font: 800 0.72rem/1 var(--font-ui); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; color: #E8452C; }
+  .fw-card-grid dd { font-size: 0.92rem; line-height: 1.5; color: #1D1B3A; }
+  .fw-hook { display: grid; gap: var(--s-2); padding: var(--s-4) var(--s-5); border-radius: 14px; background: #1D1B3A; color: #FFF6E5; }
+  .fw-hook-k { font: 700 0.72rem/1 var(--font-ui); letter-spacing: 0.12em; text-transform: uppercase; color: #F6C343; }
+  .fw-hook-line { font: 700 var(--fs-lg)/1.3 var(--font-display); letter-spacing: -0.01em; min-height: 2.6em; }
+  .fw-hook-line.is-new { animation: fw-hook-in 0.5s var(--ease-out); }
+  @keyframes fw-hook-in { from { opacity: 0; transform: translateY(10px); filter: blur(4px); } }
+  .fw-hook-btn { justify-self: start; padding: 0.6rem 1rem; min-height: 44px; border-radius: 99px; background: #F6C343; color: #1D1B3A; font: 700 0.85rem/1 var(--font-ui); }
+  .fw-hook-btn:hover { background: #ffd765; }
+
+  .fw-rules { display: grid; gap: var(--s-5); }
+  .fw-rule { padding: var(--s-6); border-radius: var(--r-lg); border: 1px solid var(--line); background: var(--surface); }
+  .fw-rule ul { list-style: none; padding: 0; display: grid; gap: var(--s-3); margin-top: var(--s-4); }
+  .fw-rule li { position: relative; padding-left: 2.1rem; color: var(--ink-2); }
+  .fw-rule li::before { position: absolute; left: 0; top: 0.05em; width: 1.4rem; height: 1.4rem; border-radius: 50%; display: grid; place-items: center; font: 800 0.8rem/1.4rem var(--font-ui); text-align: center; color: #1D1B3A; }
+  .fw-rule--do { border-color: rgb(158 214 194 / 0.4); }
+  .fw-rule--do .t-label { color: #9ED6C2; }
+  .fw-rule--do li::before { content: '✓'; background: #9ED6C2; }
+  .fw-rule--dont { border-color: rgb(232 69 44 / 0.4); }
+  .fw-rule--dont .t-label { color: #ff7a63; }
+  .fw-rule--dont li::before { content: '✕'; background: #E8452C; color: #FFF6E5; }
+  @media (max-width: 960px) {
+    .fw-kit { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) {
+    .fw-card { transform: none; margin: 10px 6px; }
+    .fw-card-grid { grid-template-columns: 1fr; }
+    .fw-card-stamp { width: 64px; height: 76px; top: 12px; right: 12px; font-size: 0.8rem; }
+    .fw-card-stamp svg { width: 48px; }
+    .fw-card-lede { padding-right: 0; }
+    .fw-card-title { padding-right: 70px; }
+    .fw-rule { padding: var(--s-5); }
+  }
+</style>

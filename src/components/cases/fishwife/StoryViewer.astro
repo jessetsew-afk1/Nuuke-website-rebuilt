@@ -1,0 +1,493 @@
+---
+// Vertical-video concepts in a phone, viewed like stories: progress bars, tap right/left,
+// hold to pause. A fidelity switch shows the same posts as storyboard → animatic → final.
+import { posts } from '../../../data/cases/fishwife';
+const payload = JSON.stringify(posts);
+---
+
+<div class="fw-story" data-fw-story>
+  <div class="fw-story-side">
+    <div class="fw-fid" role="radiogroup" aria-label="Production stage">
+      <button type="button" role="radio" aria-checked="false" data-fid="board">Storyboard</button>
+      <button type="button" role="radio" aria-checked="false" data-fid="animatic">Animatic</button>
+      <button type="button" role="radio" aria-checked="true" data-fid="final">Final</button>
+    </div>
+    <p class="t-small fw-fid-cap" data-fid-cap>Final: colour, motion and copy as they’d ship.</p>
+
+    <ol class="fw-plist" role="list">
+      {
+        posts.map((p, i) => (
+          <li>
+            <button type="button" data-goto={i} aria-current={i === 0 ? 'true' : undefined}>
+              <span class="t-num">0{i + 1}</span>
+              <span>
+                <span class="fw-pl-t">{p.title}</span>
+                <span class="fw-pl-f">{p.format}</span>
+              </span>
+            </button>
+          </li>
+        ))
+      }
+    </ol>
+
+    <dl class="fw-pmeta" aria-live="polite" data-meta>
+      <div><dt class="t-label">Hook (first 2 seconds)</dt><dd data-k="hook">{posts[0].hook}</dd></div>
+      <div><dt class="t-label">Call to action</dt><dd data-k="cta">{posts[0].cta}</dd></div>
+      <div><dt class="t-label">Made for</dt><dd data-k="persona">{posts[0].persona}</dd></div>
+      <div class="fw-why"><dt class="t-label">Why it works</dt><dd data-k="why">{posts[0].why}</dd></div>
+    </dl>
+  </div>
+
+  <div class="fw-story-stage">
+    <div class="fw-phone">
+      <div class="fw-ph" data-screen data-fid-state="final">
+        <div class="fw-bars" aria-hidden="true">{posts.map(() => <span><i></i></span>)}</div>
+        <div class="fw-ph-head">
+          <span class="fw-ph-av" aria-hidden="true"><svg viewBox="0 0 124 64"><use href="#fw-s-fish" /></svg></span>
+          <span class="fw-ph-name">Fishwife <em>· concept post</em></span>
+          <button type="button" class="fw-ph-pause" data-pause aria-label="Pause stories" aria-pressed="false"><span aria-hidden="true"></span></button>
+        </div>
+        <p class="fw-ph-stamp" aria-hidden="true" data-stamp>FINAL</p>
+
+        <div class="fw-posts">
+          <!-- 1 · Recipe in a tin -->
+          <article class="fw-post fw-p-recipe is-active" data-post="0" aria-label="Post 1: 30-second recipe in a tin">
+            <p class="fw-kick">30-second lunch</p>
+            <p class="fw-timer" aria-hidden="true"><span class="fw-timer-n"></span></p>
+            <div class="fw-r-art">
+              <svg class="fw-r-bowl" viewBox="0 0 220 160" aria-hidden="true"><use href="#fw-s-bowl" /></svg>
+              <svg class="fw-r-tin" viewBox="0 0 220 150" aria-hidden="true"><use href="#fw-s-tin" /></svg>
+              <i class="fw-flake" style="--x:44%;--d:1.5s"></i><i class="fw-flake" style="--x:52%;--d:1.7s"></i><i class="fw-flake" style="--x:48%;--d:1.9s"></i>
+              <i class="fw-drip" style="--x:40%;--d:3s"></i><i class="fw-drip" style="--x:56%;--d:3.2s"></i><i class="fw-drip" style="--x:48%;--d:3.4s"></i>
+              <span class="fw-r-stamp">Lunch ✓</span>
+            </div>
+            <ol class="fw-r-steps" role="list">
+              <li style="--d:.4s">Rice</li><li style="--d:1.4s">Tin</li><li style="--d:2.9s">Chili crisp</li><li style="--d:4.4s">Eat</li>
+            </ol>
+            <p class="fw-cap">Leftover rice + one tin + chili crisp. Done before your coffee cools.</p>
+            <span class="fw-cta">Save for tomorrow’s lunch</span>
+            <span class="fw-note" style="--nx:8%;--ny:16%">1 · Timer on screen from frame one</span>
+            <span class="fw-note" style="--nx:44%;--ny:30%">2 · Tin tips in, flakes drop</span>
+            <span class="fw-note" style="--nx:10%;--ny:62%">3 · Steps tick off as we go</span>
+          </article>
+
+          <!-- 2 · Desk-lunch glow-up -->
+          <article class="fw-post fw-p-glow" data-post="1" aria-label="Post 2: desk-lunch glow-up">
+            <div class="fw-g-before">
+              <p class="fw-g-tag">Before · 12:29</p>
+              <svg class="fw-g-sand" viewBox="0 0 160 120" aria-hidden="true"><use href="#fw-s-sandwich" /></svg>
+              <p class="fw-g-sad">sad desk sandwich</p>
+            </div>
+            <div class="fw-g-after">
+              <p class="fw-g-tag">After · 12:30</p>
+              <div class="fw-g-plate">
+                <svg class="fw-g-tin" viewBox="0 0 220 150" aria-hidden="true"><use href="#fw-s-tin" /></svg>
+                <i class="fw-g-crk" style="--x:8%;--y:62%"></i><i class="fw-g-crk" style="--x:22%;--y:74%"></i><i class="fw-g-crk" style="--x:6%;--y:82%"></i>
+                <svg class="fw-g-lem" viewBox="0 0 60 60" aria-hidden="true"><use href="#fw-s-lemon" /></svg>
+                <i class="fw-g-pick" style="--x:70%;--y:76%"></i><i class="fw-g-pick" style="--x:80%;--y:68%"></i>
+              </div>
+              <span class="fw-g-stick">Tin O’Clock ✶</span>
+            </div>
+            <i class="fw-g-wipe" aria-hidden="true"></i>
+            <div class="fw-g-kb" aria-hidden="true"></div>
+            <p class="fw-cap fw-cap--light">Desk lunch, glowed up. No kitchen required.</p>
+            <span class="fw-cta">Show us your desk lunch</span>
+            <span class="fw-note" style="--nx:8%;--ny:20%">1 · Hold on the sad sandwich (1s)</span>
+            <span class="fw-note" style="--nx:40%;--ny:44%">2 · Hard wipe on the ring-pull sound</span>
+            <span class="fw-note" style="--nx:30%;--ny:66%">3 · Hand-drawn sticker lands</span>
+          </article>
+
+          <!-- 3 · The 12:30 alarm -->
+          <article class="fw-post fw-p-alarm" data-post="2" aria-label="Post 3: the 12:30 Tin O’Clock alarm">
+            <p class="fw-a-date">Tuesday</p>
+            <p class="fw-a-time t-num" aria-hidden="true"><span class="fw-a-29">12:29</span><span class="fw-a-30">12:30</span></p>
+            <div class="fw-a-notif">
+              <span class="fw-a-ico"><svg viewBox="0 0 220 140" aria-hidden="true"><use href="#fw-s-tinc" /></svg></span>
+              <span><b>TIN O’CLOCK</b><br />It’s 12:30. Your tin is waiting.</span>
+              <span class="fw-a-now">now</span>
+            </div>
+            <div class="fw-a-ring">
+              <i class="fw-a-wave"></i><i class="fw-a-wave" style="animation-delay:.5s"></i>
+              <svg viewBox="0 0 220 140" aria-hidden="true"><use href="#fw-s-tinc" /></svg>
+            </div>
+            <div class="fw-a-btns"><span>Snooze till tomorrow</span><span class="is-go">Open tin</span></div>
+            <p class="fw-cap fw-cap--light">Set it once. Lunch rings every weekday at 12:30.</p>
+            <span class="fw-cta">Set your Tin O’Clock alarm</span>
+            <span class="fw-note" style="--nx:30%;--ny:12%">1 · 12:29 flips to 12:30</span>
+            <span class="fw-note" style="--nx:6%;--ny:30%">2 · Banner drops with the ring sound</span>
+            <span class="fw-note" style="--nx:36%;--ny:62%">3 · Opt-in SMS sticker (story CTA)</span>
+          </article>
+
+          <!-- 4 · Sourcing story -->
+          <article class="fw-post fw-p-src" data-post="3" aria-label="Post 4: where the fish comes from">
+            <p class="fw-kick fw-kick--ink">Where your lunch comes from</p>
+            <div class="fw-s-map">
+              <svg viewBox="0 0 300 300" preserveAspectRatio="none" aria-hidden="true" class="fw-s-route">
+                <path d="M75 66 C 130 20, 190 50, 204 102 S 260 200, 216 234 S 110 250, 84 198" fill="none" stroke="#2747A8" stroke-width="3" stroke-dasharray="6 7" />
+              </svg>
+              <span class="fw-pin" style="--x:28%;--y:22%;--d:.5s;--c:#E8452C">Washington State</span>
+              <span class="fw-pin" style="--x:68%;--y:34%;--d:1.3s;--c:#F6C343">Spain</span>
+              <span class="fw-pin" style="--x:70%;--y:78%;--d:2.1s;--c:#9ED6C2">Denmark</span>
+              <span class="fw-pin" style="--x:28%;--y:62%;--d:2.9s;--c:#F4A6B8">Scotland</span>
+            </div>
+            <p class="fw-s-big"><b>6</b> canneries, 4 places.</p>
+            <ul class="fw-s-facts" role="list">
+              <li>Fish from MSC/ASC-certified fisheries and farms, or Fishery Improvement Projects.</li>
+              <li>Salmon from Kvarøy Arctic, which Fishwife describes as 100% traceable.</li>
+            </ul>
+            <span class="fw-cta">Read the sourcing story</span>
+            <span class="fw-note" style="--nx:8%;--ny:14%">1 · Postcard frame, not a spreadsheet</span>
+            <span class="fw-note" style="--nx:36%;--ny:44%">2 · Route draws, stamps land one by one</span>
+            <span class="fw-note" style="--nx:8%;--ny:70%">3 · Facts only from the brand’s own claims</span>
+          </article>
+
+          <!-- 5 · Creator duet -->
+          <article class="fw-post fw-p-duet" data-post="4" aria-label="Post 5: creator duet">
+            <p class="fw-d-tag">Duet</p>
+            <div class="fw-d-half fw-d-a">
+              <span class="fw-d-face" aria-hidden="true"><i></i></span>
+              <svg class="fw-d-tin" viewBox="0 0 220 140" aria-hidden="true"><use href="#fw-s-tinc" /></svg>
+              <span class="fw-d-bub">POV: it’s 12:30</span>
+              <span class="fw-d-h">@creator</span>
+            </div>
+            <div class="fw-d-half fw-d-b">
+              <span class="fw-d-face fw-d-face--b" aria-hidden="true"><i></i></span>
+              <svg class="fw-d-tin" viewBox="0 0 220 150" aria-hidden="true"><use href="#fw-s-tin" /></svg>
+              <span class="fw-d-bub">sardines on toast, go</span>
+              <span class="fw-d-h">@you</span>
+            </div>
+            <div class="fw-d-hearts" aria-hidden="true">{Array.from({ length: 7 }, (_, i) => <i style={`--i:${i}`}>♥</i>)}</div>
+            <p class="fw-cap fw-cap--light">Duet your Tin O’Clock. Same tin, two desks.</p>
+            <span class="fw-cta">Duet this with your tin</span>
+            <span class="fw-note" style="--nx:4%;--ny:16%">1 · Left: creator sets the prompt</span>
+            <span class="fw-note" style="--nx:52%;--ny:52%">2 · Right: blank for the duet</span>
+            <span class="fw-note" style="--nx:16%;--ny:70%">3 · Reactions float up</span>
+          </article>
+        </div>
+
+        <button type="button" class="fw-tap fw-tap--prev" data-prev aria-label="Previous post"></button>
+        <button type="button" class="fw-tap fw-tap--next" data-next aria-label="Next post"></button>
+      </div>
+    </div>
+    <p class="t-small fw-story-hint">Tap right for next, left to go back · hold to pause · ← → keys</p>
+  </div>
+  <script type="application/json" data-posts set:html={payload} />
+</div>
+
+<script>
+  import { reducedMotion } from '../../../scripts/motion';
+  type Post = { id: string; title: string; format: string; hook: string; cta: string; persona: string; why: string };
+  const FID_CAP: Record<string, string> = {
+    board: 'Storyboard: rough frames and shot notes we’d agree before filming.',
+    animatic: 'Animatic: timing and motion in greyscale, to test pacing.',
+    final: 'Final: colour, motion and copy as they’d ship.',
+  };
+  document.querySelectorAll<HTMLElement>('[data-fw-story]').forEach((root) => {
+    const data = JSON.parse(root.querySelector('[data-posts]')!.textContent || '[]') as Post[];
+    const screen = root.querySelector<HTMLElement>('[data-screen]')!;
+    const posts = [...root.querySelectorAll<HTMLElement>('[data-post]')];
+    const bars = [...root.querySelectorAll<HTMLElement>('.fw-bars i')];
+    const list = [...root.querySelectorAll<HTMLButtonElement>('[data-goto]')];
+    const pauseBtn = root.querySelector<HTMLButtonElement>('[data-pause]')!;
+    const stamp = root.querySelector<HTMLElement>('[data-stamp]')!;
+    const fids = [...root.querySelectorAll<HTMLButtonElement>('[data-fid]')];
+    const fidCap = root.querySelector<HTMLElement>('[data-fid-cap]')!;
+    const N = posts.length;
+    const DUR = 7000;
+    let cur = 0;
+    let elapsed = 0;
+    let paused = reducedMotion;
+    let held = false;
+    let inView = false;
+    let fid = 'final';
+    let last = performance.now();
+
+    const meta = (i: number) => {
+      root.querySelectorAll<HTMLElement>('[data-k]').forEach((el) => {
+        el.textContent = data[i][el.dataset.k as keyof Post];
+      });
+    };
+    const show = (n: number) => {
+      cur = (n + N) % N;
+      posts.forEach((p, j) => {
+        p.classList.remove('is-active');
+        if (j === cur) {
+          void p.offsetWidth; // restart CSS animations
+          p.classList.add('is-active');
+        }
+      });
+      bars.forEach((b, j) => (b.style.transform = `scaleX(${j < cur ? 1 : 0})`));
+      list.forEach((b, j) => (j === cur ? b.setAttribute('aria-current', 'true') : b.removeAttribute('aria-current')));
+      elapsed = 0;
+      meta(cur);
+      if (fid === 'board') stamp.textContent = `STORYBOARD · ${cur + 1}/${N}`;
+    };
+    const setPaused = (v: boolean) => {
+      paused = v;
+      screen.classList.toggle('is-paused', v || fid === 'board');
+      pauseBtn.setAttribute('aria-pressed', String(v));
+      pauseBtn.setAttribute('aria-label', v ? 'Play stories' : 'Pause stories');
+    };
+    const setFid = (f: string) => {
+      fid = f;
+      screen.dataset.fidState = f;
+      fids.forEach((b) => b.setAttribute('aria-checked', String(b.dataset.fid === f)));
+      fidCap.textContent = FID_CAP[f];
+      stamp.textContent = f === 'board' ? `STORYBOARD · ${cur + 1}/${N}` : f === 'animatic' ? 'ANIMATIC v2' : 'FINAL';
+      setPaused(paused);
+    };
+
+    const loop = (now: number) => {
+      const dt = now - last;
+      last = now;
+      if (!paused && !held && inView && fid !== 'board') {
+        elapsed += dt;
+        bars[cur].style.transform = `scaleX(${Math.min(1, elapsed / DUR)})`;
+        if (elapsed >= DUR) show(cur + 1);
+      }
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+    new IntersectionObserver((e) => (inView = e[0]?.isIntersecting ?? false), { threshold: 0.35 }).observe(screen);
+
+    // Tap zones: a quick tap navigates, a press-and-hold pauses.
+    const tap = (btn: HTMLButtonElement, dir: number) => {
+      let timer = 0;
+      let wasHold = false;
+      btn.addEventListener('pointerdown', () => {
+        wasHold = false;
+        timer = window.setTimeout(() => {
+          wasHold = true;
+          held = true;
+          screen.classList.add('is-paused');
+        }, 260);
+      });
+      const release = () => {
+        clearTimeout(timer);
+        if (held) {
+          held = false;
+          screen.classList.toggle('is-paused', paused || fid === 'board');
+        }
+      };
+      btn.addEventListener('pointerup', release);
+      btn.addEventListener('pointerleave', release);
+      btn.addEventListener('pointercancel', release);
+      btn.addEventListener('click', () => {
+        if (wasHold) {
+          wasHold = false;
+          return;
+        }
+        show(cur + dir);
+      });
+    };
+    tap(root.querySelector<HTMLButtonElement>('[data-prev]')!, -1);
+    tap(root.querySelector<HTMLButtonElement>('[data-next]')!, 1);
+    pauseBtn.addEventListener('click', () => setPaused(!paused));
+    list.forEach((b, i) => b.addEventListener('click', () => show(i)));
+    fids.forEach((b) => b.addEventListener('click', () => setFid(b.dataset.fid!)));
+    root.addEventListener('keydown', (e) => {
+      if ((e.target as HTMLElement).closest('[role="radiogroup"]')) return;
+      if (e.key === 'ArrowRight') { e.preventDefault(); show(cur + 1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); show(cur - 1); }
+    });
+    setPaused(paused);
+    show(0);
+  });
+</script>
+
+<style>
+  @property --fw-sec { syntax: '<integer>'; inherits: false; initial-value: 30; }
+
+  .fw-story { display: grid; grid-template-columns: 1fr auto; gap: var(--s-8); align-items: center; padding: var(--s-7); border-radius: calc(var(--r-lg) + 8px); border: 1px solid var(--line); background: radial-gradient(80% 70% at 85% 40%, rgb(232 69 44 / 0.16), transparent 70%), var(--bg-2); }
+  .fw-story-side { display: grid; gap: var(--s-5); align-content: start; }
+  .fw-fid { position: relative; display: inline-flex; padding: 4px; border-radius: var(--r-pill); border: 1px solid var(--line-strong); justify-self: start; }
+  .fw-fid button { padding: 0.5rem 1rem; border-radius: var(--r-pill); font: 600 0.8rem/1 var(--font-ui); color: var(--ink-2); transition: background var(--dur-1), color var(--dur-1); }
+  .fw-fid button[aria-checked='true'] { background: var(--ink); color: var(--bg); }
+  .fw-fid-cap { margin-top: calc(var(--s-3) * -1); }
+  .fw-plist { list-style: none; padding: 0; display: grid; gap: 6px; }
+  .fw-plist button { display: flex; gap: var(--s-3); width: 100%; text-align: left; padding: 0.7rem 0.9rem; border-radius: var(--r-md); border: 1px solid var(--line); color: var(--ink-2); transition: border-color var(--dur-1), background var(--dur-1); }
+  .fw-plist button:hover { border-color: var(--line-strong); }
+  .fw-plist button[aria-current='true'] { border-color: var(--a); background: color-mix(in srgb, var(--a) 10%, transparent); color: var(--ink); }
+  .fw-plist .t-num { color: var(--a); font-weight: 700; font-size: var(--fs-sm); padding-top: 2px; }
+  .fw-pl-t { display: block; font-weight: 700; color: var(--ink); font-size: var(--fs-sm); }
+  .fw-pl-f { display: block; font: 500 0.75rem/1.4 var(--font-ui); color: var(--muted); }
+  .fw-pmeta { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); padding-top: var(--s-4); border-top: 1px solid var(--line); }
+  .fw-pmeta dd { margin-top: 4px; color: var(--ink); font-size: var(--fs-sm); }
+  .fw-why { grid-column: 1 / -1; }
+  .fw-why dd { font-size: var(--fs-base); color: var(--ink-2); }
+
+  .fw-story-stage { display: grid; justify-items: center; gap: var(--s-3); }
+  .fw-story-hint { text-align: center; }
+  .fw-phone { width: min(340px, 80vw); padding: 10px; border-radius: 52px; background: linear-gradient(145deg, #3a3a42, #121216 40%, #2a2a30); box-shadow: 0 0 0 2px #050506, 0 50px 120px -30px rgb(0 0 0 / 0.9), 0 0 90px -20px rgb(232 69 44 / 0.5); }
+  .fw-ph { position: relative; aspect-ratio: 9 / 19; border-radius: 42px; overflow: hidden; background: #111; container-type: inline-size; isolation: isolate; user-select: none; -webkit-user-select: none; }
+  .fw-ph::before { content: ''; position: absolute; z-index: 5; inset: 0 0 auto; height: 30cqw; background: linear-gradient(rgb(0 0 0 / 0.38), transparent); pointer-events: none; }
+  .fw-bars { position: absolute; z-index: 6; top: 4.5cqw; left: 5cqw; right: 5cqw; display: flex; gap: 1.2cqw; }
+  .fw-bars span { flex: 1; height: 0.9cqw; min-height: 3px; border-radius: 2px; background: rgb(255 255 255 / 0.35); overflow: hidden; }
+  .fw-bars i { display: block; height: 100%; background: #fff; transform: scaleX(0); transform-origin: left; }
+  .fw-ph-head { position: absolute; z-index: 7; top: 8cqw; left: 5cqw; right: 3cqw; display: flex; align-items: center; gap: 2.5cqw; color: #fff; font: 600 3.6cqw/1 var(--font-ui); text-shadow: 0 1px 3px rgb(0 0 0 / 0.35); }
+  .fw-ph-head em { font-style: normal; font-weight: 400; opacity: 0.75; }
+  .fw-ph-av { width: 9cqw; height: 9cqw; border-radius: 50%; background: #FFF6E5; display: grid; place-items: center; border: 2px solid #E8452C; }
+  .fw-ph-av svg { width: 80%; --fish: #F4A6B8; }
+  .fw-ph-name { flex: 1; }
+  .fw-ph-pause { width: 11cqw; height: 11cqw; min-width: 36px; min-height: 36px; display: grid; place-items: center; border-radius: 50%; }
+  .fw-ph-pause span { width: 3.6cqw; height: 4.4cqw; border-left: 1.3cqw solid #fff; border-right: 1.3cqw solid #fff; }
+  .fw-ph-pause[aria-pressed='true'] span { border: 0; width: 0; height: 0; border-left: 4cqw solid #fff; border-top: 2.4cqw solid transparent; border-bottom: 2.4cqw solid transparent; }
+  .fw-ph-stamp { position: absolute; z-index: 7; top: 19cqw; right: 5cqw; padding: 0.8cqw 2cqw; border-radius: 1cqw; font: 700 2.6cqw/1.2 var(--font-ui); letter-spacing: 0.1em; color: #1D1B3A; background: rgb(255 255 255 / 0.85); opacity: 0; transition: opacity 0.3s; }
+  .fw-ph[data-fid-state='board'] .fw-ph-stamp, .fw-ph[data-fid-state='animatic'] .fw-ph-stamp { opacity: 1; }
+  .fw-tap { position: absolute; z-index: 5; top: 20cqw; bottom: 24cqw; }
+  .fw-tap--prev { left: 0; width: 32%; }
+  .fw-tap--next { right: 0; width: 68%; }
+  .fw-tap:focus-visible { outline: 2px solid #fff; outline-offset: -6px; border-radius: 30px; }
+
+  /* Fidelity states */
+  .fw-posts { position: absolute; inset: 0; transition: filter 0.4s; }
+  .fw-ph[data-fid-state='animatic'] .fw-posts { filter: grayscale(1) contrast(1.15); }
+  .fw-ph[data-fid-state='board'] .fw-posts { filter: grayscale(1) contrast(1.6) brightness(1.15) url(#fw-sketch); }
+  .fw-ph.is-paused .fw-post, .fw-ph.is-paused .fw-post * { animation-play-state: paused !important; }
+  .fw-ph[data-fid-state='board'] .fw-post, .fw-ph[data-fid-state='board'] .fw-post * { animation-delay: -6.5s !important; }
+  .fw-note { position: absolute; z-index: 4; left: var(--nx); top: var(--ny); max-width: 58%; padding: 1cqw 2cqw; border-radius: 1.2cqw; background: #fff; color: #111; font: 600 3cqw/1.3 var(--font-ui); box-shadow: 0.8cqw 0.8cqw 0 #111; transform: rotate(-2deg); opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+  .fw-ph[data-fid-state='board'] .fw-note { opacity: 1; }
+
+  /* Shared post bits */
+  .fw-post { position: absolute; inset: 0; padding: 24cqw 6cqw 8cqw; display: flex; flex-direction: column; visibility: hidden; overflow: hidden; color: #1D1B3A; font-family: var(--font-ui); }
+  .fw-post.is-active { visibility: visible; }
+  .fw-kick { font: 800 4cqw/1.1 var(--font-display); text-transform: uppercase; letter-spacing: 0.04em; }
+  .fw-cap { margin-top: auto; font: 700 4.6cqw/1.25 var(--font-display); letter-spacing: -0.01em; text-wrap: balance; }
+  .fw-cap--light { color: #fff; text-shadow: 0 2px 10px rgb(0 0 0 / 0.4); position: relative; z-index: 2; }
+  .fw-cta { align-self: flex-start; margin-top: 3cqw; padding: 2.2cqw 4cqw; border-radius: 99px; background: #1D1B3A; color: #FFF6E5; font: 700 3.4cqw/1 var(--font-ui); position: relative; z-index: 2; }
+  .fw-post.is-active .fw-cap, .fw-post.is-active .fw-cta { animation: fw-up 0.7s var(--ease-out) both; }
+  .fw-post.is-active .fw-cta { animation-delay: 0.15s; }
+  @keyframes fw-up { from { opacity: 0; transform: translateY(4cqw); } }
+  @keyframes fw-pop { 0% { opacity: 0; transform: scale(0.3) rotate(-12deg); } 70% { transform: scale(1.12) rotate(4deg); } 100% { opacity: 1; transform: scale(1) rotate(-4deg); } }
+
+  /* 1 · Recipe */
+  .fw-p-recipe { background: #F6C343; }
+  .fw-timer { margin-top: 1cqw; font: 900 18cqw/1 var(--font-display); letter-spacing: -0.05em; color: #E8452C; text-shadow: 1cqw 1cqw 0 #1D1B3A; }
+  .fw-timer-n { counter-reset: s var(--fw-sec); }
+  .fw-timer-n::after { content: '0:' counter(s, decimal-leading-zero); }
+  .fw-p-recipe.is-active .fw-timer-n { animation: fw-count 6s steps(30, end) 0.3s forwards; }
+  @keyframes fw-count { from { --fw-sec: 30; } to { --fw-sec: 0; } }
+  .fw-r-art { position: relative; height: 52cqw; margin-top: 2cqw; }
+  .fw-r-bowl { position: absolute; left: 8%; bottom: 0; width: 80%; }
+  .fw-r-tin { position: absolute; right: -4%; top: -2%; width: 46%; transform-origin: 20% 80%; --meat: #ef8a5c; }
+  .fw-p-recipe.is-active .fw-r-tin { animation: fw-pour 3s var(--ease-out) 0.9s both; }
+  @keyframes fw-pour { 0% { transform: translate(40%, -30%) rotate(20deg); opacity: 0; } 30% { opacity: 1; transform: none; } 55% { transform: rotate(-38deg); } 100% { transform: translate(8%, -6%) rotate(-12deg); opacity: 1; } }
+  .fw-flake, .fw-drip { position: absolute; left: var(--x); top: 20%; width: 4cqw; height: 2.4cqw; border-radius: 50%; background: #ef8a5c; border: 0.5cqw solid #1D1B3A; opacity: 0; }
+  .fw-drip { width: 2.2cqw; height: 2.2cqw; background: #a3201a; border: 0; }
+  .fw-p-recipe.is-active .fw-flake, .fw-p-recipe.is-active .fw-drip { animation: fw-drop 0.9s cubic-bezier(0.5, 0, 0.75, 0) var(--d) both; }
+  @keyframes fw-drop { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(22cqw); } }
+  .fw-r-stamp { position: absolute; right: 2%; bottom: 8%; padding: 1.6cqw 3cqw; border-radius: 2cqw; border: 0.8cqw solid #1D1B3A; background: #9ED6C2; font: 900 4.6cqw/1 var(--font-display); opacity: 0; }
+  .fw-p-recipe.is-active .fw-r-stamp { animation: fw-pop 0.6s var(--ease-out) 4.8s both; }
+  .fw-r-steps { list-style: none; padding: 0; margin-top: 3cqw; display: flex; flex-wrap: wrap; gap: 1.6cqw; counter-reset: st; }
+  .fw-r-steps li { counter-increment: st; padding: 1.4cqw 2.6cqw; border-radius: 99px; border: 0.6cqw solid #1D1B3A; font: 700 3.4cqw/1 var(--font-ui); opacity: 0.35; }
+  .fw-r-steps li::before { content: counter(st) ' · '; }
+  .fw-p-recipe.is-active .fw-r-steps li { animation: fw-tick 0.4s var(--ease-out) var(--d) forwards; }
+  @keyframes fw-tick { to { opacity: 1; background: #1D1B3A; color: #F6C343; } }
+
+  /* 2 · Glow-up */
+  .fw-p-glow { background: #3b3a3f; padding: 0; }
+  .fw-p-glow .fw-cap, .fw-p-glow .fw-cta { margin-left: 6cqw; margin-right: 6cqw; }
+  .fw-p-glow .fw-cta { margin-bottom: 8cqw; }
+  .fw-g-before, .fw-g-after { position: absolute; inset: 0; padding: 26cqw 6cqw 0; display: grid; align-content: start; justify-items: center; gap: 3cqw; }
+  .fw-g-before { background: linear-gradient(#6d6b70, #3b3a3f); color: #e8e6e3; }
+  .fw-g-after { background: radial-gradient(90% 60% at 50% 40%, #F4A6B8, #E8452C); clip-path: inset(0 0 0 100%); }
+  .fw-p-glow.is-active .fw-g-after { animation: fw-wipe 1.2s cubic-bezier(0.7, 0, 0.2, 1) 1.6s both; }
+  @keyframes fw-wipe { to { clip-path: inset(0 0 0 0); } }
+  .fw-g-wipe { position: absolute; top: 0; bottom: 0; left: 100%; width: 1.4cqw; background: #FFF6E5; box-shadow: 0 0 6cqw 2cqw rgb(255 246 229 / 0.7); z-index: 2; opacity: 0; }
+  .fw-p-glow.is-active .fw-g-wipe { animation: fw-wipeline 1.2s cubic-bezier(0.7, 0, 0.2, 1) 1.6s both; }
+  @keyframes fw-wipeline { 0% { left: 100%; opacity: 1; } 99% { left: 0; opacity: 1; } 100% { left: 0; opacity: 0; } }
+  .fw-g-tag { justify-self: start; padding: 1cqw 2.4cqw; border-radius: 99px; background: rgb(0 0 0 / 0.35); color: #fff; font: 700 3cqw/1.2 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; }
+  .fw-g-sand { width: 58%; margin-top: 8cqw; filter: saturate(0.4); }
+  .fw-g-sad { font: italic 400 4.4cqw/1 Georgia, serif; opacity: 0.8; }
+  .fw-g-plate { position: relative; width: 82cqw; height: 82cqw; margin-top: 2cqw; border-radius: 50%; background: #FFF6E5; border: 1.2cqw solid #1D1B3A; box-shadow: inset 0 0 0 4cqw #f4e6cc; }
+  .fw-g-tin { position: absolute; left: 14%; top: 22%; width: 72%; --lid: #F6C343; }
+  .fw-g-crk { position: absolute; left: var(--x); top: var(--y); width: 13cqw; height: 13cqw; border-radius: 50%; background: radial-gradient(circle, #8a5a2b 7%, transparent 9%) 0 0 / 4cqw 4cqw, #e5b56f; border: 0.6cqw solid #1D1B3A; }
+  .fw-g-lem { position: absolute; right: 4%; top: 6%; width: 18cqw; }
+  .fw-g-pick { position: absolute; left: var(--x); top: var(--y); width: 12cqw; height: 6cqw; border-radius: 50%; background: #6c9a3c; border: 0.6cqw solid #1D1B3A; transform: rotate(-20deg); }
+  .fw-g-stick { position: absolute; left: 12%; top: 62%; padding: 2cqw 4cqw; border-radius: 3cqw; background: #2747A8; color: #FFF6E5; font: italic 700 6cqw/1 Georgia, serif; box-shadow: 1cqw 1cqw 0 #1D1B3A; opacity: 0; }
+  .fw-p-glow.is-active .fw-g-stick { animation: fw-pop 0.6s var(--ease-out) 3s both; }
+  .fw-g-kb { position: absolute; left: -4%; right: -4%; bottom: 0; height: 30cqw; background: repeating-linear-gradient(90deg, #26252a 0 7cqw, #3c3b41 7cqw 7.6cqw), #26252a; transform: perspective(60cqw) rotateX(50deg); transform-origin: bottom; opacity: 0.9; }
+
+  /* 3 · Alarm */
+  .fw-p-alarm { background: radial-gradient(100% 60% at 50% 0%, #3d5bd0, #1D1B3A 75%); color: #fff; text-align: center; align-items: center; }
+  .fw-a-date { font: 600 4.2cqw/1 var(--font-ui); opacity: 0.85; }
+  .fw-a-time { position: relative; height: 22cqw; width: 100%; font: 800 21cqw/1 var(--font-display); letter-spacing: -0.04em; }
+  .fw-a-time span { position: absolute; inset: 0; }
+  .fw-a-30 { opacity: 0; }
+  .fw-p-alarm.is-active .fw-a-29 { animation: fw-flipout 0.4s ease-in 1s forwards; }
+  .fw-p-alarm.is-active .fw-a-30 { animation: fw-flipin 0.5s var(--ease-out) 1.3s forwards; }
+  @keyframes fw-flipout { to { opacity: 0; transform: translateY(-30%) rotateX(80deg); } }
+  @keyframes fw-flipin { from { opacity: 0; transform: translateY(30%) rotateX(-80deg); } to { opacity: 1; transform: none; } }
+  .fw-a-notif { display: grid; grid-template-columns: auto 1fr auto; gap: 3cqw; align-items: center; width: 100%; margin-top: 4cqw; padding: 3cqw; border-radius: 5cqw; background: rgb(255 255 255 / 0.9); color: #1D1B3A; text-align: left; font: 500 3.4cqw/1.35 var(--font-ui); opacity: 0; }
+  .fw-p-alarm.is-active .fw-a-notif { animation: fw-drop-in 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 1.8s both; }
+  @keyframes fw-drop-in { from { opacity: 0; transform: translateY(-30cqw) scale(0.9); } to { opacity: 1; transform: none; } }
+  .fw-a-ico { width: 11cqw; height: 11cqw; border-radius: 2.6cqw; background: #E8452C; display: grid; place-items: center; }
+  .fw-a-ico svg { width: 90%; --lab: #F6C343; }
+  .fw-a-now { align-self: start; font-size: 3cqw; opacity: 0.6; }
+  .fw-a-ring { position: relative; width: 52cqw; margin-top: 8cqw; display: grid; place-items: center; }
+  .fw-a-ring svg { width: 100%; position: relative; --lab: #E8452C; }
+  .fw-p-alarm.is-active .fw-a-ring svg { animation: fw-shake 0.14s linear 1.8s 18 alternate; }
+  @keyframes fw-shake { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+  .fw-a-wave { position: absolute; inset: -6cqw; border-radius: 50%; border: 0.8cqw solid #F6C343; opacity: 0; }
+  .fw-p-alarm.is-active .fw-a-wave { animation: fw-wave 1.2s ease-out 1.8s 4; }
+  @keyframes fw-wave { from { opacity: 0.9; transform: scale(0.6); } to { opacity: 0; transform: scale(1.3); } }
+  .fw-a-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 3cqw; width: 100%; margin-top: 8cqw; font: 700 3.4cqw/1.2 var(--font-ui); }
+  .fw-a-btns span { padding: 3.4cqw 2cqw; border-radius: 99px; background: rgb(255 255 255 / 0.16); }
+  .fw-a-btns .is-go { background: #F6C343; color: #1D1B3A; }
+  .fw-p-alarm.is-active .fw-a-btns .is-go { animation: fw-pulse 1s ease-in-out 2.4s infinite; }
+  @keyframes fw-pulse { 50% { transform: scale(1.07); } }
+  .fw-p-alarm .fw-cta { align-self: center; background: #F6C343; color: #1D1B3A; }
+
+  /* 4 · Sourcing */
+  .fw-p-src { background: #FFF6E5; background-image: repeating-linear-gradient(0deg, transparent 0 6cqw, rgb(39 71 168 / 0.06) 6cqw 6.3cqw); }
+  .fw-kick--ink { color: #2747A8; font-family: Georgia, serif; font-style: italic; text-transform: none; font-size: 6.4cqw; letter-spacing: 0; }
+  .fw-s-map { position: relative; height: 70cqw; margin-top: 3cqw; border: 0.6cqw dashed #2747A8; border-radius: 4cqw; }
+  .fw-s-route { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .fw-s-route path { stroke-dashoffset: 600; }
+  .fw-p-src.is-active .fw-s-route path { animation: fw-draw 3.4s ease-in-out 0.3s forwards; }
+  @keyframes fw-draw { to { stroke-dashoffset: 0; } }
+  .fw-pin { position: absolute; left: var(--x); top: var(--y); translate: -50% -50%; padding: 2cqw 3cqw; border-radius: 50%/50%; min-width: 24cqw; text-align: center; background: var(--c); border: 0.7cqw solid #1D1B3A; font: 800 3cqw/1.1 var(--font-ui); text-transform: uppercase; letter-spacing: 0.04em; box-shadow: 0 0 0 1.2cqw #FFF6E5, 0 0 0 1.6cqw #1D1B3A; opacity: 0; }
+  .fw-p-src.is-active .fw-pin { animation: fw-pop 0.5s var(--ease-out) var(--d) both; }
+  .fw-s-big { margin-top: 4cqw; font: 800 6cqw/1.1 var(--font-display); letter-spacing: -0.02em; }
+  .fw-s-big b { color: #E8452C; font-size: 10cqw; }
+  .fw-s-facts { list-style: none; padding: 0; display: grid; gap: 1.6cqw; margin-top: 2cqw; font: 500 3.1cqw/1.35 var(--font-ui); }
+  .fw-s-facts li { padding-left: 3cqw; border-left: 0.8cqw solid #9ED6C2; }
+  .fw-p-src .fw-cta { margin-top: auto; }
+
+  /* 5 · Duet */
+  .fw-p-duet { background: #111; padding: 0; }
+  .fw-p-duet .fw-cap, .fw-p-duet .fw-cta { margin-left: 6cqw; margin-right: 6cqw; }
+  .fw-p-duet .fw-cta { margin-bottom: 8cqw; background: #E8452C; }
+  .fw-d-tag { position: absolute; z-index: 3; top: 21cqw; left: 50%; translate: -50% 0; padding: 1cqw 3cqw; border-radius: 99px; background: #fff; color: #111; font: 800 3cqw/1.2 var(--font-ui); text-transform: uppercase; letter-spacing: 0.1em; }
+  .fw-d-half { position: absolute; top: 0; bottom: 0; width: 50%; display: grid; justify-items: center; align-content: center; gap: 4cqw; padding-bottom: 20cqw; overflow: hidden; }
+  .fw-d-a { left: 0; background: linear-gradient(#2747A8, #13235a); }
+  .fw-d-b { right: 0; background: linear-gradient(#F4A6B8, #E8452C); border-left: 0.6cqw solid #111; }
+  .fw-d-face { position: relative; width: 24cqw; height: 24cqw; border-radius: 50%; background: #f1c7a1; border: 0.7cqw solid #1D1B3A; }
+  .fw-d-face::before { content: ''; position: absolute; inset: -1cqw -1cqw 50%; border-radius: 14cqw 14cqw 4cqw 4cqw; background: #1D1B3A; }
+  .fw-d-face i { position: absolute; left: 26%; right: 26%; top: 58%; height: 3cqw; border-bottom: 0.8cqw solid #1D1B3A; border-radius: 0 0 50% 50%; }
+  .fw-d-face--b { background: #c58e65; }
+  .fw-d-face--b::before { inset: -2cqw 2cqw 60%; border-radius: 50%; background: #F6C343; }
+  .fw-d-tin { width: 34cqw; --lab: #F6C343; --lid: #9ED6C2; }
+  .fw-p-duet.is-active .fw-d-a .fw-d-tin { animation: fw-bobt 1.4s ease-in-out infinite; }
+  .fw-p-duet.is-active .fw-d-b .fw-d-tin { animation: fw-bobt 1.4s ease-in-out 0.7s infinite; }
+  @keyframes fw-bobt { 50% { transform: translateY(-2cqw) rotate(3deg); } }
+  .fw-d-bub { max-width: 40cqw; padding: 2cqw 3cqw; border-radius: 3cqw; background: #fff; color: #111; font: 700 3.2cqw/1.25 var(--font-ui); text-align: center; opacity: 0; }
+  .fw-p-duet.is-active .fw-d-a .fw-d-bub { animation: fw-pop 0.5s var(--ease-out) 0.6s both; }
+  .fw-p-duet.is-active .fw-d-b .fw-d-bub { animation: fw-pop 0.5s var(--ease-out) 2s both; }
+  .fw-d-h { font: 600 3cqw/1 var(--font-ui); color: #fff; opacity: 0.85; }
+  .fw-d-hearts { position: absolute; right: 6cqw; bottom: 34cqw; width: 10cqw; height: 50cqw; z-index: 2; }
+  .fw-d-hearts i { position: absolute; bottom: 0; left: calc(var(--i) * 1cqw); font-style: normal; font-size: 6cqw; color: #F4A6B8; opacity: 0; }
+  .fw-p-duet.is-active .fw-d-hearts i { animation: fw-float 2.4s ease-out calc(1s + var(--i) * 0.5s) infinite; }
+  @keyframes fw-float { 0% { opacity: 0; transform: translateY(0) scale(0.6); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-46cqw) translateX(-4cqw) scale(1.2); } }
+
+  @media (max-width: 960px) {
+    .fw-story { grid-template-columns: 1fr; padding: var(--s-5); gap: var(--s-6); }
+    .fw-story-stage { order: -1; }
+    .fw-fid { justify-self: stretch; }
+    .fw-fid button { flex: 1; padding-inline: 0.5rem; }
+  }
+  @media (max-width: 480px) {
+    .fw-story { padding: var(--s-4) var(--s-3); margin-inline: calc(var(--gutter) * -0.5); }
+    .fw-pmeta { grid-template-columns: 1fr; }
+  }
+</style>

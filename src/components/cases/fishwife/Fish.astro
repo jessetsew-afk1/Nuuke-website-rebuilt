@@ -1,0 +1,27 @@
+---
+// Original NUUKE folk-style fish (not Fishwife's illustration). Pure SVG, recolourable.
+import { fish } from '../../../data/cases/fishwife';
+interface Props {
+  fill?: string;
+  ink?: string;
+  fin?: string;
+  class?: string;
+  style?: string;
+  flip?: boolean;
+}
+const { fill = '#FFF6E5', ink = '#1D1B3A', fin = '#E8452C', class: cls, style, flip = false } = Astro.props;
+---
+
+<svg class:list={['fw-fish', cls]} style={style} viewBox="-2 -2 124 64" aria-hidden="true" focusable="false">
+  <g transform={flip ? 'translate(120 0) scale(-1 1)' : undefined} stroke={ink} stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d={fish.finTop} fill={fin} />
+    <path d={fish.finLow} fill={fin} />
+    <path d={fish.body} fill={fill} />
+    <path d={fish.gill} fill="none" />
+    <path d={fish.scales} fill="none" stroke-width="2" />
+    <path d={fish.tailLines} fill="none" stroke-width="2" />
+    <path d={fish.mouth} fill="none" stroke-width="2" />
+    <circle cx={fish.eye.cx} cy={fish.eye.cy} r={fish.eye.r} fill="#fff" />
+    <circle cx={fish.eye.cx + 1} cy={fish.eye.cy} r="2.2" fill={ink} stroke="none" />
+  </g>
+</svg>

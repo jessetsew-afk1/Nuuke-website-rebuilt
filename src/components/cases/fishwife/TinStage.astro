@@ -1,0 +1,115 @@
+---
+// Centrepiece: the Three.js "Tin O'Clock" tin. Sticky stage — scroll peels the lid,
+// drag spins it, the flavour buttons redraw the label and swap the contents.
+import { flavours } from '../../../data/cases/fishwife';
+import Fish from './Fish.astro';
+const steps = [
+  { k: 'Closed', t: 'A tin worth gifting', d: 'An original folk-illustrated limited label: our concept sleeve for the campaign. Every flavour gets one colour family.' },
+  { k: 'Ring up', t: 'The ritual starts with a click', d: 'The pull-ring moment is the campaign’s sound: the first beat of every Tin O’Clock video.' },
+  { k: 'Open', t: 'Lunch is served', d: 'No fridge, no prep, no plate. The tin is the plate. That’s the whole weekday promise.' },
+];
+---
+
+<div class="fw-tin" data-fw-tin style={`--fw-tin-bg:${flavours[0].bg}`}>
+  <div class="fw-tin-sticky">
+    <div class="fw-tin-glow" aria-hidden="true"></div>
+    <div class="fw-tin-poster" aria-hidden="true">
+      <Fish fill="#FFF6E5" fin="#E8452C" ink="#2747A8" />
+    </div>
+    <canvas class="fw-tin-canvas" data-fw-canvas tabindex="0" aria-label="3D Tin O’Clock tin. Drag or use the arrow keys to spin it; scroll to peel the lid."></canvas>
+
+    <div class="fw-tin-side">
+    <ol class="fw-tin-steps" role="list">
+      {
+        steps.map((s, i) => (
+          <li data-step={i} class:list={[{ 'is-on': i === 0 }]}>
+            <span class="t-label">
+              <span class="t-num">0{i + 1}</span> · {s.k}
+            </span>
+            <strong>{s.t}</strong>
+            <span class="fw-tin-d"><span>{s.d}</span></span>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="fw-tin-ui">
+      <p class="t-label">Flavour <span class="fw-tin-hint">· recolours the label</span></p>
+      <div class="fw-flav" role="group" aria-label="Choose a flavour">
+        {
+          flavours.map((f, i) => (
+            <button type="button" data-flavour={f.id} aria-pressed={i === 0 ? 'true' : 'false'} style={`--sw:${f.bg};--sw2:${f.ink}`}>
+              <span class="fw-sw" aria-hidden="true" />
+              <span>{f.short}</span>
+            </button>
+          ))
+        }
+      </div>
+      <p class="t-small fw-tin-name" aria-live="polite" data-flavour-name>{flavours[0].name}</p>
+      <p class="t-small fw-tin-help">Scroll to peel · drag to spin</p>
+    </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { whenNear } from '../../../scripts/motion';
+  document.querySelectorAll<HTMLElement>('[data-fw-tin]').forEach((root) => {
+    whenNear(root, () => import('../../../scripts/three/fishwife').then((m) => m.init(root)));
+  });
+</script>
+
+<style>
+  .fw-tin { position: relative; height: 280vh; margin-top: calc(var(--s-8) * -0.5); }
+  .fw-tin-sticky { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
+  .fw-tin-glow {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(38% 44% at 64% 54%, color-mix(in srgb, var(--fw-tin-bg) 40%, transparent), transparent 70%),
+      radial-gradient(30% 30% at 15% 85%, color-mix(in srgb, var(--fw-tin-bg) 14%, transparent), transparent 70%);
+    transition: background 0.8s var(--ease-out);
+    pointer-events: none;
+  }
+  .fw-tin-canvas { position: absolute; top: 0; bottom: 0; left: 30%; width: 70%; height: 100%; touch-action: pan-y; cursor: grab; opacity: 0; transition: opacity 0.8s var(--ease-out); }
+  .fw-tin-canvas.is-grabbing { cursor: grabbing; }
+  .fw-tin-canvas:focus-visible { outline-offset: -6px; }
+  .fw-tin.is-ready .fw-tin-canvas { opacity: 1; }
+  .fw-tin-poster { position: absolute; left: 65%; top: 50%; width: min(420px, 40vw); translate: -50% -50%; opacity: 0.35; transition: opacity 0.6s; }
+  .fw-tin.is-ready .fw-tin-poster { opacity: 0; }
+
+  .fw-tin-side { position: absolute; left: max(var(--gutter), 76px); top: 50%; translate: 0 -50%; width: min(340px, 28vw); display: grid; gap: var(--s-6); }
+  .fw-tin-steps { list-style: none; padding: 0; display: grid; gap: var(--s-4); pointer-events: none; }
+  .fw-tin-steps li { display: grid; gap: 6px; padding-left: var(--s-4); border-left: 2px solid var(--line); opacity: 0.4; transition: opacity var(--dur-2), border-color var(--dur-2); }
+  .fw-tin-steps li.is-on { opacity: 1; border-color: var(--a); }
+  .fw-tin-steps strong { font-family: var(--font-display); font-size: var(--fs-lg); line-height: 1.2; letter-spacing: -0.02em; }
+  .fw-tin-steps .t-num { color: var(--a); }
+  .fw-tin-d { color: var(--ink-2); font-size: var(--fs-sm); display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--dur-2) var(--ease-out); }
+  .fw-tin-d > span { overflow: hidden; }
+  .fw-tin-steps li.is-on .fw-tin-d { grid-template-rows: 1fr; }
+
+  .fw-tin-ui { display: grid; gap: var(--s-3); padding: var(--s-5); border-radius: var(--r-lg); background: rgb(12 12 15 / 0.72); border: 1px solid var(--line); backdrop-filter: blur(12px); }
+  .fw-tin-hint { text-transform: none; letter-spacing: 0; }
+  .fw-flav { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-2); }
+  .fw-flav button { display: flex; align-items: center; gap: var(--s-2); min-height: 44px; padding: 0.5rem 0.7rem; border-radius: var(--r-md); border: 1px solid var(--line); font: 500 0.8rem/1.2 var(--font-ui); color: var(--ink-2); text-align: left; transition: border-color var(--dur-1), background var(--dur-1), color var(--dur-1); }
+  .fw-flav button:hover { border-color: var(--line-strong); color: var(--ink); }
+  .fw-flav button[aria-pressed='true'] { border-color: var(--sw); color: var(--ink); background: color-mix(in srgb, var(--sw) 14%, transparent); }
+  .fw-sw { flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--sw); box-shadow: inset 0 0 0 3px var(--sw), inset 0 0 0 6px var(--sw2); }
+  .fw-tin-name { color: var(--ink); min-height: 2.6em; }
+  .fw-tin-help { color: var(--a); font-family: var(--font-ui); }
+
+  @media (max-width: 900px) {
+    .fw-tin { height: 250vh; }
+    .fw-tin-canvas { left: 0; width: 100%; top: 18%; bottom: auto; height: 46%; }
+    .fw-tin-poster { left: 50%; top: 40%; width: 70vw; }
+    .fw-tin-glow { background: radial-gradient(70% 34% at 50% 42%, color-mix(in srgb, var(--fw-tin-bg) 34%, transparent), transparent 70%); }
+    .fw-tin-side { position: absolute; inset: 0; translate: none; width: auto; display: flex; flex-direction: column; justify-content: space-between; gap: 0; padding: calc(var(--nav-h) + var(--s-2)) var(--gutter) calc(var(--safe-bottom) - 1.25rem); pointer-events: none; }
+    .fw-tin-steps { position: relative; min-height: 5.5rem; }
+    .fw-tin-steps li { position: absolute; inset: 0 0 auto; opacity: 0; }
+    .fw-tin-steps li.is-on { opacity: 1; }
+    .fw-tin-d { display: none; }
+    .fw-tin-ui { padding: var(--s-4); gap: var(--s-2); pointer-events: auto; }
+    .fw-tin-name { min-height: 0; }
+    .fw-tin-help { display: none; }
+  }
+</style>

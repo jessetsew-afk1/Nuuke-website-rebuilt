@@ -1,0 +1,214 @@
+---
+// 4-week content calendar. Click a day to preview its post in the side phone;
+// click a legend chip to highlight one channel.
+import { calendar, calTypes, weeks, type CalType } from '../../../data/cases/fishwife';
+const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const types = Object.entries(calTypes) as [CalType, { label: string; color: string }][];
+const payload = JSON.stringify({ calendar, calTypes, weeks, days });
+const first = calendar[1];
+---
+
+<div class="fw-cal" data-fw-cal>
+  <div class="fw-cal-main">
+    <div class="fw-legend" role="group" aria-label="Highlight a channel">
+      {
+        types.map(([k, t]) => (
+          <button type="button" data-type={k} aria-pressed="false" style={`--c:${t.color}`}>
+            <span aria-hidden="true" />
+            {t.label}
+          </button>
+        ))
+      }
+    </div>
+    <div class="fw-grid" role="table" aria-label="Four-week content calendar">
+      <div class="fw-row fw-row--head" role="row">
+        <span class="fw-wk" aria-hidden="true"></span>
+        {days.map((d) => <span role="columnheader" class="t-label">{d}</span>)}
+      </div>
+      {
+        weeks.map((w, wi) => (
+          <div class="fw-row" role="row">
+            <span class="fw-wk" role="rowheader">
+              <b>W{wi + 1}</b>
+              <span>{w.split('·')[1]?.trim()}</span>
+            </span>
+            {calendar.slice(wi * 7, wi * 7 + 7).map((c) => (
+              <span role="cell">
+                <button
+                  type="button"
+                  class:list={['fw-day', { 'is-weekend': (c.day - 1) % 7 >= 5 }]}
+                  data-day={c.day}
+                  data-t={c.type}
+                  style={`--c:${calTypes[c.type].color}`}
+                  aria-pressed={c.day === first.day ? 'true' : 'false'}
+                  aria-label={`Day ${c.day}, ${days[(c.day - 1) % 7]}: ${calTypes[c.type].label}, ${c.title}`}
+                >
+                  <span class="fw-day-n t-num">{c.day}</span>
+                  <span class="fw-day-t">{c.title}</span>
+                  <span class="fw-day-k">{calTypes[c.type].label}</span>
+                </button>
+              </span>
+            ))}
+          </div>
+        ))
+      }
+    </div>
+    <p class="t-small">Weekday posts are scheduled for 11:45–12:30 local time, so the content lands just before lunch. Weekends recap and prep the week.</p>
+  </div>
+
+  <aside class="fw-cal-side" aria-live="polite">
+    <div class="fw-mini">
+      <div class="fw-mini-scr" data-preview style={`--c:${calTypes[first.type].color}`}>
+        <p class="fw-mini-top"><span data-p-when>Week 1 · Tue · 12:30</span><span class="fw-mini-chip" data-p-type>{calTypes[first.type].label}</span></p>
+        <div class="fw-mini-art" data-p-art>
+          {(['clock', 'fish', 'tin', 'bowl', 'map', 'duet', 'shelf'] as const).map((a) => (
+            <svg class:list={['fw-mini-svg', { 'is-off': a !== first.art }]} data-art={a} aria-hidden="true" viewBox={a === 'clock' ? '0 0 220 220' : a === 'fish' ? '0 0 124 64' : a === 'bowl' ? '0 0 220 160' : a === 'tin' ? '0 0 220 150' : '0 0 220 140'}>
+              {a === 'clock' && <use href="#fw-s-clock" />}
+              {a === 'fish' && <use href="#fw-s-fish" />}
+              {a === 'tin' && <use href="#fw-s-tin" />}
+              {a === 'bowl' && <use href="#fw-s-bowl" />}
+              {a === 'map' && (
+                <g>
+                  <path d="M20 100 C 60 20, 120 30, 130 80 S 190 120, 200 40" fill="none" stroke="#1D1B3A" stroke-width="4" stroke-dasharray="8 8" />
+                  <circle cx="20" cy="100" r="14" fill="#E8452C" stroke="#1D1B3A" stroke-width="4" />
+                  <circle cx="92" cy="44" r="14" fill="#F6C343" stroke="#1D1B3A" stroke-width="4" />
+                  <circle cx="150" cy="96" r="14" fill="#9ED6C2" stroke="#1D1B3A" stroke-width="4" />
+                  <circle cx="200" cy="40" r="14" fill="#F4A6B8" stroke="#1D1B3A" stroke-width="4" />
+                </g>
+              )}
+              {a === 'duet' && (
+                <g>
+                  <rect x="10" y="10" width="96" height="120" rx="14" fill="#2747A8" stroke="#1D1B3A" stroke-width="4" />
+                  <rect x="114" y="10" width="96" height="120" rx="14" fill="#F4A6B8" stroke="#1D1B3A" stroke-width="4" />
+                  <circle cx="58" cy="56" r="20" fill="#f1c7a1" stroke="#1D1B3A" stroke-width="4" />
+                  <circle cx="162" cy="56" r="20" fill="#c58e65" stroke="#1D1B3A" stroke-width="4" />
+                  <rect x="34" y="92" width="48" height="22" rx="8" fill="#F6C343" stroke="#1D1B3A" stroke-width="3" />
+                  <rect x="138" y="92" width="48" height="22" rx="8" fill="#9ED6C2" stroke="#1D1B3A" stroke-width="3" />
+                </g>
+              )}
+              {a === 'shelf' && (
+                <g>
+                  <rect x="6" y="56" width="208" height="10" fill="#1D1B3A" />
+                  <rect x="6" y="118" width="208" height="10" fill="#1D1B3A" />
+                  {[0, 1, 2, 3, 4, 5].map((i) => (
+                    <rect x={14 + i * 34} y="22" width="28" height="34" rx="6" fill={['#E8452C', '#F6C343', '#F4A6B8', '#9ED6C2', '#2747A8', '#E8452C'][i]} stroke="#1D1B3A" stroke-width="3" />
+                  ))}
+                  {[0, 1, 2, 3, 4, 5].map((i) => (
+                    <rect x={14 + i * 34} y="84" width="28" height="34" rx="6" fill={['#9ED6C2', '#2747A8', '#E8452C', '#F6C343', '#F4A6B8', '#9ED6C2'][i]} stroke="#1D1B3A" stroke-width="3" />
+                  ))}
+                  <circle cx="190" cy="60" r="20" fill="#FFF6E5" stroke="#1D1B3A" stroke-width="4" />
+                  <path d="M190 60 L190 46 M190 60 L190 74" stroke="#E8452C" stroke-width="4" stroke-linecap="round" />
+                </g>
+              )}
+            </svg>
+          ))}
+        </div>
+        <p class="fw-mini-title" data-p-title>{first.title}</p>
+        <p class="fw-mini-cap" data-p-cap>{first.caption}</p>
+        <p class="fw-mini-tag">#TinOClock</p>
+      </div>
+    </div>
+    <p class="t-small fw-cal-hint">Click any day to preview it here.</p>
+  </aside>
+  <script type="application/json" data-cal set:html={payload} />
+</div>
+
+<script>
+  type Cal = { day: number; type: string; title: string; caption: string; art: string };
+  document.querySelectorAll<HTMLElement>('[data-fw-cal]').forEach((root) => {
+    const data = JSON.parse(root.querySelector('[data-cal]')!.textContent || '{}') as {
+      calendar: Cal[];
+      calTypes: Record<string, { label: string; color: string }>;
+      weeks: string[];
+      days: string[];
+    };
+    const scr = root.querySelector<HTMLElement>('[data-preview]')!;
+    const q = (k: string) => root.querySelector<HTMLElement>(`[data-p-${k}]`)!;
+    const dayBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-day]')];
+    const show = (day: number) => {
+      const c = data.calendar.find((x) => x.day === day);
+      if (!c) return;
+      const t = data.calTypes[c.type];
+      const wi = Math.floor((day - 1) / 7);
+      const weekday = data.days[(day - 1) % 7];
+      const weekend = (day - 1) % 7 >= 5;
+      scr.style.setProperty('--c', t.color);
+      q('when').textContent = `Week ${wi + 1} · ${weekday} · ${weekend ? '10:00' : '12:30'}`;
+      q('type').textContent = t.label;
+      q('title').textContent = c.title;
+      q('cap').textContent = c.caption;
+      root.querySelectorAll<SVGElement>('[data-art]').forEach((s) => s.classList.toggle('is-off', s.dataset.art !== c.art));
+      dayBtns.forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.day) === day)));
+      scr.classList.remove('is-new');
+      void scr.offsetWidth;
+      scr.classList.add('is-new');
+    };
+    dayBtns.forEach((b) => b.addEventListener('click', () => show(Number(b.dataset.day))));
+    const legend = [...root.querySelectorAll<HTMLButtonElement>('[data-type]')];
+    legend.forEach((b) =>
+      b.addEventListener('click', () => {
+        const on = b.getAttribute('aria-pressed') !== 'true';
+        legend.forEach((x) => x.setAttribute('aria-pressed', String(x === b && on)));
+        dayBtns.forEach((d) => d.classList.toggle('is-dim', on && d.dataset.t !== b.dataset.type));
+      }),
+    );
+  });
+</script>
+
+<style>
+  .fw-cal { display: grid; grid-template-columns: 1fr 300px; gap: var(--s-7); align-items: start; }
+  .fw-cal-main { display: grid; gap: var(--s-4); min-width: 0; }
+  .fw-legend { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+  .fw-legend button { display: inline-flex; align-items: center; gap: 8px; padding: 0.4rem 0.8rem; border-radius: 99px; border: 1px solid var(--line); font: 500 0.78rem/1.2 var(--font-ui); color: var(--ink-2); transition: border-color var(--dur-1), background var(--dur-1); }
+  .fw-legend button span { width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+  .fw-legend button[aria-pressed='true'] { border-color: var(--c); background: color-mix(in srgb, var(--c) 16%, transparent); color: var(--ink); }
+  .fw-grid { display: grid; gap: 6px; }
+  .fw-row { display: grid; grid-template-columns: 110px repeat(7, minmax(0, 1fr)); gap: 6px; }
+  .fw-row--head span { padding: 0 6px; }
+  .fw-wk { display: grid; align-content: center; gap: 2px; padding-right: 6px; font: 500 0.72rem/1.25 var(--font-ui); color: var(--muted); }
+  .fw-wk b { color: var(--a); font-size: 0.85rem; }
+  .fw-row [role="cell"] { display: grid; }
+  .fw-day { position: relative; display: grid; align-content: space-between; gap: 6px; min-height: 104px; padding: 10px; border-radius: 12px; text-align: left; border: 1px solid var(--line); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 18%, var(--surface)), var(--surface) 70%); transition: transform var(--dur-2) var(--ease-out), border-color var(--dur-1), opacity var(--dur-2), box-shadow var(--dur-2); }
+  .fw-day::before { content: ''; position: absolute; left: 10px; right: 10px; top: 0; height: 3px; border-radius: 0 0 3px 3px; background: var(--c); }
+  .fw-day:hover { transform: translateY(-3px); border-color: var(--line-strong); }
+  .fw-day[aria-pressed='true'] { border-color: var(--c); box-shadow: 0 0 0 1px var(--c), 0 16px 30px -16px var(--c); }
+  .fw-day.is-weekend { background: var(--surface); }
+  .fw-day.is-dim { opacity: 0.22; }
+  .fw-day-n { font-weight: 700; font-size: 0.8rem; color: var(--muted); }
+  .fw-day-t { font-weight: 700; font-size: 0.82rem; line-height: 1.2; color: var(--ink); }
+  .fw-day-k { font: 500 0.66rem/1.2 var(--font-ui); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .fw-cal-side { position: sticky; top: 100px; display: grid; gap: var(--s-3); justify-items: center; }
+  .fw-mini { width: 100%; max-width: 300px; padding: 9px; border-radius: 44px; background: linear-gradient(145deg, #3a3a42, #121216 40%, #2a2a30); box-shadow: 0 30px 80px -30px rgb(0 0 0 / 0.9); }
+  .fw-mini-scr { aspect-ratio: 9 / 17; border-radius: 36px; overflow: hidden; padding: 34px 20px 22px; display: flex; flex-direction: column; gap: 12px; background: radial-gradient(90% 60% at 50% 30%, color-mix(in srgb, var(--c) 70%, #FFF6E5), var(--c)); color: #1D1B3A; transition: background 0.5s; }
+  .fw-mini-scr.is-new .fw-mini-art, .fw-mini-scr.is-new .fw-mini-title { animation: fw-mini-in 0.5s var(--ease-out); }
+  @keyframes fw-mini-in { from { opacity: 0; transform: translateY(10px) scale(0.96); } }
+  .fw-mini-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; font: 600 0.7rem/1.2 var(--font-ui); }
+  .fw-mini-chip { padding: 3px 8px; border-radius: 99px; background: #1D1B3A; color: #FFF6E5; white-space: nowrap; }
+  .fw-mini-art { flex: 1; display: grid; place-items: center; min-height: 0; }
+  .fw-mini-svg.is-off { display: none; }
+  .fw-mini-svg { width: 86%; max-height: 100%; --fish: #FFF6E5; filter: drop-shadow(4px 5px 0 rgb(29 27 58 / 0.6)); }
+  .fw-mini-title { font: 900 1.45rem/1.05 var(--font-display); letter-spacing: -0.03em; }
+  .fw-mini-cap { font-size: 0.82rem; line-height: 1.4; }
+  .fw-mini-tag { font: italic 700 0.95rem/1 Georgia, serif; color: #2747A8; }
+  .fw-cal-hint { text-align: center; }
+
+  @media (max-width: 1100px) {
+    .fw-cal { grid-template-columns: 1fr 260px; gap: var(--s-5); }
+    .fw-day-k { display: none; }
+  }
+  @media (max-width: 860px) {
+    .fw-cal { grid-template-columns: 1fr; }
+    .fw-cal-side { position: static; order: 2; }
+    .fw-mini { max-width: 260px; }
+    .fw-row { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+    .fw-wk { grid-column: 1 / -1; grid-template-columns: auto 1fr; gap: 8px; align-items: baseline; padding: 6px 0 0; }
+    .fw-row--head .fw-wk { display: none; }
+    .fw-row--head span { padding: 0; text-align: center; font-size: 0.62rem; letter-spacing: 0.04em; }
+    .fw-day { min-height: 52px; padding: 6px 4px 8px; place-content: center; justify-items: center; border-radius: 10px; }
+    .fw-day::before { left: 6px; right: 6px; }
+    .fw-day-t, .fw-day-k { display: none; }
+    .fw-day-n { font-size: 0.85rem; color: var(--ink); }
+    .fw-day::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+  }
+</style>

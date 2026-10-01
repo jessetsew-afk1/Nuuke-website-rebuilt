@@ -1,0 +1,101 @@
+---
+// Shared SVG symbols for the Fishwife concept (all original NUUKE art).
+// Themeable per use via CSS custom properties, which inherit into <use> trees.
+import { fish } from '../../../data/cases/fishwife';
+---
+
+<svg class="fw-sprite" aria-hidden="true" focusable="false" width="0" height="0">
+  <defs>
+    <filter id="fw-sketch" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" />
+      <feDisplacementMap in="SourceGraphic" scale="3" />
+    </filter>
+
+    <symbol id="fw-s-fish" viewBox="-2 -2 124 64">
+      <g stroke="var(--fink, #1D1B3A)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d={fish.finTop} fill="var(--fin, #E8452C)" />
+        <path d={fish.finLow} fill="var(--fin, #E8452C)" />
+        <path d={fish.body} fill="var(--fish, #FFF6E5)" />
+        <path d={fish.gill} fill="none" />
+        <path d={fish.scales} fill="none" stroke-width="2" />
+        <path d={fish.tailLines} fill="none" stroke-width="2" />
+        <circle cx={fish.eye.cx} cy={fish.eye.cy} r={fish.eye.r} fill="#fff" />
+        <circle cx={fish.eye.cx + 1} cy={fish.eye.cy} r="2.2" fill="var(--fink, #1D1B3A)" stroke="none" />
+      </g>
+    </symbol>
+
+    <!-- Open tin, top view, lid peeled back -->
+    <symbol id="fw-s-tin" viewBox="0 0 220 150">
+      <rect x="10" y="30" width="200" height="112" rx="30" fill="#1D1B3A" opacity=".25" />
+      <rect x="6" y="22" width="200" height="112" rx="30" fill="#cfd4db" stroke="#1D1B3A" stroke-width="4" />
+      <rect x="18" y="33" width="176" height="90" rx="22" fill="#d9a441" stroke="#1D1B3A" stroke-width="3" />
+      <g fill="var(--meat, #ef8a5c)" stroke="#1D1B3A" stroke-width="2.5">
+        <rect x="28" y="40" width="156" height="22" rx="11" />
+        <rect x="24" y="66" width="160" height="22" rx="11" />
+        <rect x="30" y="92" width="152" height="22" rx="11" />
+      </g>
+      <path d="M44 51 l 16 0 M 80 51 l 16 0 M 116 51 l 16 0 M 40 77 l 16 0 M 76 77 l 16 0 M 112 77 l 16 0 M 148 77 l 16 0 M 50 103 l 16 0 M 90 103 l 16 0 M 130 103 l 16 0" stroke="#fff" stroke-opacity=".55" stroke-width="4" stroke-linecap="round" />
+      <path d="M150 22 C 150 -6, 214 -12, 214 22 L 206 34 C 196 14, 168 14, 166 30 Z" fill="var(--lid, #F4A6B8)" stroke="#1D1B3A" stroke-width="3.5" stroke-linejoin="round" />
+      <circle cx="196" cy="6" r="9" fill="none" stroke="#1D1B3A" stroke-width="4" />
+    </symbol>
+
+    <!-- Closed tin, 3/4 view with label -->
+    <symbol id="fw-s-tinc" viewBox="0 0 220 140">
+      <ellipse cx="112" cy="130" rx="96" ry="8" fill="#000" opacity=".2" />
+      <path d="M14 46 L 14 98 Q 14 122 40 122 L 182 122 Q 206 122 206 98 L 206 46 Z" fill="var(--lab, #E8452C)" stroke="#1D1B3A" stroke-width="4" stroke-linejoin="round" />
+      <path d="M14 106 L 206 106 M 14 58 L 206 58" stroke="#1D1B3A" stroke-width="3" stroke-dasharray="7 6" />
+      <rect x="10" y="12" width="200" height="56" rx="26" fill="#d6dae0" stroke="#1D1B3A" stroke-width="4" />
+      <rect x="22" y="20" width="176" height="40" rx="18" fill="var(--lid, #F4A6B8)" stroke="#1D1B3A" stroke-width="2.5" />
+      <use href="#fw-s-fish" x="60" y="24" width="80" height="34" />
+      <ellipse cx="172" cy="40" rx="13" ry="8" fill="none" stroke="#1D1B3A" stroke-width="4" />
+      <text x="110" y="92" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-weight="700" font-size="21" fill="var(--labink, #FFF6E5)">Tin O’Clock</text>
+    </symbol>
+
+    <!-- 12:30 clock -->
+    <symbol id="fw-s-clock" viewBox="-110 -110 220 220">
+      <circle r="104" fill="var(--rim, #2747A8)" />
+      <circle r="92" fill="var(--face, #FFF6E5)" stroke="#1D1B3A" stroke-width="4" />
+      <g fill="#1D1B3A">
+        <circle cy="-76" r="6" /><circle cx="76" r="6" /><circle cy="76" r="6" /><circle cx="-76" r="6" />
+        <circle cx="38" cy="-66" r="3.5" /><circle cx="66" cy="-38" r="3.5" /><circle cx="66" cy="38" r="3.5" /><circle cx="38" cy="66" r="3.5" />
+        <circle cx="-38" cy="66" r="3.5" /><circle cx="-66" cy="38" r="3.5" /><circle cx="-66" cy="-38" r="3.5" /><circle cx="-38" cy="-66" r="3.5" />
+      </g>
+      <line y2="-48" x2="12" stroke="#1D1B3A" stroke-width="10" stroke-linecap="round" />
+      <line y2="68" stroke="var(--hand, #E8452C)" stroke-width="7" stroke-linecap="round" />
+      <circle r="9" fill="var(--hand, #E8452C)" stroke="#1D1B3A" stroke-width="3" />
+    </symbol>
+
+    <!-- Rice bowl with salmon + chili crisp -->
+    <symbol id="fw-s-bowl" viewBox="0 0 220 160">
+      <ellipse cx="110" cy="62" rx="96" ry="26" fill="#FFF6E5" stroke="#1D1B3A" stroke-width="4" />
+      <g fill="#fff" stroke="#e9dcc5" stroke-width="1.5">
+        <ellipse cx="70" cy="58" rx="9" ry="5" /><ellipse cx="96" cy="50" rx="9" ry="5" /><ellipse cx="130" cy="52" rx="9" ry="5" /><ellipse cx="150" cy="62" rx="9" ry="5" /><ellipse cx="84" cy="70" rx="9" ry="5" /><ellipse cx="120" cy="70" rx="9" ry="5" />
+      </g>
+      <g fill="var(--meat, #ef8a5c)" stroke="#1D1B3A" stroke-width="2">
+        <path d="M78 52 q 14 -10 28 0 q -14 10 -28 0 Z" /><path d="M110 60 q 16 -12 32 0 q -16 12 -32 0 Z" /><path d="M64 64 q 12 -8 24 0 q -12 8 -24 0 Z" />
+      </g>
+      <g fill="#a3201a"><circle cx="92" cy="62" r="3" /><circle cx="128" cy="48" r="2.6" /><circle cx="140" cy="68" r="3" /><circle cx="74" cy="54" r="2.4" /><circle cx="112" cy="54" r="2.4" /></g>
+      <g fill="#6cc39f"><circle cx="102" cy="68" r="3" /><circle cx="134" cy="58" r="3" /><circle cx="80" cy="60" r="3" /></g>
+      <path d="M14 62 Q 20 140 110 144 Q 200 140 206 62 Q 160 92 110 90 Q 60 92 14 62 Z" fill="var(--bowl, #2747A8)" stroke="#1D1B3A" stroke-width="4" stroke-linejoin="round" />
+      <path d="M40 104 q 10 -10 20 0 q 10 10 20 0 q 10 -10 20 0 q 10 10 20 0 q 10 -10 20 0 q 10 10 20 0 q 10 -10 20 0" fill="none" stroke="#FFF6E5" stroke-width="4" stroke-linecap="round" />
+    </symbol>
+
+    <symbol id="fw-s-lemon" viewBox="-30 -30 60 60">
+      <circle r="26" fill="#F6C343" stroke="#1D1B3A" stroke-width="3" />
+      <circle r="19" fill="#fbe08a" />
+      <g stroke="#F6C343" stroke-width="3">
+        <line y2="-19" /><line x2="16.5" y2="-9.5" /><line x2="16.5" y2="9.5" /><line y2="19" /><line x2="-16.5" y2="9.5" /><line x2="-16.5" y2="-9.5" />
+      </g>
+    </symbol>
+
+    <symbol id="fw-s-sandwich" viewBox="0 0 160 120">
+      <path d="M14 96 L 80 18 L 146 96 Z" fill="#d8cbb0" stroke="#5c5850" stroke-width="4" stroke-linejoin="round" />
+      <path d="M26 90 q 12 -8 24 0 q 12 8 24 0 q 12 -8 24 0 q 12 8 24 0" fill="none" stroke="#9fae86" stroke-width="6" stroke-linecap="round" />
+      <path d="M14 96 L 146 96 L 146 104 L 14 104 Z" fill="#c4b696" stroke="#5c5850" stroke-width="4" />
+    </symbol>
+  </defs>
+</svg>
+
+<style>
+  .fw-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+</style>
