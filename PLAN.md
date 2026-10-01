@@ -4,7 +4,9 @@ Goal: move nuuke.us off Webflow onto a codebase we own. Keep the message, concep
 the same, fix the existing gaps, fonts, inconsistencies and load-time problems, and rebuild the
 Projects and Case Studies section so each case study shows the actual process step by step and in 3D.
 
-> Status: audit done (see `audit/REPORT.md`). No site code has been written yet.
+> Status (1 Oct 2026): audit done (`audit/REPORT.md`). Phases 1–3 built: new Astro site with all pages, design
+> system, 3D home page and five interactive concept case studies (RISE, Olio, Heirloom, Fellow, Fishwife). See
+> `README.md` for how to run and edit it. Remaining: owner decisions below, hosting and DNS switch (Phase 4).
 
 ---
 
