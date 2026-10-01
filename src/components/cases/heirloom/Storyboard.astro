@@ -1,0 +1,102 @@
+---
+// Story architecture: the 8 scroll beats as a storyboard strip. Each frame is a button
+// that scrolls the live 3D explainer to that beat.
+import type { Beat } from '../../../data/cases/heirloom';
+interface Props {
+  beats: Beat[];
+}
+const { beats } = Astro.props;
+const acts = [
+  { label: 'Act I · Rock', from: 0, to: 1 },
+  { label: 'Act II · Heat & split', from: 1, to: 3 },
+  { label: 'Act III · Breathe', from: 4, to: 6 },
+  { label: 'Act IV · Loop', from: 7, to: 7 },
+];
+---
+
+<div class="hsb">
+  <ol class="hsb-acts" role="list" aria-label="Narrative acts">
+    {acts.map((a) => <li style={`--from:${a.from};--to:${a.to}`}><span>{a.label}</span></li>)}
+  </ol>
+  <div class="hsb-strip" data-lenis-prevent>
+    <ol role="list" class="hsb-list" data-stagger="0.06">
+      {
+        beats.map((b, i) => (
+          <li class="hsb-item">
+            <button type="button" class="hsb-frame" data-sb={i} aria-label={`Jump the 3D explainer to beat ${i + 1}: ${b.title}`}>
+              <span class="hsb-art" set:html={b.svg} />
+              <span class="hsb-meta">
+                <span class="hsb-n">{String(i + 1).padStart(2, '0')}</span>
+                <span class="hsb-k">{b.kicker}</span>
+              </span>
+              <span class="hsb-title">{b.title}</span>
+              <span class="hsb-shot">{b.shot}</span>
+              <span class="hsb-go">View in 3D ↓</span>
+            </button>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+  <div class="hsb-rules">
+    <div>
+      <p class="t-label">One idea per beat</p>
+      <p class="t-small">Each beat holds the camera still for most of its scroll distance, so captions can be read. The move happens in the last third, and the caption swaps at the midpoint.</p>
+    </div>
+    <div>
+      <p class="t-label">Chemistry as the spine</p>
+      <p class="t-small">Three equations carry the story: CaCO₃ → CaO + CO₂, then CaO + H₂O → Ca(OH)₂, then Ca(OH)₂ + CO₂ → CaCO₃ + H₂O. That last step brings you back to rock.</p>
+    </div>
+    <div>
+      <p class="t-label">End wide</p>
+      <p class="t-small">Beats 1–7 are close-ups. Beat 8 pulls back to the whole diorama, and the conveyor lights up, so the loop is the last thing you see.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-sb]').forEach((b) =>
+    b.addEventListener('click', () => window.dispatchEvent(new CustomEvent('hl:goto', { detail: Number(b.dataset.sb) }))),
+  );
+</script>
+
+<style>
+  .hsb { display: grid; gap: var(--s-5); }
+  .hsb-acts { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(8, 1fr); gap: var(--s-3); }
+  .hsb-acts li { grid-column: calc(var(--from) + 1) / calc(var(--to) + 2); border-top: 2px solid var(--a); padding-top: var(--s-2); }
+  .hsb-acts li:nth-child(2n) { border-color: var(--b); }
+  .hsb-acts span { font: 500 var(--fs-label) / 1.2 var(--font-ui); letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--muted); }
+  .hsb-strip { overflow-x: auto; scrollbar-width: thin; padding-bottom: var(--s-3); }
+  .hsb-list { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: var(--s-3); }
+  .hsb-frame {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    align-content: start;
+    gap: var(--s-2);
+    padding: var(--s-2) var(--s-2) var(--s-4);
+    text-align: left;
+    border-radius: var(--r-md);
+    border: 1px solid var(--line);
+    background: var(--surface);
+    transition: transform var(--dur-2) var(--ease-out), border-color var(--dur-1), background var(--dur-1);
+  }
+  .hsb-frame:hover, .hsb-frame:focus-visible { transform: translateY(-6px); border-color: color-mix(in srgb, var(--a) 70%, transparent); background: var(--surface-2); }
+  .hsb-art { display: block; border-radius: 10px; overflow: hidden; aspect-ratio: 200 / 125; }
+  .hsb-art :global(svg) { width: 100%; height: 100%; }
+  .hsb-meta { display: flex; gap: 6px; align-items: baseline; padding-inline: var(--s-2); font: 500 11px/1.2 var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .hsb-n { color: var(--a); font-weight: 700; }
+  .hsb-title { padding-inline: var(--s-2); font-family: var(--font-display); font-weight: 800; font-size: 0.98rem; line-height: 1.15; letter-spacing: -0.01em; color: var(--ink); }
+  .hsb-shot { padding-inline: var(--s-2); font-size: 0.78rem; line-height: 1.45; color: var(--muted); }
+  .hsb-go { padding-inline: var(--s-2); margin-top: auto; font: 600 11px/1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--a); }
+  .hsb-rules { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-5); padding-top: var(--s-4); border-top: 1px solid var(--line); }
+  .hsb-rules .t-small { margin-top: var(--s-2); }
+  @media (max-width: 1100px) {
+    .hsb-acts { display: none; }
+    .hsb-list { grid-template-columns: repeat(8, 210px); }
+  }
+  @media (max-width: 760px) {
+    .hsb-list { grid-template-columns: repeat(8, 72vw); }
+    .hsb-rules { grid-template-columns: 1fr; }
+  }
+</style>

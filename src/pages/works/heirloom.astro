@@ -1,0 +1,301 @@
+---
+import Case from '../../layouts/Case.astro';
+import Chapter from '../../components/case/Chapter.astro';
+import Brief from '../../components/case/Brief.astro';
+import Personas from '../../components/case/Personas.astro';
+import DesignSystem from '../../components/case/DesignSystem.astro';
+import Metrics from '../../components/case/Metrics.astro';
+import Storyboard from '../../components/cases/heirloom/Storyboard.astro';
+import SiteMap from '../../components/cases/heirloom/SiteMap.astro';
+import BrowserMock from '../../components/cases/heirloom/BrowserMock.astro';
+import LoopExplainer from '../../components/cases/heirloom/LoopExplainer.astro';
+import RoadView from '../../components/cases/heirloom/RoadView.astro';
+import PhoneExplainer from '../../components/cases/heirloom/PhoneExplainer.astro';
+import { bySlug } from '../../data/projects';
+import { beats } from '../../data/cases/heirloom';
+
+const p = bySlug('heirloom');
+const chapters = [
+  { id: 'brief', label: 'Brief' },
+  { id: 'audiences', label: 'Audiences' },
+  { id: 'story', label: 'Story architecture' },
+  { id: 'sitemap', label: 'Site map & wireframes' },
+  { id: 'explainer', label: 'Live 3D explainer' },
+  { id: 'community', label: 'Community layer' },
+  { id: 'mobile', label: 'Mobile' },
+  { id: 'system', label: 'Design system' },
+  { id: 'performance', label: 'Performance & a11y' },
+  { id: 'measure', label: 'Measure' },
+];
+const sources = [
+  { label: 'Heirloom — technology', url: 'https://www.heirloomcarbon.com/technology' },
+  { label: 'Heirloom — Tracy facility unveiled', url: 'https://www.heirloomcarbon.com/news/heirloom-unveils-americas-first-commercial-direct-air-capture-facility' },
+  { label: 'Heirloom — Louisiana facilities', url: 'https://www.heirloomcarbon.com/news/two-direct-air-capture-facilities-in-northwest-louisiana' },
+  { label: 'Heirloom — Microsoft agreement', url: 'https://www.heirloomcarbon.com/news/heirloom-and-microsoft-sign-permanent-co2-removal-deal' },
+  { label: 'Heirloom — Leilac electric kilns', url: 'https://www.heirloomcarbon.com/news/leilac-and-heirloom-sign-agreement-to-employ-electric-kiln-technology' },
+  { label: 'Business Wire — $150M Series B', url: 'https://www.businesswire.com/news/home/20241204489244/en/Heirloom-Raises-150-Million-Series-B-to-Rapidly-Scale-Commercial-Direct-Air-Capture' },
+  { label: 'PR Newswire — $53M Series A', url: 'https://www.prnewswire.com/news-releases/direct-air-capture-startup-heirloom-raises-53mm-series-a-among-the-largest-investments-in-new-carbon-removal-technologies-301505399.html' },
+  { label: 'Canary Media — Tracy plant', url: 'https://www.canarymedia.com/articles/carbon-capture/americas-first-commercial-direct-air-capture-plant-just-got-going' },
+  { label: 'Dezeen — facility opening', url: 'https://www.dezeen.com/2023/11/15/heirloom-opens-first-large-scale-commercial-carbon-capture-plant-in-us/' },
+  { label: 'Fast Company — rocks that capture carbon', url: 'https://www.fastcompany.com/90845600/this-bay-area-startup-uses-rocks-to-suck-carbon-out-of-the-air' },
+  { label: 'The Hill — Microsoft funding', url: 'https://thehill.com/business/4193168-microsoft-funding-new-approach-for-carbon-removal/' },
+  { label: 'MIT Technology Review — DAC hub funding', url: 'https://www.technologyreview.com/2025/10/07/1125207/the-us-is-set-to-cancel-funding-for-two-major-direct-air-capture-plants/' },
+  { label: 'Swissinfo — Louisiana green light', url: 'https://www.swissinfo.ch/eng/climate-solutions/climeworks-receives-surprising-green-light-for-plant-in-louisiana/91326278' },
+  { label: 'US DOE — Project Cypress EIS', url: 'https://www.energy.gov/nepa/doeeis-0567-project-cypress-regional-direct-air-capture-dac-hub-calcasieu-parish-and-caddo' },
+];
+const meta = [
+  { label: 'Brand', value: 'Heirloom, Brisbane, California' },
+  { label: 'Discipline', value: 'Immersive 3D website' },
+  { label: 'Our role', value: 'Narrative, IA, WebGL, UX/UI' },
+  { label: 'Timeline (concept)', value: '6-week design sprint' },
+];
+const personas = [
+  {
+    name: 'Buyer Beth',
+    meta: '44 · Head of Carbon Removal at a tech company',
+    quote: 'Show me it’s permanent, measured and on schedule, and I’ll take it to my board.',
+    goals: ['Proof of permanence she can cite', 'How removal is measured', 'Delivery timelines per contract'],
+    pains: ['Glossy claims without methods', 'Hunting PDFs for one number', 'Timelines that quietly slip'],
+    color: '#e2783a',
+  },
+  {
+    name: 'Councillor Ray',
+    meta: '58 · Caddo Parish',
+    quote: 'People ask me what it’ll look like next door, and whether it’s safe. I need straight answers.',
+    goals: ['What the plant looks like from the road', 'Local jobs and training', 'Safety, in plain language'],
+    pains: ['Jargon and acronyms', 'Renders from angles nobody stands at', 'Dates that change without notice'],
+    color: '#a9c1d9',
+  },
+  {
+    name: 'Engineer Lin',
+    meta: '29 · prospective hire',
+    quote: 'Give me the chemistry and the scale in three minutes and I’ll know if I want in.',
+    goals: ['The whole loop, end to end', 'The real equations', 'A sense of scale: tonnes and metres'],
+    pains: ['Marketing that hides the process', 'Slow, heavy 3D on a laptop', 'No route to the careers page'],
+    color: '#f2efe8',
+  },
+];
+---
+
+<Case project={p} chapters={chapters} sources={sources} meta={meta}>
+  <div slot="hero" class="hl-hero-loop" aria-hidden="true">
+    <svg viewBox="0 0 480 480">
+      <defs>
+        <radialGradient id="hl-kg" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#e2783a" stop-opacity=".7" /><stop offset="1" stop-color="#e2783a" stop-opacity="0" /></radialGradient>
+      </defs>
+      <circle cx="240" cy="240" r="170" fill="none" stroke="#f2efe8" stroke-opacity=".14" stroke-width="22" />
+      <circle cx="240" cy="240" r="170" fill="none" stroke="#e2783a" stroke-width="2" stroke-dasharray="4 10" class="hl-hero-dash" />
+      <g class="hl-hero-spin"><circle cx="240" cy="70" r="9" fill="#f2efe8" /><circle cx="240" cy="70" r="20" fill="none" stroke="#f2efe8" stroke-opacity=".3" /></g>
+      <circle cx="410" cy="240" r="70" fill="url(#hl-kg)" />
+      <g font-family="Inter, sans-serif" text-anchor="middle">
+        <g transform="translate(240 70)"><rect x="-58" y="-62" width="116" height="40" rx="20" fill="#f2efe8" /><text y="-36" font-size="17" font-weight="700" fill="#1e1e1c">CaCO₃</text></g>
+        <g transform="translate(410 240)"><rect x="-50" y="-20" width="100" height="40" rx="20" fill="#e2783a" /><text y="6" font-size="16" font-weight="700" fill="#1e1e1c">900 °C</text></g>
+        <g transform="translate(240 410)"><rect x="-74" y="22" width="148" height="40" rx="20" fill="#2a2a27" stroke="#f2efe8" stroke-opacity=".3" /><text y="48" font-size="16" font-weight="700" fill="#f2efe8">Ca(OH)₂</text></g>
+        <g transform="translate(70 240)"><rect x="-56" y="-20" width="112" height="40" rx="20" fill="#2a2a27" stroke="#a9c1d9" stroke-opacity=".6" /><text y="6" font-size="15" font-weight="700" fill="#a9c1d9">+ air CO₂</text></g>
+        <g transform="translate(352 352)"><text font-size="14" font-weight="600" fill="#f2efe8" fill-opacity=".8">CaO</text></g>
+      </g>
+      <path d="M440 170 C 470 120, 470 80, 450 40" fill="none" stroke="#a9c1d9" stroke-width="2.5" stroke-dasharray="3 7" />
+      <text x="452" y="26" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#a9c1d9" text-anchor="end">CO₂ → storage</text>
+      <text x="240" y="246" font-family="Georgia, serif" font-size="30" fill="#f2efe8" text-anchor="middle">the loop</text>
+    </svg>
+  </div>
+
+  <Chapter id="brief" n="01" label="The brief" title="Explain a 900 °C robot plant as rock breathing in.">
+    <Brief
+      story="Heirloom, founded in 2020 by Shashank Samala and Noah McQueen, builds <strong>direct air capture</strong> plants that use limestone to pull CO₂ out of the air and store it permanently. Its business is selling carbon-removal credits to corporate buyers. The process is a closed calcium loop: heat the rock, capture the CO₂, then let the powder soak up more from the air in about three days."
+      facts={[
+        { v: '2020', k: 'Founded · HQ in Brisbane, California' },
+        { v: 'Nov 2023', k: 'Tracy, CA facility opened, up to 1,000 t CO₂/yr' },
+        { v: '315,000 t', k: 'Microsoft deal, up to this much removal over ~10 years' },
+        { v: '$53M · $150M', k: 'Series A (2022) · Series B (Dec 2024)' },
+      ]}
+      problems={[
+        { title: 'Make chemistry feel like nature', text: 'A 900 °C, robotic, industrial loop should read as “rock breathing in”, without hiding the industry.' },
+        { title: 'Prove it’s real', text: 'Sceptical buyers and journalists need permanence, measurement and delivery shown clearly, not just claimed.' },
+        { title: 'Be a good neighbour', text: 'Louisiana plants are planned. People living nearby need honest answers about jobs, safety and what they’ll see.' },
+      ]}
+      goal="One scroll that takes anyone from a rock to the whole loop, then sends them to the page made for them."
+    />
+  </Chapter>
+
+  <Chapter id="audiences" n="02" label="Audiences & personas" title="A buyer, a councillor and an engineer." intro="Heirloom talks to corporate buyers, investors, policymakers, host communities and future hires. We picked three people whose needs pull the site in different directions. Every page has to work for at least one of them.">
+    <Personas personas={personas} />
+  </Chapter>
+
+  <Chapter id="story" n="03" label="Story architecture" title="Eight beats, four acts, one loop." intro="We storyboarded the explainer before building any 3D. Each frame below is one scroll beat, with the shot and motion we wanted. <strong>Click a frame</strong> to jump the live explainer to that beat.">
+    <Storyboard beats={beats} />
+  </Chapter>
+
+  <Chapter id="sitemap" n="04" label="Site map & wireframes" title="Four doors, one story underneath." intro="The 3D loop sits on Technology and is teased on Home. Each audience then gets its own door. Switch between <strong>Wireframe</strong> and <strong>Hi-fi</strong> to see how each page developed. Wireframe mode shows our annotation notes.">
+    <SiteMap />
+    <BrowserMock />
+  </Chapter>
+
+  <Chapter id="explainer" n="05" label="Live 3D explainer" title="Scroll the limestone loop." intro="This is the experience we’d build for the Technology page, running live. Scroll through eight beats: rock, kiln, split, storage, water, trays, air and loop. Every station is procedural geometry on a single diorama, with no downloaded models or textures." wide>
+    <LoopExplainer beats={beats} />
+  </Chapter>
+
+  <Chapter id="community" n="06" label="Community layer · concept" title="“What will I see from the road?”" intro="For neighbours of the <strong>planned</strong> Louisiana plants, renders shot from a drone don’t help. This concept shows the plant from where people actually stand, at a scale they know, and answers their questions in plain language.">
+    <RoadView />
+  </Chapter>
+
+  <Chapter id="mobile" n="07" label="Mobile version" title="Same loop, sized for a thumb." intro="On a phone, a long pinned scroll gets in the way. The mobile explainer uses the same scene and the same eight beats, stepped one at a time.">
+    <PhoneExplainer beats={beats} />
+  </Chapter>
+
+  <Chapter id="system" n="08" label="Design system" title="Limestone, charcoal and one hot colour.">
+    <DesignSystem
+      colors={[
+        { name: 'Limestone', hex: '#F2EFE8', use: 'Light surfaces, rock, primary text on dark' },
+        { name: 'Mineral', hex: '#8C8A85', use: 'Secondary text, rules, scale figures' },
+        { name: 'Charcoal', hex: '#1E1E1C', use: 'Base background, primary text on light' },
+        { name: 'Kiln', hex: '#D2691E', use: 'Heat, one action per screen' },
+        { name: 'Ember', hex: '#E2783A', use: 'Kiln orange on dark, for contrast' },
+        { name: 'Air', hex: '#A9C1D9', use: 'CO₂ and air flows, “planned” states' },
+      ]}
+      type={[
+        { role: 'Display (serif)', sample: 'Nature, accelerated.', spec: 'Georgia · 46/48 · −0.02em', style: 'font-family:Georgia,serif;font-size:2.6rem;line-height:1.05;letter-spacing:-0.02em' },
+        { role: 'Beat title', sample: 'Three days of breathing', spec: 'Montserrat 900 · 28–52', style: 'font-family:Montserrat;font-weight:900;font-size:1.9rem;letter-spacing:-0.04em' },
+        { role: 'Formula', sample: 'Ca(OH)₂ + CO₂ → CaCO₃ + H₂O', spec: 'Inter 600 · 14/18 · tnum', style: 'font-family:Inter;font-weight:600;font-size:1rem' },
+        { role: 'Label', sample: '03 / 08 · THE SPLIT', spec: 'Inter 500 · 12/16 · +0.14em', style: 'font-family:Inter;font-weight:500;font-size:.75rem;letter-spacing:.14em' },
+      ]}
+      note="Colours are our working approximation, built from public imagery of white mineral powder, metal trays and kiln heat. They are not official Heirloom brand values."
+    >
+      <p class="t-label">Components</p>
+      <div class="hl-ds">
+        <div class="hl-ds-cap">
+          <p class="hl-ds-k"><b>03</b> / 08 · The split</p>
+          <p class="hl-ds-t">Rock in, two things out</p>
+          <p class="hl-ds-f">CaCO₃ → CaO + CO₂</p>
+        </div>
+        <div class="hl-ds-col">
+          <span class="hl-ds-tag">~900 °C</span>
+          <span class="hl-ds-tag hl-ds-tag--air">Pure CO₂ → capture</span>
+          <span class="hl-ds-tag hl-ds-tag--rock">CaO powder</span>
+          <span class="hl-ds-chip">Operating</span>
+          <span class="hl-ds-chip hl-ds-chip--plan">Planned</span>
+        </div>
+        <div class="hl-ds-col">
+          <div class="hl-ds-steps" aria-hidden="true">{beats.map((_, i) => <i class:list={{ on: i === 2, done: i < 2 }} />)}</div>
+          <div class="hl-ds-meter" aria-hidden="true"><i></i></div>
+          <p class="t-small">World tags, status chips, beat progress and live readouts. Tags are coloured by what they label: heat, air or rock.</p>
+        </div>
+      </div>
+    </DesignSystem>
+  </Chapter>
+
+  <Chapter id="performance" n="09" label="Performance & accessibility" title="Breathtaking, on a mid-range phone." intro="3D on a marketing site has to earn its weight. These are the budgets and rules the explainer above is built to. The numbers in the first card come from the scene running in your browser right now.">
+    <div class="hl-perf" data-stagger="0.08">
+      <article class="card hl-perf-live">
+        <p class="t-label">Live in your browser</p>
+        <dl class="hl-live" data-live>
+          <div><dt>Draw calls</dt><dd data-live-k="calls">–</dd></div>
+          <div><dt>Triangles</dt><dd data-live-k="triangles">–</dd></div>
+          <div><dt>Particles</dt><dd data-live-k="particles">–</dd></div>
+          <div><dt>Pixel ratio</dt><dd data-live-k="dpr">–</dd></div>
+        </dl>
+        <p class="t-small" data-live-note>Scroll through the explainer to start the scene, then come back here.</p>
+      </article>
+      <article class="card">
+        <h3 class="t-h4">Draw-call budget</h3>
+        <ul class="hl-budget" role="list">
+          <li><span>Target</span><b>≤ 40 calls · ≤ 150k tris</b></li>
+          <li><span>Rocks</span><b>2 instanced meshes</b></li>
+          <li><span>160 trays</span><b>2 instanced meshes</b></li>
+          <li><span>All particles</span><b>1 Points object</b></li>
+          <li><span>Racks, kiln trim, pipes</span><b>merged geometry</b></li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3 class="t-h4">Load only when needed</h3>
+        <p class="t-body">Three.js is a separate chunk, imported only when the explainer gets within 900 px of the viewport. The renderer caps pixel ratio at 1.75 and stops rendering when the canvas is off-screen or the tab is hidden. Phones get half the particles.</p>
+      </article>
+      <article class="card">
+        <h3 class="t-h4">Reduced motion</h3>
+        <p class="t-body">With <code>prefers-reduced-motion</code>, nothing is pinned or scrubbed. The explainer becomes a fixed panel with eight step buttons, each showing a still frame. A GPU-less device gets the same static frames. If WebGL fails, the storyboard drawings stand in.</p>
+      </article>
+      <article class="card">
+        <h3 class="t-h4">Captions carry the story</h3>
+        <p class="t-body">Every beat is real HTML text: a heading, a paragraph and the formula. The canvas is decorative, so screen readers get the full story in order. The beat steps are buttons with labels and the current one is marked. Live readouts (temperature, height, days) duplicate what the 3D shows.</p>
+      </article>
+      <article class="card">
+        <h3 class="t-h4">Honest motion</h3>
+        <p class="t-body">Scroll position alone sets the camera and every station. Time only drives ambient flicker and particles. Scrolling back rewinds the loop exactly, and a skipped frame never desynchronises the story.</p>
+      </article>
+    </div>
+  </Chapter>
+
+  <Chapter id="measure" n="10" label="Measure" title="How we’d know it worked.">
+    <Metrics
+      metrics={[
+        { name: 'Loop completion', hypothesis: 'Most visitors who start the explainer reach beat 8 and the full-loop view.', how: 'Beat-reached events (1–8) from the scroll trigger, split by device.' },
+        { name: 'Three-minute understanding', hypothesis: 'After one pass, test users can explain kiln → storage → trays → kiln in their own words.', how: 'Five-question comprehension test with recruits like Engineer Lin, run before and after.' },
+        { name: 'Buyer readiness', hypothesis: 'Buyers who visit the permanence and measurement sections ask fewer basic questions on sales calls.', how: 'Buyers-page path analysis plus a short tag in the CRM on first calls.' },
+        { name: 'Neighbour trust', hypothesis: 'The road-view and FAQ cut repeat questions at community sessions.', how: 'FAQ “was this helpful” votes, question themes logged at sessions, and session sign-ups.' },
+        { name: 'Smoothness', hypothesis: 'The explainer holds 60 fps on recent laptops and stays smooth on mid-range phones.', how: 'Real-user frame timing and Core Web Vitals (LCP, INP) by device class.' },
+      ]}
+    />
+  </Chapter>
+</Case>
+
+<script>
+  // Fill the performance card with live numbers from the running scene.
+  const fmt = new Intl.NumberFormat('en-US');
+  const note = document.querySelector<HTMLElement>('[data-live-note]');
+  window.addEventListener('hl:stats', (e) => {
+    const s = (e as CustomEvent<Record<string, number>>).detail;
+    document.querySelectorAll<HTMLElement>('[data-live-k]').forEach((el) => {
+      const k = el.dataset.liveK!;
+      const v = s[k];
+      if (typeof v === 'number') el.textContent = k === 'dpr' ? v.toFixed(2) : fmt.format(v);
+    });
+    if (note) note.textContent = 'Measured each second from the explainer’s renderer (main scene only).';
+  });
+</script>
+
+<style>
+  .hl-hero-loop { width: min(480px, 100%); margin-inline: auto; }
+  .hl-hero-loop svg { width: 100%; height: auto; overflow: visible; }
+  .hl-hero-spin { transform-box: view-box; transform-origin: 240px 240px; animation: hl-spin 14s linear infinite; }
+  .hl-hero-dash { animation: hl-dash 6s linear infinite; }
+  @keyframes hl-spin { to { transform: rotate(360deg); } }
+  @keyframes hl-dash { to { stroke-dashoffset: -140; } }
+
+  .hl-ds { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: var(--s-5); align-items: start; }
+  .hl-ds-cap { display: grid; gap: 10px; padding: var(--s-5); border-radius: var(--r-lg); background: #1e1e1c; border: 1px solid rgb(242 239 232 / 0.12); }
+  .hl-ds-k { font: 500 12px/1 var(--font-ui); letter-spacing: 0.14em; text-transform: uppercase; color: #b9b5ab; }
+  .hl-ds-k b { color: #e2783a; }
+  .hl-ds-t { font-family: var(--font-display); font-weight: 900; font-size: 1.7rem; line-height: 1.05; letter-spacing: -0.04em; color: #f2efe8; }
+  .hl-ds-f { justify-self: start; padding: 6px 12px; border-radius: 10px; border: 1px solid rgb(242 239 232 / 0.16); background: rgb(242 239 232 / 0.06); font: 600 14px/1.2 var(--font-ui); color: #f2efe8; }
+  .hl-ds-col { display: flex; flex-wrap: wrap; gap: 10px; align-content: start; }
+  .hl-ds-tag { padding: 4px 10px; border-radius: 99px; background: #e2783a; color: #1e1e1c; font: 600 12px/1.3 var(--font-ui); }
+  .hl-ds-tag--air { background: #a9c1d9; }
+  .hl-ds-tag--rock { background: #f2efe8; }
+  .hl-ds-chip { padding: 4px 10px; border-radius: 99px; border: 1px solid rgb(242 239 232 / 0.3); font: 500 12px/1.3 var(--font-ui); color: #f2efe8; }
+  .hl-ds-chip--plan { border-style: dashed; color: #a9c1d9; border-color: rgb(169 193 217 / 0.6); }
+  .hl-ds-steps { display: flex; gap: 6px; width: 100%; }
+  .hl-ds-steps i { flex: 1; height: 4px; border-radius: 2px; background: rgb(242 239 232 / 0.15); }
+  .hl-ds-steps i.done { background: #8c8a85; }
+  .hl-ds-steps i.on { background: #e2783a; }
+  .hl-ds-meter { width: 100%; height: 6px; border-radius: 3px; background: rgb(242 239 232 / 0.1); overflow: hidden; }
+  .hl-ds-meter i { display: block; width: 62%; height: 100%; background: linear-gradient(90deg, #d2691e, #f4b06e); }
+
+  .hl-perf { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); }
+  .hl-perf .card { display: grid; gap: var(--s-3); align-content: start; }
+  .hl-perf code { font-family: var(--font-ui); font-size: 0.9em; padding: 1px 6px; border-radius: 6px; background: var(--surface-2); color: var(--ink); }
+  .hl-perf-live { background: linear-gradient(160deg, color-mix(in srgb, var(--a) 16%, var(--surface)), var(--surface)); }
+  .hl-live { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
+  .hl-live dt { font: 500 var(--fs-label) / 1.2 var(--font-ui); letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--muted); }
+  .hl-live dd { font: 700 var(--fs-2xl) / 1.05 var(--font-ui); font-feature-settings: 'tnum' 1; letter-spacing: -0.03em; color: var(--ink); margin-top: 4px; }
+  .hl-budget { list-style: none; padding: 0; display: grid; }
+  .hl-budget li { display: flex; justify-content: space-between; gap: var(--s-3); padding: 10px 0; border-bottom: 1px solid var(--line); font-size: var(--fs-sm); color: var(--ink-2); }
+  .hl-budget li:first-child b { color: var(--a); }
+  .hl-budget b { color: var(--ink); font-weight: 600; text-align: right; }
+  @media (max-width: 1000px) {
+    .hl-perf { grid-template-columns: 1fr 1fr; }
+    .hl-ds { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .hl-perf { grid-template-columns: 1fr; }
+  }
+</style>

@@ -1,0 +1,71 @@
+---
+// Information architecture: four top-level doors, each tuned to one persona.
+// Clicking a page opens it in the browser mock below.
+const cols = [
+  { id: 'home', title: 'Home', who: ['beth', 'ray', 'lin'], kids: ['Hero loop (3D teaser)', 'Proof strip', 'Choose your path'] },
+  { id: 'tech', title: 'Technology', who: ['lin', 'beth'], kids: ['Scroll explainer (8 beats)', 'Chemistry in 3 minutes', 'Facilities: Tracy · Louisiana (planned)', 'Partners'] },
+  { id: 'community', title: 'Community', who: ['ray'], kids: ['What will I see?', 'Jobs & training', 'Safety & permits', 'Project status (dated)'] },
+  { id: 'buyers', title: 'Buyers', who: ['beth'], kids: ['Permanence', 'Measurement', 'Delivery tracker', 'Talk to us'] },
+];
+const people: Record<string, { name: string; c: string }> = {
+  beth: { name: 'Buyer Beth', c: '#e2783a' },
+  ray: { name: 'Councillor Ray', c: '#a9c1d9' },
+  lin: { name: 'Engineer Lin', c: '#f2efe8' },
+};
+---
+
+<div class="hsm">
+  <div class="hsm-root"><span class="hsm-node hsm-node--root">heirloom (concept IA)</span></div>
+  <div class="hsm-cols" data-stagger="0.08">
+    {
+      cols.map((c) => (
+        <div class="hsm-col">
+          <button type="button" class="hsm-node hsm-page" data-page-go={c.id} aria-label={`Open the ${c.title} page in the browser mock`}>
+            <span>{c.title}</span>
+            <span class="hsm-who" aria-hidden="true">{c.who.map((w) => <i style={`--c:${people[w].c}`} />)}</span>
+          </button>
+          <ul role="list">
+            {c.kids.map((k) => <li>{k}</li>)}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+  <p class="hsm-legend t-small">
+    {Object.values(people).map((p) => <span><i style={`--c:${p.c}`} />{p.name}</span>)}
+    <span class="hsm-tip">Click a page to open it below ↓</span>
+  </p>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-page-go]').forEach((b) =>
+    b.addEventListener('click', () => {
+      window.dispatchEvent(new CustomEvent('hl:page', { detail: b.dataset.pageGo }));
+      document.querySelector('[data-bm]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }),
+  );
+</script>
+
+<style>
+  .hsm { display: grid; gap: var(--s-4); margin-bottom: var(--s-7); }
+  .hsm-root { display: flex; justify-content: center; position: relative; padding-bottom: var(--s-5); }
+  .hsm-root::after { content: ''; position: absolute; left: 12.5%; right: 12.5%; bottom: 0; height: var(--s-5); border: 1px solid var(--line-strong); border-bottom: 0; border-radius: 12px 12px 0 0; }
+  .hsm-root::before { content: ''; position: absolute; left: 50%; bottom: var(--s-5); height: 0; }
+  .hsm-node { display: inline-flex; align-items: center; gap: var(--s-3); padding: 10px 16px; border-radius: 12px; border: 1px solid var(--line-strong); background: var(--surface); font: 600 var(--fs-sm) / 1.2 var(--font-ui); color: var(--ink); }
+  .hsm-node--root { background: var(--a); color: #1e1e1c; border-color: transparent; position: relative; z-index: 1; }
+  .hsm-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s-4); }
+  .hsm-col { display: grid; gap: var(--s-3); align-content: start; }
+  .hsm-page { justify-content: space-between; width: 100%; transition: border-color var(--dur-1), transform var(--dur-2) var(--ease-out); }
+  .hsm-page:hover { border-color: var(--a); transform: translateY(-3px); }
+  .hsm-who { display: flex; gap: 4px; }
+  .hsm-who i, .hsm-legend i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); display: inline-block; }
+  .hsm-col ul { list-style: none; padding: 0 0 0 var(--s-4); margin-left: var(--s-3); border-left: 1px dashed var(--line-strong); display: grid; gap: var(--s-2); font-size: var(--fs-sm); color: var(--ink-2); }
+  .hsm-legend { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-5); align-items: center; }
+  .hsm-legend span { display: inline-flex; gap: 8px; align-items: center; }
+  .hsm-tip { margin-left: auto; color: var(--a); }
+  @media (max-width: 800px) {
+    .hsm-root::after { display: none; }
+    .hsm-cols { grid-template-columns: 1fr 1fr; }
+    .hsm-tip { margin-left: 0; }
+  }
+</style>

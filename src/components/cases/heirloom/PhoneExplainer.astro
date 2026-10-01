@@ -1,0 +1,163 @@
+---
+// Mobile version: the same 3D scene in a phone, stepped by tap or swipe instead of scroll scrub.
+import type { Beat } from '../../../data/cases/heirloom';
+interface Props {
+  beats: Beat[];
+}
+const { beats } = Astro.props;
+const rules = [
+  { t: 'Tap or swipe, not scrub', d: 'Long pinned scroll fights thumb momentum. On phones each beat is one step, with the scene easing between them.' },
+  { t: 'Caption as a sheet', d: 'The 3D takes the top 55% of the screen. The caption sits below it, so text never covers the subject.' },
+  { t: 'Half the particles', d: 'Particle counts halve under 760 px, with the same shaders and draw calls. The scene pauses when it is off-screen.' },
+  { t: 'Thumb-zone controls', d: 'Back and next sit at the bottom in 48 px targets. The progress bar at the top is also tappable.' },
+];
+---
+
+<div class="hlp" data-hlp>
+  <div class="hlp-device">
+    <div class="hlp-screen">
+      <div class="hlp-status" aria-hidden="true"><span>9:41</span><span class="hlp-island"></span><span>● ● ▮</span></div>
+      <div class="hlp-top">
+        <span class="hlp-brand">Heirloom</span>
+        <ol class="hlp-bars" role="list" aria-label="Beats">
+          {beats.map((b, i) => <li><button type="button" data-hlp-go={i} aria-label={`Beat ${i + 1}: ${b.title}`}><i /></button></li>)}
+        </ol>
+      </div>
+      <div class="hlp-canvas-wrap" data-hlp-swipe>
+        <canvas class="hlp-canvas" data-hlp-canvas aria-hidden="true"></canvas>
+        <div class="hlp-fallback" aria-hidden="true">{beats.map((b, i) => <div data-hlp-fb={i} set:html={b.svg} />)}</div>
+      </div>
+      <div class="hlp-sheet" aria-live="polite">
+        {
+          beats.map((b, i) => (
+            <div class:list={['hlp-cap', { 'is-on': i === 0 }]} data-hlp-cap={i}>
+              <p class="hlp-k">{String(i + 1).padStart(2, '0')} · {b.kicker}</p>
+              <p class="hlp-t">{b.title}</p>
+              <p class="hlp-s">{b.short}</p>
+            </div>
+          ))
+        }
+        <div class="hlp-nav">
+          <button type="button" class="hlp-btn hlp-btn--ghost" data-hlp-prev aria-label="Previous beat">←</button>
+          <button type="button" class="hlp-btn" data-hlp-next><span data-hlp-next-l>Next</span> →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hlp-notes">
+    <p class="t-label">Mobile rules</p>
+    <ol role="list" data-stagger="0.08">
+      {rules.map((r, i) => <li><span class="t-num">0{i + 1}</span><div><h3 class="t-h4">{r.t}</h3><p class="t-body">{r.d}</p></div></li>)}
+    </ol>
+    <p class="t-small">This is the live scene running in the phone, so tap through it. It advances by itself until you touch it.</p>
+  </div>
+</div>
+
+<script>
+  import { reducedMotion, whenNear } from '../../../scripts/motion';
+  import type { LoopScene } from '../../../scripts/three/heirloom';
+
+  const root = document.querySelector<HTMLElement>('[data-hlp]');
+  if (root) {
+    const N = 8;
+    const canvas = root.querySelector<HTMLCanvasElement>('[data-hlp-canvas]')!;
+    const caps = [...root.querySelectorAll<HTMLElement>('[data-hlp-cap]')];
+    const fbs = [...root.querySelectorAll<HTMLElement>('[data-hlp-fb]')];
+    const bars = [...root.querySelectorAll<HTMLButtonElement>('[data-hlp-go]')];
+    const nextL = root.querySelector<HTMLElement>('[data-hlp-next-l]')!;
+    let scene: LoopScene | null = null;
+    let idx = 0;
+    let touched = false;
+    let visible = false;
+    const pos = (i: number) => (i === N - 1 ? 7.95 : i + 0.72) / N;
+
+    const go = (i: number) => {
+      idx = (i + N) % N;
+      caps.forEach((c, j) => c.classList.toggle('is-on', j === idx));
+      fbs.forEach((c, j) => c.classList.toggle('is-on', j === idx));
+      bars.forEach((b, j) => {
+        b.classList.toggle('is-done', j < idx);
+        b.classList.toggle('is-on', j === idx);
+        if (j === idx) b.setAttribute('aria-current', 'step');
+        else b.removeAttribute('aria-current');
+      });
+      nextL.textContent = idx === N - 1 ? 'Replay' : 'Next';
+      scene?.setProgress(pos(idx), reducedMotion);
+    };
+    const user = (fn: () => void) => () => {
+      touched = true;
+      fn();
+    };
+    root.querySelector('[data-hlp-next]')!.addEventListener('click', user(() => go(idx + 1)));
+    root.querySelector('[data-hlp-prev]')!.addEventListener('click', user(() => go(idx - 1)));
+    bars.forEach((b, i) => b.addEventListener('click', user(() => go(i))));
+
+    // Horizontal swipe on the scene.
+    const swipe = root.querySelector<HTMLElement>('[data-hlp-swipe]')!;
+    let sx = 0;
+    let sy = 0;
+    swipe.addEventListener('pointerdown', (e) => {
+      sx = e.clientX;
+      sy = e.clientY;
+    });
+    swipe.addEventListener('pointerup', (e) => {
+      const dx = e.clientX - sx;
+      if (Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(e.clientY - sy)) user(() => go(idx + (dx < 0 ? 1 : -1)))();
+    });
+
+    new IntersectionObserver((en) => (visible = en[0]?.isIntersecting ?? false), { threshold: 0.4 }).observe(root);
+    if (!reducedMotion) setInterval(() => !touched && visible && !document.hidden && go(idx + 1), 4800);
+
+    go(0);
+    whenNear(root, () =>
+      import('../../../scripts/three/heirloom')
+        .then((m) => {
+          scene = m.init(canvas, { compact: true });
+          scene.setProgress(pos(idx), true);
+          root.classList.add('is-live');
+        })
+        .catch(() => root.classList.add('is-fallback')),
+    );
+  }
+</script>
+
+<style>
+  .hlp { display: grid; grid-template-columns: auto 1fr; gap: var(--s-9); align-items: center; }
+  .hlp-device { width: min(340px, 100%); justify-self: center; padding: 11px; border-radius: 52px; background: linear-gradient(150deg, #3a3a3e, #121214); box-shadow: 0 50px 110px -30px rgb(0 0 0 / 0.9), inset 0 0 0 1px rgb(255 255 255 / 0.08); }
+  .hlp-screen { position: relative; aspect-ratio: 9 / 19.5; border-radius: 42px; overflow: hidden; background: #161615; display: grid; grid-template-rows: auto auto 1fr auto; color: #f2efe8; font-family: Inter, system-ui, sans-serif; }
+  .hlp-status { display: flex; justify-content: space-between; align-items: center; padding: 12px 26px 4px; font-size: 12px; font-weight: 600; }
+  .hlp-island { width: 86px; height: 24px; border-radius: 14px; background: #000; }
+  .hlp-top { display: grid; gap: 8px; padding: 6px 18px 0; }
+  .hlp-brand { font-family: Georgia, serif; font-size: 17px; }
+  .hlp-bars { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; }
+  .hlp-bars button { display: block; width: 100%; padding: 8px 0; }
+  .hlp-bars i { display: block; height: 3px; border-radius: 2px; background: rgb(242 239 232 / 0.18); transition: background var(--dur-1); }
+  .hlp-bars .is-done i { background: rgb(242 239 232 / 0.55); }
+  .hlp-bars .is-on i { background: #e2783a; }
+  .hlp-canvas-wrap { position: relative; min-height: 0; touch-action: pan-y; background: radial-gradient(90% 80% at 50% 45%, #2a2926, #161615 70%); }
+  .hlp-canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 1s; }
+  .is-live .hlp-canvas { opacity: 1; }
+  .hlp-fallback { position: absolute; inset: 10%; display: none; }
+  .is-fallback .hlp-fallback { display: grid; }
+  .hlp-fallback > div { grid-area: 1 / 1; opacity: 0; }
+  .hlp-fallback > div.is-on { opacity: 1; }
+  .hlp-fallback :global(svg) { width: 100%; height: 100%; }
+  .hlp-sheet { position: relative; display: grid; gap: 12px; padding: 16px 18px 26px; border-radius: 24px 24px 0 0; background: #232321; margin-top: -24px; z-index: 1; }
+  .hlp-sheet > .hlp-cap { grid-area: 1 / 1; }
+  .hlp-cap { display: grid; gap: 4px; opacity: 0; visibility: hidden; transform: translateY(8px); transition: opacity 0.4s, transform 0.5s var(--ease-out); align-content: start; min-height: 112px; }
+  .hlp-cap.is-on { opacity: 1; visibility: visible; transform: none; }
+  .hlp-k { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #e2783a; font-weight: 700; }
+  .hlp-t { font-family: Georgia, serif; font-size: 21px; line-height: 1.15; }
+  .hlp-s { font-size: 13px; line-height: 1.45; color: #c9c5bb; }
+  .hlp-nav { display: grid; grid-template-columns: 48px 1fr; gap: 8px; }
+  .hlp-btn { height: 48px; border-radius: 16px; background: #f2efe8; color: #1e1e1c; font-weight: 700; font-size: 15px; }
+  .hlp-btn--ghost { background: rgb(242 239 232 / 0.1); color: #f2efe8; }
+  .hlp-notes { display: grid; gap: var(--s-5); max-width: 560px; }
+  .hlp-notes ol { list-style: none; padding: 0; display: grid; gap: var(--s-5); }
+  .hlp-notes li { display: grid; grid-template-columns: auto 1fr; gap: var(--s-4); }
+  .hlp-notes .t-num { color: var(--a); font-weight: 700; padding-top: 4px; }
+  .hlp-notes .t-body { margin-top: var(--s-1); }
+  @media (max-width: 900px) {
+    .hlp { grid-template-columns: 1fr; gap: var(--s-7); }
+  }
+</style>

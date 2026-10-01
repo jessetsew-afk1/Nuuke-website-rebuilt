@@ -1,0 +1,367 @@
+---
+/*
+  Desktop browser mock of the concept site with four page tabs and a
+  Wireframe ↔ Hi-fi switch that re-renders the SAME markup at each fidelity.
+  Fidelity classes:  .t text run · .img illustration · .ui card/container · .hb button · .note wireframe annotation
+*/
+const tabs = [
+  { id: 'home', label: 'Home', path: '/' },
+  { id: 'tech', label: 'Technology', path: '/technology' },
+  { id: 'community', label: 'Community', path: '/community/louisiana' },
+  { id: 'buyers', label: 'Buyers', path: '/buyers' },
+];
+const steps = ['Limestone', 'Electric kiln', 'The split', 'Storage', 'Hydration', 'Trays', 'Air, 3 days', 'Loop'];
+const navItems = ['Technology', 'Community', 'Buyers', 'Company'];
+---
+
+<div class="bm" data-bm data-fid="hifi">
+  <div class="bm-controls">
+    <div class="bm-fid" role="radiogroup" aria-label="Design fidelity">
+      <button type="button" role="radio" aria-checked="false" data-bm-fid="wire">Wireframe</button>
+      <button type="button" role="radio" aria-checked="true" data-bm-fid="hifi">Hi-fi</button>
+    </div>
+    <p class="t-small bm-cap" data-bm-cap>Hi-fi: our proposed visual language, in limestone, charcoal and kiln orange.</p>
+  </div>
+
+  <div class="bm-window">
+    <div class="bm-chrome">
+      <span class="bm-lights" aria-hidden="true"><i></i><i></i><i></i></span>
+      <div class="bm-tabs" role="tablist" aria-label="Concept site pages">
+        {
+          tabs.map((t, i) => (
+            <button type="button" role="tab" id={`bm-tab-${t.id}`} aria-controls={`bm-page-${t.id}`} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1} data-bm-tab={t.id} data-path={t.path}>
+              {t.label}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+    <div class="bm-bar"><span class="bm-url" data-bm-url>heirloom · concept prototype /</span></div>
+    <div class="bm-viewport" data-bm-viewport tabindex="0" aria-label="Scrollable page preview">
+      <div class="bm-pages" data-bm-pages>
+        <!-- HOME -->
+        <section class="hl-page is-on" id="bm-page-home" role="tabpanel" aria-labelledby="bm-tab-home" data-bm-page="home">
+          <header class="hl-nav">
+            <span class="t hl-logo">Heirloom</span>
+            <nav class="hl-links">{navItems.map((n) => <span class="t">{n}</span>)}</nav>
+            <span class="hb hl-btn hl-btn--sm"><span class="t">Buy removal</span></span>
+          </header>
+          <div class="hl-hero">
+            <div class="hl-hero-copy">
+              <p class="t hl-eyebrow">Direct air capture, made from rock</p>
+              <p class="t hl-h1">Restoring balance to our atmosphere.</p>
+              <p class="t hl-p">In nature, limestone absorbs CO₂ over years. This process speeds that up to days, then stores the CO₂ for good.</p>
+              <div class="hl-row">
+                <span class="hb hl-btn"><span class="t">Scroll the loop</span></span>
+                <span class="hb hl-btn hl-btn--ghost"><span class="t">For buyers</span></span>
+              </div>
+            </div>
+            <div class="img hl-hero-art">
+              <svg viewBox="0 0 400 300" aria-hidden="true"><defs><radialGradient id="hlg" cx=".3" cy=".75" r=".5"><stop offset="0" stop-color="#e2783a" stop-opacity=".55" /><stop offset="1" stop-color="#e2783a" stop-opacity="0" /></radialGradient></defs><rect width="400" height="300" fill="#1e1e1c" /><circle cx="120" cy="225" r="150" fill="url(#hlg)" /><g stroke="#f2efe8" stroke-opacity=".5">{Array.from({ length: 14 }, (_, i) => <path d={`M230 ${250 - i * 15} H330`} />)}</g><path d="M230 260 V36 M330 260 V36" stroke="#f2efe8" stroke-width="3" /><g fill="#f2efe8"><path d="M40 260 L58 226 L92 218 L112 238 L104 260Z" /><path d="M100 260 L114 236 L142 232 L150 260Z" /></g><rect x="150" y="150" width="44" height="110" rx="6" fill="#34332f" /><rect x="158" y="160" width="28" height="94" rx="4" fill="#e2783a" /><path d="M0 260 H400" stroke="#8c8a85" /></svg>
+            </div>
+            <span class="note" data-n="1">Poster frame of the 3D loop is the LCP image; WebGL loads after.</span>
+          </div>
+          <div class="hl-proof">
+            <div class="ui hl-stat"><span class="t hl-stat-n">Nov 2023</span><span class="t hl-small">Tracy, California: what Heirloom calls America’s first commercial DAC facility</span></div>
+            <div class="ui hl-stat"><span class="t hl-stat-n">1,000 t</span><span class="t hl-small">Tracy’s capacity, up to this much CO₂ a year</span></div>
+            <div class="ui hl-stat"><span class="t hl-stat-n">1 billion t</span><span class="t hl-small">Company goal: CO₂ removed by 2035</span></div>
+            <span class="note" data-n="2">Proof strip: three sourced facts, each one links to its source.</span>
+          </div>
+          <div class="hl-paths">
+            <p class="t hl-h3">Where do you want to start?</p>
+            <div class="hl-grid3">
+              <div class="ui hl-card"><span class="hl-tag" style="--c:#e2783a"><span class="t">Buyers</span></span><span class="t hl-h4">I buy carbon removal</span><span class="t hl-small">Permanence, measurement and delivery, in one page.</span></div>
+              <div class="ui hl-card"><span class="hl-tag" style="--c:#a9c1d9"><span class="t">Neighbours</span></span><span class="t hl-h4">I live near a planned plant</span><span class="t hl-small">What you’ll see, jobs, safety, and how to ask us.</span></div>
+              <div class="ui hl-card"><span class="hl-tag" style="--c:#8c8a85"><span class="t">Curious</span></span><span class="t hl-h4">How does rock catch CO₂?</span><span class="t hl-small">The whole loop in eight scroll beats.</span></div>
+            </div>
+            <span class="note" data-n="3">Three doors, one per persona. No mega-menu.</span>
+          </div>
+          <footer class="hl-foot"><span class="t">Heirloom · concept by NUUKE</span><span class="t">Technology · Community · Buyers · Company</span></footer>
+        </section>
+
+        <!-- TECHNOLOGY -->
+        <section class="hl-page" id="bm-page-tech" role="tabpanel" aria-labelledby="bm-tab-tech" data-bm-page="tech" hidden>
+          <header class="hl-nav">
+            <span class="t hl-logo">Heirloom</span>
+            <nav class="hl-links">{navItems.map((n, i) => <span class:list={['t', { 'is-on': i === 0 }]}>{n}</span>)}</nav>
+            <span class="hb hl-btn hl-btn--sm"><span class="t">Buy removal</span></span>
+          </header>
+          <div class="hl-intro">
+            <p class="t hl-eyebrow">Technology</p>
+            <p class="t hl-h2">Nature, accelerated.</p>
+            <p class="t hl-p">The same calcium loop, cycle after cycle: heat the rock, capture the CO₂, then let the powder breathe again.</p>
+          </div>
+          <div class="hl-explainer">
+            <div class="img hl-ex-canvas">
+              <svg viewBox="0 0 520 300" aria-hidden="true"><rect width="520" height="300" fill="#161615" /><ellipse cx="300" cy="230" rx="210" ry="46" fill="#262624" /><rect x="190" y="120" width="40" height="100" rx="6" fill="#34332f" /><rect x="198" y="130" width="24" height="86" fill="#e2783a" /><path d="M210 118 C 220 70, 300 60, 330 120" stroke="#a9c1d9" stroke-width="3" stroke-dasharray="3 6" fill="none" /><rect x="320" y="120" width="34" height="90" rx="16" fill="#d9d7d0" /><g stroke="#f2efe8" stroke-opacity=".5">{Array.from({ length: 8 }, (_, i) => <path d={`M390 ${210 - i * 16} H460`} />)}</g><text x="24" y="40" fill="#f2efe8" font-family="Georgia, serif" font-size="22">03 · The split</text><text x="24" y="66" fill="#b9b5ab" font-family="Inter, sans-serif" font-size="12">CaCO₃ → CaO + CO₂</text></svg>
+            </div>
+            <ol class="ui hl-ex-steps" role="list">
+              {steps.map((s, i) => <li class:list={{ 'is-on': i === 2 }}><span class="t hl-small">{String(i + 1).padStart(2, '0')}</span><span class="t">{s}</span></li>)}
+            </ol>
+            <span class="note" data-n="4">Pinned canvas. Captions are real HTML text; steps double as skip links.</span>
+          </div>
+          <div class="hl-chem">
+            <p class="t hl-h3">Chemistry in three lines</p>
+            <div class="hl-grid3">
+              <div class="ui hl-card"><span class="t hl-small">1 · Kiln, ~900 °C</span><span class="t hl-eq">CaCO₃ → CaO + CO₂</span></div>
+              <div class="ui hl-card"><span class="t hl-small">2 · Hydration</span><span class="t hl-eq">CaO + H₂O → Ca(OH)₂</span></div>
+              <div class="ui hl-card"><span class="t hl-small">3 · Trays, ~3 days</span><span class="t hl-eq">Ca(OH)₂ + CO₂ → CaCO₃ + H₂O</span></div>
+            </div>
+            <span class="note" data-n="5">For Engineer Lin: the whole process on one screen.</span>
+          </div>
+          <div class="hl-grid2">
+            <div class="ui hl-card"><span class="hl-tag" style="--c:#3e8e5e"><span class="t">Operating</span></span><span class="t hl-h4">Tracy, California</span><span class="t hl-small">Opened Nov 2023 · up to 1,000 t CO₂/yr · renewable power from Ava Community Energy · CO₂ stored in concrete with CarbonCure</span></div>
+            <div class="ui hl-card"><span class="hl-tag hl-tag--dash" style="--c:#e2783a"><span class="t">Planned</span></span><span class="t hl-h4">Shreveport, Louisiana</span><span class="t hl-small">Port of Caddo-Bossier · geologic storage planned · Heirloom’s part of Project Cypress, a DOE regional DAC hub</span></div>
+          </div>
+        </section>
+
+        <!-- COMMUNITY -->
+        <section class="hl-page" id="bm-page-community" role="tabpanel" aria-labelledby="bm-tab-community" data-bm-page="community" hidden>
+          <header class="hl-nav">
+            <span class="t hl-logo">Heirloom</span>
+            <nav class="hl-links">{navItems.map((n, i) => <span class:list={['t', { 'is-on': i === 1 }]}>{n}</span>)}</nav>
+            <span class="hb hl-btn hl-btn--sm"><span class="t">Ask a question</span></span>
+          </header>
+          <div class="hl-intro">
+            <p class="t hl-eyebrow">Community · Caddo Parish, Louisiana</p>
+            <p class="t hl-h2">A planned neighbour, explained plainly.</p>
+          </div>
+          <div class="ui hl-status">
+            <span class="t hl-small"><b>Status: planned.</b> Dated updates, no promises.</span>
+            <ol class="hl-timeline" role="list">
+              <li><span class="t hl-small">Mar 2026</span><span class="t">Final EIS published (DOE)</span></li>
+              <li><span class="t hl-small">Apr 2026</span><span class="t">Record of Decision (DOE)</span></li>
+              <li class="is-tbc"><span class="t hl-small">Next</span><span class="t">Build timeline: to be confirmed</span></li>
+            </ol>
+            <span class="note" data-n="6">The status banner carries a date and is reviewed every month.</span>
+          </div>
+          <div class="hl-grid2">
+            <div class="img hl-road">
+              <svg viewBox="0 0 400 200" aria-hidden="true"><rect width="400" height="200" fill="#cfe0ea" /><rect y="140" width="400" height="60" fill="#9fae86" /><g fill="#6f8a5a">{Array.from({ length: 12 }, (_, i) => <circle cx={i * 36 + 10} cy={142} r={16} />)}</g><g stroke="#8c8a85" stroke-width="2"><path d="M220 140 V70 M262 140 V70 M290 140 V70 M332 140 V70" /></g><g stroke="#8c8a85" opacity=".7">{Array.from({ length: 7 }, (_, i) => <path d={`M220 ${134 - i * 10} H262 M290 ${134 - i * 10} H332`} />)}</g><rect y="172" width="400" height="20" fill="#5d5c58" /></svg>
+            </div>
+            <div class="ui hl-faq">
+              <p class="t hl-h4">Questions neighbours ask</p>
+              {['What will I see from the road?', 'Does the kiln burn fuel?', 'Where does the CO₂ go?', 'What jobs will there be?'].map((q) => <p class="hl-q"><span class="t">{q}</span><span class="t">+</span></p>)}
+            </div>
+          </div>
+          <div class="hl-grid2">
+            <div class="ui hl-card"><span class="t hl-h4">Jobs & training</span><span class="t hl-small">Roles, skills and timing, published once Heirloom confirms them.</span></div>
+            <div class="ui hl-card hl-form"><span class="t hl-h4">Come to a session</span><span class="hl-input"><span class="t">Your email</span></span><span class="hb hl-btn hl-btn--sm"><span class="t">Notify me</span></span></div>
+          </div>
+        </section>
+
+        <!-- BUYERS -->
+        <section class="hl-page" id="bm-page-buyers" role="tabpanel" aria-labelledby="bm-tab-buyers" data-bm-page="buyers" hidden>
+          <header class="hl-nav">
+            <span class="t hl-logo">Heirloom</span>
+            <nav class="hl-links">{navItems.map((n, i) => <span class:list={['t', { 'is-on': i === 2 }]}>{n}</span>)}</nav>
+            <span class="hb hl-btn hl-btn--sm"><span class="t">Talk to us</span></span>
+          </header>
+          <div class="hl-intro">
+            <p class="t hl-eyebrow">For carbon-removal buyers</p>
+            <p class="t hl-h2">Removal you can check.</p>
+            <p class="t hl-p">Three questions every buyer asks, answered on one page: is it permanent, is it measured, and when will it be delivered?</p>
+          </div>
+          <div class="hl-grid3">
+            <div class="ui hl-card"><span class="t hl-small">01 · Permanence</span><span class="t hl-h4">Stored as rock</span><span class="t hl-small">Mineralised in concrete (Tracy, with CarbonCure). Geologic storage is planned in Louisiana.</span></div>
+            <div class="ui hl-card"><span class="t hl-small">02 · Measurement</span><span class="t hl-h4">Every tray tracked</span><span class="t hl-small">Software models where each tray is in its cycle. Method documents linked here.</span></div>
+            <div class="ui hl-card"><span class="t hl-small">03 · Delivery</span><span class="t hl-h4">Tonnes, by quarter</span><span class="t hl-small">A tracker per contract, signed in.</span></div>
+          </div>
+          <div class="ui hl-tracker">
+            <div class="hl-tracker-head"><span class="t hl-h4">Delivery tracker</span><span class="hl-tag hl-tag--dash" style="--c:#8c8a85"><span class="t">Illustrative data</span></span></div>
+            <div class="img hl-bars">{[30, 42, 38, 55, 61, 70, 66, 82].map((h) => <i style={`height:${h}%`} />)}</div>
+            <span class="note" data-n="7">Sample data in the mock only. Real figures appear behind buyer sign-in.</span>
+          </div>
+          <div class="ui hl-card hl-wide"><span class="t hl-small">Public agreement</span><span class="t hl-h4">Microsoft: up to 315,000 t of CO₂ removal over about 10 years</span></div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-bm]').forEach((root) => {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-bm-tab]')];
+    const pages = [...root.querySelectorAll<HTMLElement>('[data-bm-page]')];
+    const fids = [...root.querySelectorAll<HTMLButtonElement>('[data-bm-fid]')];
+    const url = root.querySelector<HTMLElement>('[data-bm-url]')!;
+    const cap = root.querySelector<HTMLElement>('[data-bm-cap]')!;
+    const vp = root.querySelector<HTMLElement>('[data-bm-viewport]')!;
+    const inner = root.querySelector<HTMLElement>('[data-bm-pages]')!;
+    const caps: Record<string, string> = {
+      wire: 'Wireframe: structure, hierarchy and our notes. Grey bars are text and crossed boxes are imagery.',
+      hifi: 'Hi-fi: our proposed visual language, in limestone, charcoal and kiln orange.',
+    };
+
+    const show = (id: string, focus = false) => {
+      tabs.forEach((t) => {
+        const on = t.dataset.bmTab === id;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        if (on) {
+          url.textContent = 'heirloom · concept prototype ' + (t.dataset.path || '/');
+          if (focus) t.focus();
+        }
+      });
+      pages.forEach((p) => (p.hidden = p.dataset.bmPage !== id));
+      vp.scrollTop = 0;
+    };
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => show(t.dataset.bmTab!));
+      t.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+        const n = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+        show(n.dataset.bmTab!, true);
+      });
+    });
+    fids.forEach((f) =>
+      f.addEventListener('click', () => {
+        const v = f.dataset.bmFid!;
+        root.dataset.fid = v;
+        fids.forEach((x) => x.setAttribute('aria-checked', String(x === f)));
+        cap.textContent = caps[v];
+      }),
+    );
+    window.addEventListener('hl:page', (e) => show((e as CustomEvent<string>).detail));
+
+    // Render pages at a desktop design width and zoom them to fit the frame.
+    const fit = () => {
+      const w = vp.clientWidth;
+      const design = Math.min(1120, Math.max(760, w));
+      inner.style.width = design + 'px';
+      inner.style.setProperty('zoom', String(w / design));
+    };
+    fit();
+    new ResizeObserver(fit).observe(vp);
+  });
+</script>
+
+<style>
+  .bm { display: grid; gap: var(--s-4); }
+  .bm-controls { display: flex; flex-wrap: wrap; gap: var(--s-3) var(--s-5); align-items: center; }
+  .bm-fid { display: inline-flex; padding: 4px; border-radius: 99px; border: 1px solid var(--line-strong); background: var(--surface); }
+  .bm-fid button { padding: 8px 16px; border-radius: 99px; font: 600 var(--fs-sm) / 1 var(--font-ui); color: var(--ink-2); transition: background var(--dur-1), color var(--dur-1); }
+  .bm-fid button[aria-checked='true'] { background: var(--a); color: #1e1e1c; }
+  .bm-cap { max-width: 60ch; }
+
+  .bm-window { border-radius: 14px; overflow: hidden; border: 1px solid var(--line-strong); background: #2b2b2e; box-shadow: 0 40px 100px -30px rgb(0 0 0 / 0.8); }
+  .bm-chrome { display: flex; align-items: flex-end; gap: var(--s-4); padding: 10px 12px 0; background: #1c1c1f; }
+  .bm-lights { display: flex; gap: 6px; padding-bottom: 12px; }
+  .bm-lights i { width: 11px; height: 11px; border-radius: 50%; background: #3d3d42; }
+  .bm-lights i:first-child { background: #e2783a; }
+  .bm-tabs { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+  .bm-tabs button { padding: 9px 16px; border-radius: 10px 10px 0 0; font: 500 13px/1.2 var(--font-ui); color: #9a9aa3; white-space: nowrap; transition: background var(--dur-1), color var(--dur-1); }
+  .bm-tabs button:hover { color: #fff; }
+  .bm-tabs button[aria-selected='true'] { background: #2b2b2e; color: #fff; }
+  .bm-bar { padding: 8px 12px; background: #2b2b2e; border-bottom: 1px solid #1c1c1f; }
+  .bm-url { display: block; padding: 6px 14px; border-radius: 99px; background: #1c1c1f; color: #9a9aa3; font: 400 12px/1.3 var(--font-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bm-viewport { height: clamp(440px, 64vh, 660px); overflow-y: auto; background: #f2efe8; }
+  .bm-viewport:focus-visible { outline-offset: -3px; }
+
+  /* ---------- Heirloom concept site (hi-fi) ---------- */
+  .hl-page { position: relative; background: #f2efe8; color: #1e1e1c; font-family: Inter, system-ui, sans-serif; padding: 0 48px 40px; display: grid; gap: 40px; }
+  .hl-nav { display: flex; align-items: center; gap: 32px; height: 72px; border-bottom: 1px solid rgb(30 30 28 / 0.12); }
+  .hl-logo { font-family: Georgia, 'Times New Roman', serif; font-size: 24px; letter-spacing: -0.01em; }
+  .hl-links { display: flex; gap: 24px; margin-left: auto; font-size: 14px; color: #55534e; }
+  .hl-links .is-on { color: #1e1e1c; text-decoration: underline; text-decoration-color: #d2691e; text-underline-offset: 6px; }
+  .hl-btn { display: inline-flex; align-items: center; height: 46px; padding: 0 22px; border-radius: 99px; background: #1e1e1c; color: #f2efe8; font-size: 14px; font-weight: 600; }
+  .hl-btn--sm { height: 38px; padding: 0 16px; font-size: 13px; background: #d2691e; color: #1e1e1c; }
+  .hl-btn--ghost { background: transparent; color: #1e1e1c; box-shadow: inset 0 0 0 1.5px #1e1e1c; }
+  .hl-hero { position: relative; display: grid; grid-template-columns: 1.05fr 1fr; gap: 40px; align-items: center; padding-top: 16px; }
+  .hl-hero-copy { display: grid; gap: 18px; }
+  .hl-eyebrow { font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #8c8a85; font-weight: 600; }
+  .hl-h1 { font-family: Georgia, 'Times New Roman', serif; font-size: 58px; line-height: 1.02; letter-spacing: -0.02em; }
+  .hl-h2 { font-family: Georgia, 'Times New Roman', serif; font-size: 46px; line-height: 1.05; letter-spacing: -0.02em; }
+  .hl-h3 { font-family: Georgia, 'Times New Roman', serif; font-size: 28px; line-height: 1.15; }
+  .hl-h4 { font-weight: 700; font-size: 18px; line-height: 1.25; }
+  .hl-p { font-size: 17px; line-height: 1.55; color: #4a4843; max-width: 46ch; }
+  .hl-small { font-size: 13px; line-height: 1.5; color: #6b6964; }
+  .hl-row { display: flex; gap: 12px; }
+  .hl-hero-art { border-radius: 18px; overflow: hidden; aspect-ratio: 4 / 3; }
+  .hl-hero-art svg, .hl-road svg, .hl-ex-canvas svg { width: 100%; height: 100%; display: block; }
+  .hl-proof { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .hl-stat { display: grid; gap: 6px; padding: 20px; border-radius: 16px; background: #fff; }
+  .hl-stat-n { font-family: Georgia, serif; font-size: 34px; letter-spacing: -0.02em; color: #1e1e1c; }
+  .hl-paths { position: relative; display: grid; gap: 18px; }
+  .hl-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .hl-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .hl-card { display: grid; gap: 10px; align-content: start; padding: 22px; border-radius: 16px; background: #fff; box-shadow: 0 1px 0 rgb(30 30 28 / 0.06); }
+  .hl-tag { justify-self: start; padding: 4px 10px; border-radius: 99px; background: color-mix(in srgb, var(--c) 18%, transparent); color: #1e1e1c; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; box-shadow: inset 0 0 0 1px var(--c); }
+  .hl-tag--dash { background: transparent; box-shadow: none; border: 1.5px dashed var(--c); }
+  .hl-foot { display: flex; justify-content: space-between; padding-top: 20px; border-top: 1px solid rgb(30 30 28 / 0.12); font-size: 13px; color: #6b6964; }
+  .hl-intro { display: grid; gap: 14px; padding-top: 24px; }
+  .hl-explainer { position: relative; display: grid; grid-template-columns: 1.7fr 1fr; gap: 16px; }
+  .hl-ex-canvas { border-radius: 16px; overflow: hidden; aspect-ratio: 52 / 30; }
+  .hl-ex-steps { list-style: none; margin: 0; padding: 14px; border-radius: 16px; background: #fff; display: grid; gap: 2px; align-content: start; }
+  .hl-ex-steps li { display: flex; gap: 12px; padding: 8px 10px; border-radius: 10px; font-size: 14px; }
+  .hl-ex-steps li.is-on { background: #1e1e1c; color: #f2efe8; }
+  .hl-ex-steps li.is-on .hl-small { color: #e2783a; }
+  .hl-chem { position: relative; display: grid; gap: 16px; }
+  .hl-eq { font-family: Georgia, serif; font-size: 22px; }
+  .hl-status { position: relative; display: grid; gap: 14px; padding: 20px 22px; border-radius: 16px; background: #1e1e1c; color: #f2efe8; }
+  .hl-status .hl-small { color: #c9c5bb; }
+  .hl-timeline { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .hl-timeline li { display: grid; gap: 4px; padding-top: 10px; border-top: 2px solid #e2783a; font-size: 14px; }
+  .hl-timeline li.is-tbc { border-top-style: dashed; border-color: #8c8a85; }
+  .hl-road { border-radius: 16px; overflow: hidden; }
+  .hl-faq { display: grid; gap: 4px; padding: 20px 22px; border-radius: 16px; background: #fff; align-content: start; }
+  .hl-q { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgb(30 30 28 / 0.1); font-size: 15px; }
+  .hl-form { grid-template-columns: 1fr auto; align-items: center; }
+  .hl-form .hl-h4 { grid-column: 1 / -1; }
+  .hl-input { display: flex; align-items: center; height: 38px; padding: 0 14px; border-radius: 10px; box-shadow: inset 0 0 0 1px rgb(30 30 28 / 0.2); color: #8c8a85; font-size: 14px; }
+  .hl-tracker { position: relative; display: grid; gap: 14px; padding: 22px; border-radius: 16px; background: #fff; }
+  .hl-tracker-head { display: flex; justify-content: space-between; align-items: center; }
+  .hl-bars { display: flex; align-items: flex-end; gap: 10px; height: 140px; }
+  .hl-bars i { flex: 1; border-radius: 6px 6px 0 0; background: linear-gradient(#d2691e, #e9a46b); }
+  .hl-wide { padding: 26px; background: #1e1e1c; color: #f2efe8; }
+  .hl-wide .hl-small { color: #c9c5bb; }
+  .note { display: none; }
+
+  /* ---------- Wireframe fidelity ---------- */
+  .bm[data-fid='wire'] .bm-viewport { background: #ececea; }
+  .bm[data-fid='wire'] .hl-page { background: #ececea; }
+  .bm[data-fid='wire'] .t {
+    color: transparent !important;
+    background-image: linear-gradient(to bottom, transparent 20%, #c4c4bf 20% 76%, transparent 76%);
+    background-size: 100% 1lh;
+    border-radius: 3px;
+    width: fit-content;
+    max-width: 100%;
+  }
+  .bm[data-fid='wire'] .hl-h1, .bm[data-fid='wire'] .hl-h2 { font-family: Inter, sans-serif; }
+  .bm[data-fid='wire'] .hl-h1.t, .bm[data-fid='wire'] .hl-h2.t, .bm[data-fid='wire'] .hl-h3.t, .bm[data-fid='wire'] .hl-stat-n.t, .bm[data-fid='wire'] .hl-eq.t, .bm[data-fid='wire'] .hl-logo.t {
+    background-image: linear-gradient(to bottom, transparent 18%, #9f9f9a 18% 80%, transparent 80%);
+  }
+  .bm[data-fid='wire'] .img { background: #dcdcd8 linear-gradient(to top right, transparent calc(50% - 1px), #b5b5b0 50%, transparent calc(50% + 1px)), linear-gradient(to top left, transparent calc(50% - 1px), #b5b5b0 50%, transparent calc(50% + 1px)); box-shadow: inset 0 0 0 1.5px #b5b5b0; }
+  .bm[data-fid='wire'] .img > * { visibility: hidden; }
+  .bm[data-fid='wire'] .hl-bars { background: transparent; box-shadow: none; }
+  .bm[data-fid='wire'] .hl-bars i { visibility: visible; background: #c4c4bf; }
+  .bm[data-fid='wire'] .ui { background: transparent; box-shadow: inset 0 0 0 1.5px #bdbdb8; color: inherit; }
+  .bm[data-fid='wire'] .ui::before { display: none; }
+  .bm[data-fid='wire'] .hl-ex-steps li.is-on { background: #d6d6d1; }
+  .bm[data-fid='wire'] .hb { background: #8f8f8a; box-shadow: none; }
+  .bm[data-fid='wire'] .hb .t { background-image: none; }
+  .bm[data-fid='wire'] .hl-tag { background: transparent; box-shadow: inset 0 0 0 1.5px #a7a7a2; border-color: #a7a7a2; }
+  .bm[data-fid='wire'] .hl-timeline li { border-color: #a7a7a2; }
+  .bm[data-fid='wire'] .hl-nav, .bm[data-fid='wire'] .hl-foot, .bm[data-fid='wire'] .hl-q { border-color: #c4c4bf; }
+  .bm[data-fid='wire'] .note {
+    display: block;
+    position: absolute;
+    right: -6px;
+    top: -14px;
+    z-index: 2;
+    max-width: 260px;
+    padding: 8px 12px 8px 36px;
+    border-radius: 8px;
+    background: #ffd84d;
+    color: #2a2a26;
+    font: 500 12px/1.4 Inter, sans-serif;
+    box-shadow: 0 6px 16px rgb(0 0 0 / 0.18);
+    transform: rotate(1.2deg);
+  }
+  .bm[data-fid='wire'] .note::before { content: attr(data-n); position: absolute; left: 10px; top: 8px; width: 18px; height: 18px; border-radius: 50%; background: #2a2a26; color: #ffd84d; font-weight: 700; font-size: 11px; display: grid; place-items: center; }
+  @media (max-width: 700px) {
+    .bm-controls { flex-direction: column; align-items: flex-start; }
+    .bm-viewport { height: 460px; }
+  }
+</style>
