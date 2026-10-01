@@ -4,35 +4,27 @@ Goal: move nuuke.us off Webflow onto a codebase we own. Keep the message, concep
 the same, fix the existing gaps, fonts, inconsistencies and load-time problems, and rebuild the
 Projects and Case Studies section so each case study shows the actual process step by step and in 3D.
 
-> Status: this is a plan only. No site code has been written yet.
+> Status: audit done (see `audit/REPORT.md`). No site code has been written yet.
 
 ---
 
-## Phase 0: Audit the live site (blocked, needs access)
+## Phase 0: Audit the live site ✅ done
 
-This session's network policy blocks `nuuke.us`, so the live site has not been audited yet. As soon as
-the site can be reached (see "What I need from you" below), the audit will cover:
+Full findings: [`audit/REPORT.md`](audit/REPORT.md), with screenshots in `audit/screens/`. What it
+changes in this plan:
 
-| Area | How | What gets reported |
-| --- | --- | --- |
-| Content inventory | Crawl every page with Playwright | Every page, section, heading, line of copy, CTA, link, image and embed, written to `audit/inventory.md` |
-| Visual snapshots | Full-page screenshots at 390 / 768 / 1280 / 1920px | Baseline we match against, plus layout breaks, overflow and gaps at each size |
-| Typography | Gather computed `font-family`, `font-size`, `line-height` and `letter-spacing` from every text node | Every font and size actually in use, with stray fonts and one-off sizes flagged |
-| Spacing and colour | Gather computed margins, paddings and colours | Values off the scale (e.g. 37px next to 40px), near-duplicate colours |
-| Performance | Lighthouse (mobile and desktop) and a network waterfall | LCP, CLS, INP, total weight, render-blocking scripts, heavy Spline/Lottie/video embeds, uncompressed images, unused Webflow JS/CSS |
-| Animation | Record each Webflow interaction (scroll, hover, load) | Spec for each interaction to rebuild (trigger, easing, duration), plus any jank |
-| Accessibility and SEO | axe-core, meta tags, heading order, alt text | Missing alt text, contrast failures, heading skips, missing OG/meta tags |
-| Broken things | Link checker and console errors | 404s, dead buttons, JS errors |
-
-Output: `audit/REPORT.md` with every issue ranked, plus the screenshot baseline. You review it before
-the build starts.
-
-What's already known from public sources: positioning ("a specialized unit for market domination, not a
-vendor"), the services (Mobile App Dev, Digital Marketing, 2D/3D Animation, AI systems), the team (Jesse
-Lane, Jordan "JB" Bree, Harris Smith), the awards strip (Mobile Excellence, Webby, Awwwards, CSSDA,
-FWA), the Sheridan WY address, and the projects Prometheus Fuels, RoboTaxi and Etihad.
-
----
+- **Case-study content is the first blocker, not the code.** Prometheus Fuels, Mars Express and
+  Anodyne 2 describe work publicly credited to other studios. RoboTaxi (Tesla), Etihad and Gymshark
+  need confirming. We need the list of projects NUUKE actually delivered before building case-study
+  pages.
+- **Performance fix = drop the GIFs.** About 9 MB of Home and 6 MB of Services are animated GIFs, and
+  About loads ~22 MB of stock video. Replacing them with live WebGL, or short compressed MP4/WebM
+  loaded only when on screen, is most of the speed gain.
+- **Two font families:** Montserrat for headlines and body, Inter for labels and numbers, matching
+  how the site looks today. Self-hosted variable fonts replace 28 font files. Montserrat Alternates
+  gets dropped.
+- **Remove template leftovers:** "WARP" page titles, "Powered by Remote Ave", placeholder review
+  links, filler testimonials and blog authors, inconsistent addresses.
 
 ## Phase 1: Foundations
 
@@ -53,8 +45,9 @@ FWA), the Sheridan WY address, and the projects Prometheus Fuels, RoboTaxi and E
 
 - Design tokens in one file: type scale, spacing scale (4/8-based), colours, radii, easing curves and
   durations.
-- **Two font families at most**, self-hosted, subset, preloaded and `font-display: swap`. No more mixed
-  fonts. Which two gets confirmed after the audit.
+- **Two font families**: Montserrat (headlines and body) and Inter (labels and numbers). Self-hosted,
+  subset variable fonts, preloaded, with `font-display: swap`. A fixed type scale of about 9 sizes
+  replaces today's 53.
 - Shared components: Nav, Footer, Button, Section heading, Card, Marquee, Award strip, CTA block.
   Pages are built only from these.
 
@@ -168,16 +161,14 @@ gets a clearly marked placeholder for you to fill in.
 
 ## What I need from you
 
-1. **Access to the live site.** Add `nuuke.us` and `www.nuuke.us` to this environment's allowed
-   domains (environment settings → Network access). Alternatively, send a Webflow code export
-   (Site settings → Export code), which is the fastest route to an exact match and includes all
-   images.
-2. **Original assets**: 3D files (GLB/FBX/Blend), renders, videos, Figma files and brand fonts, rather
-   than copies pulled from the Webflow CDN.
-3. **Case-study material**: for each project, what NUUKE actually delivered and any real results we can
-   publish, plus client permission where needed.
-4. **Decisions**: which fonts to keep, hosting (Vercel or Netlify), and where the contact form should
-   send (email or NUUKE-CRM).
+1. **The real project list**: which projects NUUKE actually delivered, what NUUKE's part was, and
+   any results you can publish. This decides which case studies get built.
+2. **Original assets**: 3D files (GLB/FBX/Blend), renders, screen recordings, Figma files
+   (wireframes, flows, prototypes), and ad creatives, rather than copies pulled from the Webflow CDN.
+3. **Confirm the facts**: awards (with links), client logos, stats numbers, testimonials (real names
+   and companies), office address(es), and Clutch/Trustpilot profile links.
+4. **Decisions**: hosting (Vercel or Netlify) and where the contact form should send (email or
+   NUUKE-CRM).
 
 ---
 
