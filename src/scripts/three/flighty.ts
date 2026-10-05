@@ -79,7 +79,7 @@ export function init(canvas: HTMLCanvasElement, routes: GlobeRoute[], airports: 
   }
   const dotGeo = new THREE.BufferGeometry();
   dotGeo.setAttribute('position', new THREE.Float32BufferAttribute(dots, 3));
-  globe.add(new THREE.Points(dotGeo, new THREE.PointsMaterial({ color: 0x3b4060, size: 0.011, sizeAttenuation: true })));
+  globe.add(new THREE.Points(dotGeo, new THREE.PointsMaterial({ color: 0x4d5580, size: 0.014, sizeAttenuation: true })));
 
   // graticule
   const lines: number[] = [];

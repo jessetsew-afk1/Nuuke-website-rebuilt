@@ -90,6 +90,7 @@ export function arcPath(a: Airport, b: Airport, view: View, h = 0.18, n = 48) {
   const B = toVec(b.lat, b.lon);
   const om = Math.acos(Math.min(1, A[0] * B[0] + A[1] * B[1] + A[2] * B[2]));
   let d = '';
+  let pen = false;
   for (let i = 0; i <= n; i++) {
     const t = i / n;
     const s1 = Math.sin((1 - t) * om) / Math.sin(om);
@@ -97,7 +98,10 @@ export function arcPath(a: Airport, b: Airport, view: View, h = 0.18, n = 48) {
     const lift = 1 + h * Math.sin(Math.PI * t) * Math.min(1, om * 1.6);
     const v: V3 = [(A[0] * s1 + B[0] * s2) * lift, (A[1] * s1 + B[1] * s2) * lift, (A[2] * s1 + B[2] * s2) * lift];
     const p = projVec(v, view);
-    d += `${i ? 'L' : 'M'}${f1(p.x)} ${f1(p.y)}`;
+    // hidden when behind the globe's disc
+    const vis = p.z > 0 || Math.hypot(p.x - view.cx, p.y - view.cy) > view.r;
+    if (vis) d += `${pen ? 'L' : 'M'}${f1(p.x)} ${f1(p.y)}`;
+    pen = vis;
   }
   return d;
 }
@@ -202,7 +206,7 @@ export const LIVE_STATES: LiveState[] = [
     why: 'On the ground, the useful number is how long until something happens. “~12m to takeoff” beats “15:04”.',
   },
   {
-    id: 'air', label: 'In the air', tone: 'sky', ring: 0.42, lead: '◔', trail: '2h 01m',
+    id: 'air', label: 'In the air', tone: 'sky', ring: 0.42, lead: '✈', trail: '2h 01m',
     headline: 'In the air · 2h 01m left', sub: 'Over Nebraska · on schedule to land 17:26', dep: '15:09', arr: '17:26', gate: '54B',
     rule: 'One ring = the whole flight.',
     why: 'The ring is a flight clock: full circle is gate to gate. Time remaining sits beside it, because nobody counts in percentages.',
@@ -247,7 +251,7 @@ export const REPLAY_TASKS: ReplayTask[] = [
         { t: 2.2, x: 0.3, y: 0.31, kind: 'miss', note: '“Delayed… but why?” Taps the chip.' },
         { t: 4.1, x: 0.32, y: 0.31, kind: 'miss', note: 'Taps it again. Nothing.' },
         { t: 7.5, x: 0.5, y: 0.62, kind: 'swipe', note: 'Scrolls down the card, looking.' },
-        { t: 11.8, x: 0.78, y: 0.5, kind: 'miss', note: 'Tries the gate tile.' },
+        { t: 11.8, x: 0.78, y: 0.5, kind: 'miss', note: 'Tries the aircraft tile.' },
         { t: 16.4, x: 0.5, y: 0.93, kind: 'tap', note: 'Opens the Details tab.', show: 'details' },
         { t: 21.5, x: 0.46, y: 0.58, kind: 'ok', note: 'Finds “late inbound aircraft”.' },
       ],
@@ -316,7 +320,7 @@ export const REPLAY_TASKS: ReplayTask[] = [
       misses: 0,
       taps: [
         { t: 1.8, x: 0.5, y: 0.34, kind: 'tap', note: 'Opens “Why?”.', show: 'sheet' },
-        { t: 4.9, x: 0.5, y: 0.75, kind: 'ok', note: '“In Denver, leaves 12:03.” Taps through.' },
+        { t: 4.9, x: 0.5, y: 0.66, kind: 'ok', note: '“In Denver, leaves 12:03.” Taps through.' },
       ],
     },
   },

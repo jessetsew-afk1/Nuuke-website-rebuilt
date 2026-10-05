@@ -68,8 +68,11 @@ const payload = JSON.stringify({ accounts: spatialAccounts, months: spatialMonth
 
     // Drawn fallback: the same stacks as flat SVG coins.
     const drawFallback = () => {
-      const W = 640, H = 400, base = 270;
+      const narrow = fb.clientWidth > 0 && fb.clientWidth < 520;
+      const W = narrow ? 420 : 640, H = narrow ? 470 : 400, base = narrow ? 330 : 270;
       const step = W / (data.accounts.length + 1);
+      const rx = narrow ? 24 : 26;
+      const fs = narrow ? 15 : 13;
       let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="${base - 6}" width="${W - 40}" height="14" rx="7" fill="#0a2147" opacity=".9"/>`;
       data.accounts.forEach((a, i) => {
         const cx = step * (i + 1);
@@ -78,11 +81,11 @@ const payload = JSON.stringify({ accounts: spatialAccounts, months: spatialMonth
         const dim = focus && focus !== a.id ? 0.25 : 1;
         for (let j = 0; j < n; j++) {
           const y = neg ? base + 18 + j * 9 : base - 10 - j * 9;
-          s += `<ellipse cx="${cx}" cy="${y + 4}" rx="26" ry="8" fill="#000814" opacity="${0.6 * dim}"/><ellipse cx="${cx}" cy="${y}" rx="26" ry="8" fill="${a.color}" opacity="${dim}" stroke="#000814" stroke-opacity=".35"/>`;
+          s += `<ellipse cx="${cx}" cy="${y + 4}" rx="${rx}" ry="8" fill="#000814" opacity="${0.6 * dim}"/><ellipse cx="${cx}" cy="${y}" rx="${rx}" ry="8" fill="${a.color}" opacity="${dim}" stroke="#000814" stroke-opacity=".35"/>`;
         }
         const ly = neg ? base + 26 + n * 9 + 14 : base - 22 - n * 9;
-        s += `<text x="${cx}" y="${ly}" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="700" fill="#F2F6FF" opacity="${dim}">${money(a.k[month])}</text>`;
-        s += `<text x="${cx}" y="${H - 14}" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="12" fill="#a9b7d3">${a.name}</text>`;
+        s += `<text x="${cx}" y="${ly}" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="${fs}" font-weight="700" fill="#F2F6FF" opacity="${dim}">${money(a.k[month])}</text>`;
+        s += `<text x="${cx}" y="${H - 14}" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="${narrow ? 11 : 12}" fill="#a9b7d3">${narrow ? a.name.split(' ')[0] : a.name}</text>`;
       });
       fb.innerHTML = s + '</svg>';
     };
@@ -150,7 +153,7 @@ const payload = JSON.stringify({ accounts: spatialAccounts, months: spatialMonth
   .cms-canvas:active { cursor: grabbing; }
   .cms-canvas:focus-visible { outline-offset: -4px; }
   .is-live .cms-canvas { opacity: 1; }
-  .cms-fallback { position: absolute; inset: 6% 4% 10%; display: grid; place-items: center; transition: opacity 0.6s; }
+  .cms-fallback { position: absolute; inset: 4% 2% 8%; display: grid; place-items: center; transition: opacity 0.6s; }
   .cms-fallback :global(svg) { width: 100%; height: 100%; }
   .is-live .cms-fallback { opacity: 0; }
   .cms-tags { position: absolute; inset: 0; pointer-events: none; }

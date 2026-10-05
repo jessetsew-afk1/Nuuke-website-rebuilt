@@ -128,6 +128,7 @@ const steps = ['Sketch', 'Wireframe', 'Colour', 'Notes'];
       sketch: [...s.querySelectorAll<SVGPathElement>('[data-ti-wf-sketch] path')],
       sketchG: s.querySelector<SVGGElement>('[data-ti-wf-sketch]')!,
       wire: [...s.querySelector('[data-ti-wf-wire]')!.children] as SVGElement[],
+      wireG: s.querySelector<SVGGElement>('[data-ti-wf-wire]')!,
       col: [...s.querySelector('[data-ti-wf-col]')!.children] as SVGElement[],
       canvas: s.querySelector<SVGRectElement>('[data-ti-wf-canvas]')!,
       pins: [...s.querySelectorAll<HTMLElement>('[data-ti-wf-pin]')],
@@ -149,6 +150,7 @@ const steps = ['Sketch', 'Wireframe', 'Colour', 'Notes'];
       m.sketchG.style.opacity = String(1 - 0.75 * seg(p, 0.36, 0.5) - 0.25 * seg(p, 0.62, 0.74));
       // 2. Grey boxes block in.
       m.wire.forEach((el, i) => (el.style.opacity = String(seg(p, 0.3 + (i / n) * 0.16, 0.36 + (i / n) * 0.16))));
+      m.wireG.style.opacity = String(1 - seg(p, 0.68, 0.8));
       // 3. Colour and content arrive.
       m.canvas.style.opacity = String(seg(p, 0.56, 0.66));
       m.col.forEach((el, i) => (el.style.opacity = String(seg(p, 0.58 + (i / n) * 0.14, 0.64 + (i / n) * 0.14))));
@@ -239,15 +241,17 @@ const steps = ['Sketch', 'Wireframe', 'Colour', 'Notes'];
 
   @media (max-width: 900px) {
     .ti-wf { height: 300vh; }
-    .ti-wf-sticky { grid-template-columns: 1fr; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: var(--s-3); padding-bottom: calc(var(--safe-bottom) - 1.2rem); }
+    .ti-wf-sticky { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto; gap: var(--s-3); padding-bottom: calc(var(--safe-bottom) - 1.2rem); }
     .ti-wf-side { display: contents; }
     .ti-wf-tabs { order: 0; justify-content: center; }
     .ti-wf-tab { padding: 0.5rem 0.8rem; font-size: 0.8rem; }
     .ti-wf-steps { order: 1; }
-    .ti-wf-stage { order: 2; min-height: 0; }
-    .ti-wf-phone { height: 100%; max-height: none; padding: 7px; border-radius: 34px; }
+    .ti-wf-stage { order: 2; min-height: 0; height: 100%; grid-template-rows: minmax(0, 1fr) auto; }
+    .ti-wf-phone { height: 100%; max-height: none; max-width: 100%; min-height: 0; padding: 7px; border-radius: 34px; }
     .ti-wf-screen { border-radius: 28px; }
-    .ti-wf-notes { order: 3; min-height: 5.6rem; align-content: start; }
+    .ti-wf-notes { order: 3; min-height: 7.6rem; align-content: start; }
+    .ti-wf-notes li { padding: var(--s-2) var(--s-3); }
+    .ti-wf-note-t { font-size: 0.82rem; }
     .ti-wf-notes li { display: none; }
     .ti-wf-notes li.is-current { display: grid; }
     .ti-wf-hint { display: none; }

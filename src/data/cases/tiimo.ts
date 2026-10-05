@@ -74,7 +74,7 @@ const tl = (y: number, h: number, c: string, emoji: string, label: string, time:
   { k: 'text', x: 18, y: y + 16, w: 30, s: 10, text: time, color: TI.muted },
   { k: 'rect', x: 62, y, w: 220, h, r: 16, fill: c },
   { k: 'emoji', x: 84, y: y + h / 2 + 6, s: 17, text: emoji },
-  { k: 'text', x: 106, y: y + h / 2 + 5, w: Math.min(150, label.length * 7.4), s: 13, text: label, weight: 700 },
+  { k: 'text', x: 112, y: y + h / 2 + 5, w: Math.min(150, label.length * 7.4), s: 13, text: label, weight: 700 },
   ...extra,
 ];
 
@@ -211,7 +211,7 @@ export const tiimoLayers = [
   },
   {
     label: 'Colour & type',
-    desc: 'Each task keeps its own pastel. Ink text on every pastel stays above 9:1, whatever theme you pick.',
+    desc: 'Each task keeps its own pastel. Ink text on every pastel stays above 7:1, whatever intensity you pick.',
     svg: `<svg ${V}>${blocks.map((b) => `<rect x="76" y="${b.y}" width="279" height="${b.h}" rx="18" fill="${b.c}"/>`).join('')}
       ${[0, 1, 2, 3, 4, 5, 6].map((i) => `<rect x="${20 + i * 48}" y="146" width="40" height="56" rx="14" fill="${i === 1 ? '#1F1A33' : '#FFFFFF'}"/>`).join('')}
       <circle cx="335" cy="104" r="20" fill="#A98BFF"/><circle cx="320" cy="700" r="30" fill="#A98BFF"/>
@@ -268,7 +268,7 @@ export const RELEASES: Release[] = [
     v: '1.0',
     name: 'Launch',
     when: 'Week 6',
-    at: 33,
+    at: 38,
     ships: ['Visual day timeline', 'AI co-planner with undo', 'Focus disc and Live Activity', 'Dyslexia-friendly font and motion settings'],
     gate: ['App Review and privacy labels', 'Accessibility audit sign-off', 'Screenshots in 6 sizes, 4 languages'],
     watch: 'Day-2 return: do people come back to see their day?',
@@ -282,7 +282,7 @@ export const RELEASES: Release[] = [
     v: '1.1',
     name: 'Gentler',
     when: 'Week 10',
-    at: 66,
+    at: 63,
     ships: ['Softer “running late” states', '+5 min extend from the Live Activity', 'Mood check-in after focus sessions'],
     gate: ['A/B test on late-state copy', 'Crash-free sessions above 99.8%', 'Notification volume review'],
     watch: 'Fewer timers abandoned mid-way.',

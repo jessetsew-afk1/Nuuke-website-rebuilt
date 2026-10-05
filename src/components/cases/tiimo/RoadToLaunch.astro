@@ -21,7 +21,7 @@ const weeks = [0, 2, 4, 6, 8, 10, 12, 14, 16];
         {weeks.map((w) => <span class="ti-rl-wk" style={`left:${(w / 16) * 100}%`}>W{w}</span>)}
         {RELEASES.map((r) => <span class="ti-rl-dot" data-ti-rl-dot style={`left:${r.at}%`} />)}
       </div>
-      <input class="ti-rl-range" type="range" min="0" max="100" step="1" value="33" aria-label="Scrub the release roadmap" data-ti-rl-range />
+      <input class="ti-rl-range" type="range" min="0" max="100" step="1" value="38" aria-label="Scrub the release roadmap" data-ti-rl-range />
     </div>
     <div class="ti-rl-miles" role="group" aria-label="Milestones">
       {
@@ -258,7 +258,7 @@ const weeks = [0, 2, 4, 6, 8, 10, 12, 14, 16];
   .ti-rl-road-head { display: grid; gap: var(--s-2); max-width: 70ch; }
   .ti-rl-track { position: relative; height: 64px; margin-inline: 14px; }
   .ti-rl-rail { position: absolute; left: 0; right: 0; top: 22px; height: 6px; border-radius: 3px; background: var(--surface-2); }
-  .ti-rl-fill { position: absolute; inset: 0; border-radius: 3px; background: linear-gradient(90deg, #ffb3c7, var(--a)); transform-origin: left; transform: scaleX(0.33); transition: transform 0.3s var(--ease-out); }
+  .ti-rl-fill { position: absolute; inset: 0; border-radius: 3px; background: linear-gradient(90deg, #ffb3c7, var(--a)); transform-origin: left; transform: scaleX(0.38); transition: transform 0.3s var(--ease-out); }
   .ti-rl-wk { position: absolute; top: 18px; translate: -50% 0; font: 500 0.68rem/1 var(--font-ui); color: var(--muted); }
   .ti-rl-dot { position: absolute; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: var(--surface-2); border: 3px solid var(--line-strong); transition: background 0.3s, border-color 0.3s, transform 0.3s; }
   .ti-rl-dot.is-past { background: var(--a); border-color: #fff; transform: scale(1.1); }

@@ -54,7 +54,7 @@ const meta = [
 const personas = [
   { name: 'Time-blind Jess', meta: '27 · designer · ADHD', quote: 'I can’t feel how long things take. I need to see time passing.', goals: ['See the whole day at a glance', 'Know how long is left without doing maths', 'Start the hard task first'], pains: ['Calendars that are just grids of text', 'Alarms that panic her', 'Red “overdue” badges'], color: TI.lilac },
   { name: 'Routine-anchored Oskar', meta: '19 · student · autistic', quote: 'Tell me what comes next, and warn me before it changes.', goals: ['Predictable visual routines', 'Gentle warnings before transitions', 'The same layout every day'], pains: ['Surprise pop-ups', 'Busy, flashing motion', 'Layouts that move around'], color: TI.mint },
-  { name: 'Overloaded parent Rosa', meta: '42 · recently diagnosed', quote: '“Sort the house” is not a task. It’s a weekend. Break it down for me.', goals: ['AI that splits big jobs into steps', 'Plans she can edit in seconds', 'Room for the day to go wrong'], pains: ['Long setup and forms', 'Guilt-driven streaks', 'Plans that collapse if she runs late'], color: TI.peach },
+  { name: 'Overloaded-parent Rosa', meta: '42 · recently diagnosed', quote: 'Sorting the house isn’t a task. It’s a weekend. Break it down for me.', goals: ['AI that splits big jobs into steps', 'Plans she can edit in seconds', 'Room for the day to go wrong'], pains: ['Long setup and forms', 'Guilt-driven streaks', 'Plans that collapse if she runs late'], color: TI.peach },
 ];
 const stages = [
   { label: 'Wake', doing: 'Wakes with a dozen to-dos already in her head.', feeling: 'Overwhelmed before she has started.', score: -1.2, opportunity: 'One brain-dump box on the lock screen: get it out of her head first, sort it later.' },
@@ -417,10 +417,8 @@ const timeline = [
         { name: 'Purple', hex: TI.purple, use: 'Primary buttons (ink text)' },
         { name: 'Lilac', hex: TI.lilac, use: 'Task block' },
         { name: 'Pink', hex: TI.pink, use: 'Task block' },
-        { name: 'Peach', hex: TI.peach, use: 'Task block' },
         { name: 'Butter', hex: TI.butter, use: 'Task block' },
         { name: 'Mint', hex: TI.mint, use: 'Task block, done states' },
-        { name: 'Sky', hex: TI.sky, use: 'Task block' },
       ]}
       type={[
         { role: 'Display', sample: 'Today', spec: 'Montserrat 800 · 34/38', style: 'font-family:Montserrat;font-weight:800;font-size:2.4rem;letter-spacing:-0.03em' },
