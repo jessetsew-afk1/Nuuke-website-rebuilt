@@ -1,9 +1,12 @@
-// The NUUKE rocket: a retro riveted rocket (silver body, red nose, porthole, swept fins,
-// ribbed engine) with a living flame. Built procedurally so it costs no downloads.
+// The NUUKE rocket: a retro riveted rocket (brushed silver body, lacquered red ogive nose,
+// porthole with a lit cabin, swept red fins, ribbed engine with a heat-tinted bell) and a
+// living exhaust plume. Built procedurally (no downloads); textures are cached and shared.
 import { THREE } from './core';
+import { hullMaps, paintMaps, bellMaps, cabinTexture, HULL_TOP } from './fx/textures';
+import { makeFlame } from './fx/flame';
 
-const RED = 0x9c0f16;
-const RED_DARK = 0x5e080c;
+const RED = 0xb3121c;
+const RED_DARK = 0x6a0a10;
 
 function lathe(points: [number, number][], segs = 64) {
   return new THREE.LatheGeometry(
@@ -12,7 +15,7 @@ function lathe(points: [number, number][], segs = 64) {
   );
 }
 
-/** Body radius at height y (used to place porthole and rivets on the hull). */
+/** Hull profile control points [radius, y] in ship space (y = 0 at the engine collar). */
 const hull: [number, number][] = [
   [0.4, 0],
   [0.47, 0.12],
@@ -21,166 +24,219 @@ const hull: [number, number][] = [
   [0.55, 1.15],
   [0.51, 1.5],
   [0.45, 1.82],
-  [0.43, 1.9],
+  [0.43, HULL_TOP],
 ];
+
+// Smooth (Catmull-Rom) radius lookup, resampled evenly in y so texture v = y / HULL_TOP.
+const dense = (() => {
+  const curve = new THREE.CatmullRomCurve3(hull.map(([r, y]) => new THREE.Vector3(r, y, 0)), false, 'centripetal');
+  return curve.getPoints(400);
+})();
 export function hullRadius(y: number) {
-  for (let i = 1; i < hull.length; i++) {
-    if (y <= hull[i][1]) {
-      const [r0, y0] = hull[i - 1];
-      const [r1, y1] = hull[i];
-      return r0 + ((y - y0) / (y1 - y0)) * (r1 - r0);
+  if (y <= dense[0].y) return dense[0].x;
+  for (let i = 1; i < dense.length; i++) {
+    if (y <= dense[i].y) {
+      const a = dense[i - 1];
+      const b = dense[i];
+      return a.x + ((y - a.y) / (b.y - a.y || 1)) * (b.x - a.x);
     }
   }
-  return hull[hull.length - 1][0];
+  return dense[dense.length - 1].x;
 }
-
-function brushedTexture() {
-  // Subtle weathered-metal noise so the hull doesn't read as plastic.
-  const c = document.createElement('canvas');
-  c.width = c.height = 256;
-  const g = c.getContext('2d')!;
-  g.fillStyle = '#cfc9bf';
-  g.fillRect(0, 0, 256, 256);
-  for (let i = 0; i < 2600; i++) {
-    const v = 180 + Math.random() * 60;
-    g.fillStyle = `rgba(${v},${v - 6},${v - 14},${Math.random() * 0.25})`;
-    g.fillRect(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 3, 1);
-  }
-  for (let i = 0; i < 40; i++) {
-    g.fillStyle = `rgba(120,96,70,${Math.random() * 0.12})`;
-    g.beginPath();
-    g.arc(Math.random() * 256, Math.random() * 256, 4 + Math.random() * 18, 0, Math.PI * 2);
-    g.fill();
-  }
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.repeat.set(3, 2);
-  return t;
-}
-
-const FLAME_VERT = `
-uniform float uTime;
-uniform float uThrust;
-varying vec2 vUv;
-varying float vH;
-void main() {
-  vUv = uv;
-  vec3 p = position;
-  float h = clamp(-p.y / 1.0, 0.0, 1.0);
-  vH = h;
-  float wob = sin(uTime * 38.0 + p.y * 9.0) * 0.035 + sin(uTime * 23.0 + p.x * 12.0) * 0.025;
-  p.x += wob * h;
-  p.z += wob * h * 0.7;
-  p.y *= mix(0.55, 1.6, uThrust) * (0.92 + 0.08 * sin(uTime * 30.0));
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
-}`;
-const FLAME_FRAG = `
-uniform float uTime;
-uniform vec3 uCore;
-uniform vec3 uEdge;
-uniform float uAlpha;
-varying vec2 vUv;
-varying float vH;
-void main() {
-  float edge = abs(vUv.x - 0.5) * 2.0;
-  float core = smoothstep(0.9, 0.0, edge) * (1.0 - vH);
-  vec3 col = mix(uEdge, uCore, core);
-  float a = (1.0 - vH) * smoothstep(1.0, 0.2, edge) * uAlpha;
-  a *= 0.85 + 0.15 * sin(uTime * 50.0 + vH * 20.0);
-  gl_FragColor = vec4(col * (1.4 + core), a);
-}`;
 
 export type Rocket = {
   group: THREE.Group;
   /** Nozzle position in rocket space (flame/particles spawn here). */
   nozzle: THREE.Vector3;
-  update: (t: number, thrust: number) => void;
+  /** The porthole (centre of the glass, facing the ship's +z). */
+  porthole: THREE.Object3D;
+  /** Radius of the porthole glass in ship units. */
+  portholeRadius: number;
+  update: (t: number, thrust: number, boost?: number) => void;
   setOpacity: (o: number) => void;
+  /** 0..1 how bright the cabin glow behind the porthole is. */
+  setCabin: (v: number) => void;
+  /** Scale the exhaust brightness (flame, glow sprites, engine light). 1 = default. */
+  setFlameIntensity: (v: number) => void;
+  dispose: () => void;
 };
 
-export function makeRocket(): Rocket {
+/**
+ * opts.lite  fewer segments / smaller textures (defaults to on for phones).
+ * opts.small for a rocket drawn tiny (e.g. among the planets): a dimmer exhaust that does not
+ *            bloom into a fireball, and an engine light with a short reach.
+ * opts.flame exhaust brightness multiplier (default 1, or 0.3 when small).
+ */
+export function makeRocket(opts: { lite?: boolean; small?: boolean; flame?: number } = {}): Rocket {
+  const lite = opts.lite ?? (opts.small || window.innerWidth < 760 || window.matchMedia('(pointer: coarse)').matches);
+  let flameK = opts.flame ?? (opts.small ? 0.3 : 1);
+  const segs = lite ? 48 : 96;
   const group = new THREE.Group();
   const ship = new THREE.Group();
   ship.position.y = -0.95; // centre the model around its middle
   group.add(ship);
 
-  const metal = new THREE.MeshStandardMaterial({ color: 0xe8e2d8, map: brushedTexture(), metalness: 0.55, roughness: 0.42 });
-  const red = new THREE.MeshStandardMaterial({ color: RED, metalness: 0.15, roughness: 0.68 });
-  const redDark = new THREE.MeshStandardMaterial({ color: RED_DARK, metalness: 0.4, roughness: 0.45 });
-  const rivetMat = new THREE.MeshStandardMaterial({ color: 0xbfb8ad, metalness: 0.9, roughness: 0.35 });
-  const mats = [metal, red, redDark, rivetMat];
+  const hm = hullMaps(lite);
+  const pm = paintMaps(lite);
+  const bm = bellMaps(lite);
+  pm.map.repeat.set(2, 2);
+  pm.rough.repeat.set(2, 2);
 
-  // Hull
-  ship.add(new THREE.Mesh(lathe(hull), metal));
+  const metal = new THREE.MeshPhysicalMaterial({
+    color: 0xffffff,
+    map: hm.map,
+    metalness: 1,
+    metalnessMap: hm.orm,
+    roughness: 1,
+    roughnessMap: hm.orm,
+    normalMap: hm.normal,
+    normalScale: new THREE.Vector2(0.55, 0.55),
+    anisotropy: lite ? 0 : 0.5,
+    clearcoat: 0.25,
+    clearcoatRoughness: 0.25,
+  });
+  const red = new THREE.MeshPhysicalMaterial({
+    color: RED,
+    map: pm.map,
+    roughness: 1,
+    roughnessMap: pm.rough,
+    metalness: 0.05,
+    clearcoat: 1,
+    clearcoatRoughness: 0.05,
+  });
+  const redDark = new THREE.MeshPhysicalMaterial({ color: RED_DARK, roughness: 0.45, metalness: 0.1, clearcoat: 0.8, clearcoatRoughness: 0.12 });
+  const chrome = new THREE.MeshPhysicalMaterial({ color: 0xe9e9ee, metalness: 1, roughness: 0.12, clearcoat: 0.6, clearcoatRoughness: 0.05 });
+  const bellMat = new THREE.MeshStandardMaterial({ color: 0xffffff, map: bm.map, normalMap: bm.normal, metalness: 0.85, roughness: 0.38 });
+  const bellInner = new THREE.MeshStandardMaterial({ color: 0x1a1412, roughness: 0.85, metalness: 0.3, emissive: 0xff5a1a, emissiveIntensity: 0, side: THREE.BackSide });
+  const glassMat = new THREE.MeshPhysicalMaterial({
+    color: 0x07080c,
+    metalness: 0,
+    roughness: 0.03,
+    clearcoat: 1,
+    clearcoatRoughness: 0.02,
+    emissive: 0xffffff,
+    emissiveMap: cabinTexture(),
+    emissiveIntensity: 1,
+    envMapIntensity: 1.8,
+  });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x141416, roughness: 0.7, metalness: 0.5 });
+  const mats: THREE.Material[] = [metal, red, redDark, chrome, bellMat, bellInner, glassMat, dark];
 
-  // Nose cone (ogive)
-  const nose: [number, number][] = [];
-  for (let i = 0; i <= 16; i++) {
-    const k = i / 16;
-    nose.push([0.445 * Math.cos(k * Math.PI * 0.5) ** 0.85, 1.88 + k * 1.05]);
+  // Hull (evenly sampled so the panel texture lines up)
+  const hullPts: [number, number][] = [];
+  for (let i = 0; i <= 60; i++) {
+    const y = (i / 60) * HULL_TOP;
+    hullPts.push([hullRadius(y), y]);
   }
-  nose[nose.length - 1][0] = 0.001;
-  ship.add(new THREE.Mesh(lathe(nose), red));
+  ship.add(new THREE.Mesh(lathe(hullPts, segs), metal));
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(0.41, 32), dark);
+  floor.rotation.x = Math.PI / 2;
+  floor.position.y = 0.001;
+  ship.add(floor);
 
-  // Bands with rivets
+  // Nose cone (ogive) with a chrome tip
+  const nose: [number, number][] = [];
+  for (let i = 0; i <= 40; i++) {
+    const k = i / 40;
+    nose.push([Math.max(0.001, 0.445 * Math.cos(k * Math.PI * 0.5) ** 0.85), 1.88 + k * 1.05]);
+  }
+  ship.add(new THREE.Mesh(lathe(nose, segs), red));
+  const tip = new THREE.Mesh(lathe([[0.001, 2.955], [0.03, 2.94], [0.05, 2.9], [0.062, 2.86], [0.0, 2.84]], 24), chrome);
+  ship.add(tip);
+
+  // Chrome bands with domed rivets
   const bandYs = [0.16, 0.95, 1.86];
-  const rivetGeo = new THREE.SphereGeometry(0.012, 6, 5);
-  const rivets = new THREE.InstancedMesh(rivetGeo, rivetMat, bandYs.length * 28 + 40);
+  const perBand = lite ? 28 : 40;
+  const rivetGeo = new THREE.SphereGeometry(0.0115, 8, 4, 0, Math.PI * 2, 0, Math.PI / 2);
+  rivetGeo.rotateX(Math.PI / 2);
+  const rivets = new THREE.InstancedMesh(rivetGeo, chrome, bandYs.length * perBand * 2);
   let ri = 0;
   const m4 = new THREE.Matrix4();
+  const q = new THREE.Quaternion();
+  const one = new THREE.Vector3(1, 1, 1);
   bandYs.forEach((y) => {
-    const r = hullRadius(y) + 0.006;
-    const band = new THREE.Mesh(new THREE.CylinderGeometry(r + 0.004, r + 0.004, 0.05, 64, 1, true), metal);
-    band.position.y = y;
+    const r = hullRadius(y);
+    const band = new THREE.Mesh(
+      lathe([[r - 0.004, y - 0.034], [r + 0.01, y - 0.028], [r + 0.015, y - 0.012], [r + 0.015, y + 0.012], [r + 0.01, y + 0.028], [r - 0.004, y + 0.034]], segs),
+      chrome,
+    );
     ship.add(band);
-    for (let i = 0; i < 28; i++) {
-      const a = (i / 28) * Math.PI * 2;
-      m4.makeTranslation(Math.cos(a) * (r + 0.012), y + 0.04, Math.sin(a) * (r + 0.012));
-      rivets.setMatrixAt(ri++, m4);
+    for (const dy of [-0.018, 0.018]) {
+      for (let i = 0; i < perBand; i++) {
+        const a = ((i + (dy > 0 ? 0.5 : 0)) / perBand) * Math.PI * 2;
+        const rr = r + 0.014;
+        q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), a);
+        m4.compose(new THREE.Vector3(Math.sin(a) * rr, y + dy, Math.cos(a) * rr), q, one);
+        rivets.setMatrixAt(ri++, m4);
+      }
     }
   });
-  // Vertical seam of rivets
-  for (let i = 0; i < 40; i++) {
-    const y = 0.22 + (i / 40) * 1.6;
-    const r = hullRadius(y) + 0.008;
-    const a = Math.PI * 0.75;
-    m4.makeTranslation(Math.cos(a) * r, y, Math.sin(a) * r);
-    rivets.setMatrixAt(ri++, m4);
-  }
   rivets.count = ri;
   ship.add(rivets);
 
-  // Porthole facing +z
+  // Porthole facing +z: red lacquered ring, chrome bolts and bezel, convex glass with the cabin glowing behind it
   const py = 1.28;
   const pr = hullRadius(py);
   const port = new THREE.Group();
-  port.position.set(0, py, pr + 0.01);
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.055, 16, 48), red);
-  const glass = new THREE.Mesh(
-    new THREE.CircleGeometry(0.19, 40),
-    new THREE.MeshPhysicalMaterial({ color: 0x3d4a6e, metalness: 0.1, roughness: 0.08, clearcoat: 1, clearcoatRoughness: 0.05 }),
-  );
-  glass.position.z = 0.0;
-  const back = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.08, 40), redDark);
-  back.rotation.x = Math.PI / 2;
-  back.position.z = -0.045;
-  port.add(back);
-  port.add(ring, glass);
-  mats.push(glass.material as THREE.MeshPhysicalMaterial);
+  port.position.set(0, py, pr + 0.012);
+  const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.235, 0.25, 0.16, 48, 1, true), red);
+  collar.rotation.x = Math.PI / 2;
+  collar.position.z = -0.06;
+  port.add(collar);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.205, 0.052, 20, 64), red);
+  port.add(ring);
+  const bezel = new THREE.Mesh(new THREE.TorusGeometry(0.168, 0.012, 10, 64), chrome);
+  bezel.position.z = 0.012;
+  port.add(bezel);
+  const bolts = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.012, 0.012, 0.012, 10), chrome, 12);
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2;
+    q.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2);
+    m4.compose(new THREE.Vector3(Math.cos(a) * 0.205, Math.sin(a) * 0.205, 0.052), q, one);
+    bolts.setMatrixAt(i, m4);
+  }
+  port.add(bolts);
+  const GR = 0.165;
+  const domeR = 0.42;
+  const theta = Math.asin(GR / domeR);
+  const domeGeo = new THREE.SphereGeometry(domeR, 40, 8, 0, Math.PI * 2, 0, theta);
+  domeGeo.rotateX(Math.PI / 2);
+  domeGeo.translate(0, 0, -Math.cos(theta) * domeR + 0.004);
+  {
+    const p = domeGeo.attributes.position;
+    const uv = domeGeo.attributes.uv;
+    for (let i = 0; i < p.count; i++) uv.setXY(i, p.getX(i) / (2 * GR) + 0.5, p.getY(i) / (2 * GR) + 0.5);
+  }
+  const glass = new THREE.Mesh(domeGeo, glassMat);
+  port.add(glass);
+  const backing = new THREE.Mesh(new THREE.CircleGeometry(0.2, 40), dark);
+  backing.position.z = -0.02;
+  port.add(backing);
   ship.add(port);
 
-  // Engine: ribbed red bell
+  // Engine: ribbed red collar and a heat-tinted, tube-walled bell
   const ribs = new THREE.Group();
-  for (let i = 0; i < 4; i++) {
-    const r = 0.36 - i * 0.03;
-    const t = new THREE.Mesh(new THREE.TorusGeometry(r, 0.045, 12, 48), i % 2 ? redDark : red);
+  for (let i = 0; i < 3; i++) {
+    const r = 0.37 - i * 0.035;
+    const t = new THREE.Mesh(new THREE.TorusGeometry(r, 0.042, 16, segs), i % 2 ? redDark : red);
     t.rotation.x = Math.PI / 2;
-    t.position.y = -0.02 - i * 0.075;
+    t.position.y = -0.025 - i * 0.07;
     ribs.add(t);
   }
-  const bell = new THREE.Mesh(lathe([[0.2, -0.32], [0.3, -0.36], [0.27, -0.24], [0.33, -0.02]], 40), redDark);
-  ribs.add(bell);
+  const bellPts: [number, number][] = [
+    [0.3, -0.43],
+    [0.285, -0.38],
+    [0.255, -0.32],
+    [0.22, -0.26],
+    [0.2, -0.2],
+    [0.205, -0.14],
+  ];
+  ribs.add(new THREE.Mesh(lathe(bellPts, segs), bellMat));
+  ribs.add(new THREE.Mesh(lathe(bellPts.map(([r, y]) => [r - 0.012, y + 0.004] as [number, number]), segs), bellInner));
+  const lip = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.008, 8, segs), chrome);
+  lip.rotation.x = Math.PI / 2;
+  lip.position.y = -0.43;
+  ribs.add(lip);
   ship.add(ribs);
 
   // Fins: three swept blades with a foot, like the reference.
@@ -192,66 +248,66 @@ export function makeRocket(): Rocket {
   fin.lineTo(0.38, -0.1);
   fin.bezierCurveTo(0.33, 0.18, 0.16, 0.26, 0, 0.22);
   fin.lineTo(0, 0.95);
-  const finGeo = new THREE.ExtrudeGeometry(fin, { depth: 0.07, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03, bevelSegments: 3, curveSegments: 18 });
-  finGeo.translate(0, 0, -0.035);
+  const finGeo = new THREE.ExtrudeGeometry(fin, { depth: 0.06, bevelEnabled: true, bevelThickness: 0.028, bevelSize: 0.028, bevelSegments: lite ? 3 : 5, curveSegments: lite ? 18 : 32 });
+  finGeo.translate(0, 0, -0.03);
+  const footGeo = new THREE.CylinderGeometry(0.035, 0.045, 0.05, 16);
   for (let i = 0; i < 3; i++) {
     const a = (i / 3) * Math.PI * 2 + Math.PI / 2;
     const f = new THREE.Mesh(finGeo, red);
     const holder = new THREE.Group();
     f.position.x = 0.42;
     holder.add(f);
+    const foot = new THREE.Mesh(footGeo, chrome);
+    foot.position.set(0.42 + 0.45, -0.69, 0);
+    holder.add(foot);
     holder.rotation.y = a;
     ship.add(holder);
   }
 
-  // Flame: two additive cones with a flickering shader.
-  const flameMat = (core: number, edge: number, alpha: number) =>
-    new THREE.ShaderMaterial({
-      vertexShader: FLAME_VERT,
-      fragmentShader: FLAME_FRAG,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      uniforms: { uTime: { value: 0 }, uThrust: { value: 1 }, uCore: { value: new THREE.Color(core) }, uEdge: { value: new THREE.Color(edge) }, uAlpha: { value: alpha } },
-    });
-  const outerGeo = new THREE.ConeGeometry(0.3, 1, 32, 12, true);
-  outerGeo.rotateX(Math.PI);
-  outerGeo.translate(0, -0.5, 0);
-  const innerGeo = new THREE.ConeGeometry(0.17, 0.75, 24, 10, true);
-  innerGeo.rotateX(Math.PI);
-  innerGeo.translate(0, -0.375, 0);
-  const outer = new THREE.Mesh(outerGeo, flameMat(0xffc93a, 0xff5a00, 0.55));
-  const inner = new THREE.Mesh(innerGeo, flameMat(0xfffbe0, 0xffb020, 0.85));
-  const flame = new THREE.Group();
-  flame.add(outer, inner);
-  flame.position.y = -0.36;
-  ship.add(flame);
-  const glow = new THREE.PointLight(0xff8a2a, 6, 6, 1.6);
-  glow.position.y = -0.7;
+  // Exhaust
+  const flame = makeFlame(lite, 0.29);
+  flame.group.position.y = -0.43;
+  ship.add(flame.group);
+  const glow = new THREE.PointLight(0xff8a2a, 0, opts.small ? 1.2 : 7, 1.6);
+  glow.position.y = -0.85;
   ship.add(glow);
 
-  const nozzle = new THREE.Vector3(0, -0.95 - 0.4, 0);
-  const flames = [outer.material as THREE.ShaderMaterial, inner.material as THREE.ShaderMaterial];
+  const nozzle = new THREE.Vector3(0, -0.95 - 0.43, 0);
+  let opacity = 1;
+  let cabin = 1;
 
   return {
     group,
     nozzle,
-    update(t, thrust) {
-      flames.forEach((m) => {
-        m.uniforms.uTime.value = t;
-        m.uniforms.uThrust.value = thrust;
-      });
-      flame.visible = thrust > 0.02;
-      flame.scale.setScalar(0.6 + thrust * 0.6);
-      glow.intensity = thrust * (5 + Math.sin(t * 40) * 1.5);
+    porthole: port,
+    portholeRadius: GR,
+    update(t, thrust, boost = 0) {
+      flame.update(t, thrust, opacity * flameK, boost);
+      glow.intensity = thrust * opacity * flameK * (opts.small ? 0.15 : 1) * (5 + Math.sin(t * 40) * 1.2 + Math.sin(t * 17) * 0.8);
+      bellInner.emissiveIntensity = Math.min(1.6, thrust * 1.1);
+      glassMat.emissiveIntensity = cabin * (0.95 + Math.sin(t * 3.1) * 0.03);
     },
     setOpacity(o) {
+      opacity = o;
       mats.forEach((m) => {
         m.transparent = o < 1;
         m.opacity = o;
       });
-      flames.forEach((m) => (m.uniforms.uAlpha.value = o));
       group.visible = o > 0.01;
+    },
+    setCabin(v) {
+      cabin = v;
+    },
+    setFlameIntensity(v) {
+      flameK = v;
+    },
+    dispose() {
+      group.traverse((o) => {
+        const m = o as THREE.Mesh;
+        if (m.isMesh) m.geometry.dispose();
+      });
+      mats.forEach((m) => m.dispose());
+      flame.dispose();
     },
   };
 }

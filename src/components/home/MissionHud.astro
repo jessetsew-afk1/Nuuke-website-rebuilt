@@ -1,0 +1,96 @@
+---
+// Quiet mission readout for the homepage flight: stage, mission clock, altitude, speed.
+// Purely decorative telemetry of the rocket (aria-hidden). It only appears once the
+// journey scene sends 'nuuke:hud' events, so it never shows in the static fallback.
+---
+
+<div class="hud" data-hud-box aria-hidden="true">
+  <span class="hud-stage" data-hud-stage>Launch</span>
+  <span class="hud-line">
+    <span class="hud-cell"><i>T</i><b data-hud-t>+00:00</b></span>
+    <span class="hud-cell"><i>Alt</i><b data-hud-alt>0.0</b><em>km</em></span>
+    <span class="hud-cell"><i>Vel</i><b data-hud-vel>0.00</b><em>km/s</em></span>
+  </span>
+</div>
+
+<script>
+  const box = document.querySelector<HTMLElement>('[data-hud-box]');
+  if (box) {
+    const stageEl = box.querySelector<HTMLElement>('[data-hud-stage]')!;
+    const tEl = box.querySelector<HTMLElement>('[data-hud-t]')!;
+    const altEl = box.querySelector<HTMLElement>('[data-hud-alt]')!;
+    const velEl = box.querySelector<HTMLElement>('[data-hud-vel]')!;
+    const marks = () => [...document.querySelectorAll<HTMLElement>('[data-hud]')];
+    let list = marks();
+    window.addEventListener('resize', () => (list = marks()));
+    const sectionStage = () => {
+      const mid = window.innerHeight * 0.5;
+      let name = list[0]?.dataset.hud ?? '';
+      for (const el of list) if (el.getBoundingClientRect().top <= mid) name = el.dataset.hud ?? name;
+      return name;
+    };
+    const fmt = new Intl.NumberFormat('en', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+    const fmtV = new Intl.NumberFormat('en', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+    const pad = (n: number) => String(Math.floor(n)).padStart(2, '0');
+    let footerIn = false;
+    const footer = document.querySelector('footer');
+    if (footer) new IntersectionObserver((es) => (footerIn = es[0]?.isIntersecting ?? false)).observe(footer);
+    let shownStage = '';
+    window.addEventListener('nuuke:hud', (e) => {
+      const d = (e as CustomEvent<{ show: boolean; stage: string | null; alt: number; vel: number; t: number }>).detail;
+      box.classList.toggle('is-on', d.show && !footerIn);
+      if (!d.show) return;
+      const st = d.stage ?? sectionStage();
+      if (st !== shownStage) {
+        shownStage = st;
+        stageEl.textContent = st;
+      }
+      const t = Math.abs(d.t);
+      tEl.textContent = `${d.t < 0 ? '−' : '+'}${pad(t / 60)}:${pad(t % 60)}`;
+      altEl.textContent = fmt.format(d.alt);
+      velEl.textContent = d.vel > 1000 ? new Intl.NumberFormat('en', { maximumFractionDigits: 0 }).format(d.vel) : fmtV.format(d.vel);
+    });
+  }
+</script>
+
+<style>
+  .hud {
+    position: fixed;
+    left: var(--gutter);
+    bottom: calc(1rem + env(safe-area-inset-bottom));
+    z-index: 55;
+    height: var(--nav-h);
+    display: grid;
+    align-content: center;
+    gap: 3px;
+    font: 500 0.6875rem/1.2 var(--font-ui);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
+    transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out), visibility 0.8s;
+    text-shadow: 0 1px 6px rgb(0 0 0 / 0.8);
+  }
+  .hud.is-on { opacity: 1; visibility: visible; transform: none; }
+  .hud-stage { color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.16em; font-weight: 600; }
+  .hud-stage::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); vertical-align: 1px; animation: hj-hud-blink 2.4s ease-in-out infinite; }
+  @keyframes hj-hud-blink { 50% { opacity: 0.35; } }
+  .hud-line { display: flex; gap: 14px; }
+  .hud-cell { display: inline-flex; gap: 5px; align-items: baseline; white-space: nowrap; }
+  .hud-cell i { font-style: normal; text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.625rem; }
+  .hud-cell b { font-weight: 600; color: var(--ink-2); min-width: 3.2em; }
+  .hud-cell em { font-style: normal; font-size: 0.625rem; }
+  :global(html:has(.menu:not([hidden]))) .hud { opacity: 0; }
+  /* Phones: one quiet line just above the pill nav */
+  @media (max-width: 759px) {
+    .hud { left: 0; right: 0; bottom: calc(1rem + var(--nav-h) + 8px + env(safe-area-inset-bottom)); height: auto; display: flex; justify-content: center; gap: 10px; font-size: 0.625rem; }
+    .hud-line { gap: 10px; }
+    .hud-cell b { min-width: 0; }
+    .hud-stage::before { width: 5px; height: 5px; margin-right: 6px; }
+  }
+  @media (max-width: 380px) { .hud-cell:first-child { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .hud { display: none; } }
+</style>

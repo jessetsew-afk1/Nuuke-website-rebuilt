@@ -1,0 +1,205 @@
+// Post-processing for the journey: heat haze behind the nozzle, warp zoom blur and
+// chromatic fringing, bloom, then a cinematic finish (lens flare from the sun, flash,
+// vignette, grain) before tone mapping. Phones get half-resolution bloom and no MSAA.
+import { THREE } from '../core';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { SIMPLEX3, HASH } from './noise';
+
+const FS_VERT = /* glsl */ `
+varying vec2 vUv;
+void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
+
+const DISTORT_FRAG = /* glsl */ `
+${SIMPLEX3}
+uniform sampler2D tDiffuse;
+uniform vec2 uRes;
+uniform float uTime;
+uniform vec2 uHazeO;   // haze origin in uv
+uniform vec2 uHazeDir; // flame direction in pixels (normalised)
+uniform float uHazeLen; // px
+uniform float uHazeW;   // px
+uniform float uHaze;    // strength
+uniform float uWarp;    // 0..1 radial zoom blur
+uniform float uAberr;   // chromatic fringe at the edges
+varying vec2 vUv;
+void main() {
+  vec2 uv = vUv;
+  vec2 px = uv * uRes;
+  vec2 o = uHazeO * uRes;
+  vec2 rel = px - o;
+  float along = dot(rel, uHazeDir);
+  float across = dot(rel, vec2(-uHazeDir.y, uHazeDir.x));
+  float L = max(uHazeLen, 1.0);
+  float wid = uHazeW * (0.6 + 1.6 * clamp(along / L, 0.0, 1.0));
+  float m = smoothstep(-0.05 * L, 0.12 * L, along) * (1.0 - smoothstep(0.55 * L, L, along)) * exp(-pow(across / max(wid, 1.0), 2.0));
+  if (m * uHaze > 0.001) {
+    vec2 q = rel / 38.0;
+    float n1 = snoise(vec3(q.x, q.y - uTime * 4.0, uTime * 0.6));
+    float n2 = snoise(vec3(q.x + 7.3, q.y - uTime * 3.2, uTime * 0.7));
+    uv += vec2(n1, n2) * m * uHaze * 6.0 / uRes;
+  }
+  vec2 c = uv - 0.5;
+  float r2 = dot(c, c);
+  vec3 col;
+  if (uWarp > 0.001) {
+    vec3 acc = vec3(0.0);
+    float wsum = 0.0;
+    for (int i = 0; i < 10; i++) {
+      float k = float(i) / 9.0;
+      vec2 suv = 0.5 + c * (1.0 - k * uWarp * 0.12 * (0.3 + r2 * 3.0));
+      float w = 1.0 - k * 0.6;
+      acc += texture2D(tDiffuse, suv).rgb * w;
+      wsum += w;
+    }
+    col = acc / wsum;
+  } else {
+    col = texture2D(tDiffuse, uv).rgb;
+  }
+  float ab = uAberr * r2;
+  if (ab > 0.00005) {
+    col.r = mix(col.r, texture2D(tDiffuse, uv + c * ab).r, 0.9);
+    col.b = mix(col.b, texture2D(tDiffuse, uv - c * ab).b, 0.9);
+  }
+  gl_FragColor = vec4(col, 1.0);
+}`;
+
+const FINISH_FRAG = /* glsl */ `
+${HASH}
+uniform sampler2D tDiffuse;
+uniform vec2 uRes;
+uniform float uTime;
+uniform vec2 uSun;      // sun position in uv
+uniform float uSunVis;  // 0..1
+uniform float uFlash;
+uniform vec3 uFlashCol;
+uniform float uVignette;
+uniform float uGrain;
+varying vec2 vUv;
+float disc(vec2 p, vec2 c, float r, float soft) { return 1.0 - smoothstep(r * (1.0 - soft), r, length(p - c)); }
+void main() {
+  vec3 col = texture2D(tDiffuse, vUv).rgb;
+  float asp = uRes.x / uRes.y;
+  if (uSunVis > 0.001) {
+    vec2 p = vec2(vUv.x * asp, vUv.y);
+    vec2 s = vec2(uSun.x * asp, uSun.y);
+    vec2 ctr = vec2(0.5 * asp, 0.5);
+    vec2 axis = ctr - s;
+    vec3 fl = vec3(0.0);
+    fl += vec3(0.35, 0.55, 1.0) * disc(p, s + axis * 0.55, 0.035, 0.6) * 0.18;
+    fl += vec3(1.0, 0.45, 0.75) * disc(p, s + axis * 0.85, 0.07, 0.7) * 0.1;
+    fl += vec3(0.6, 1.0, 0.7) * disc(p, s + axis * 1.25, 0.02, 0.5) * 0.25;
+    fl += vec3(0.45, 0.6, 1.0) * disc(p, s + axis * 1.55, 0.12, 0.85) * 0.07;
+    float ring = disc(p, s + axis * 1.9, 0.2, 0.15) - disc(p, s + axis * 1.9, 0.19, 0.3);
+    fl += vec3(0.9, 0.6, 1.0) * max(ring, 0.0) * 0.06;
+    // anamorphic streak through the sun
+    vec2 d = p - s;
+    fl += vec3(0.45, 0.6, 1.2) * exp(-abs(d.y) * 260.0) * exp(-abs(d.x) * 2.2) * 0.5;
+    fl += vec3(1.3, 1.1, 0.9) * exp(-length(d) * 22.0) * 0.4;
+    col += fl * uSunVis;
+  }
+  col = mix(col, uFlashCol, clamp(uFlash, 0.0, 1.0));
+  vec2 c = vUv - 0.5;
+  float v = 1.0 - smoothstep(0.35, 0.95, length(c * vec2(asp * 0.75, 1.0))) * uVignette;
+  col *= v;
+  col += (hash12(vUv * uRes + fract(uTime) * 100.0) - 0.5) * uGrain;
+  gl_FragColor = vec4(col, 1.0);
+}`;
+
+export type Post = {
+  render: () => void;
+  distort: ShaderPass;
+  finish: ShaderPass;
+  bloom: UnrealBloomPass;
+  sync: () => void;
+  dispose: () => void;
+};
+
+export function makePost(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, lite: boolean): Post {
+  const size = renderer.getSize(new THREE.Vector2());
+  const pr = renderer.getPixelRatio();
+  const rt = new THREE.WebGLRenderTarget(size.x * pr, size.y * pr, { type: THREE.HalfFloatType, samples: lite ? 0 : 4 });
+  const composer = new EffectComposer(renderer, rt);
+  composer.addPass(new RenderPass(scene, camera));
+  const distort = new ShaderPass(
+    new THREE.ShaderMaterial({
+      vertexShader: FS_VERT,
+      fragmentShader: DISTORT_FRAG,
+      uniforms: {
+        tDiffuse: { value: null },
+        uRes: { value: new THREE.Vector2(1, 1) },
+        uTime: { value: 0 },
+        uHazeO: { value: new THREE.Vector2(0.5, 0.5) },
+        uHazeDir: { value: new THREE.Vector2(0, -1) },
+        uHazeLen: { value: 200 },
+        uHazeW: { value: 30 },
+        uHaze: { value: 0 },
+        uWarp: { value: 0 },
+        uAberr: { value: 0 },
+      },
+    }),
+  );
+  composer.addPass(distort);
+  const bloom = new UnrealBloomPass(new THREE.Vector2(size.x, size.y), 0.5, 0.42, 1.0);
+  if (lite) {
+    const orig = bloom.setSize.bind(bloom);
+    bloom.setSize = (w: number, h: number) => orig(Math.round(w / 2), Math.round(h / 2));
+  }
+  composer.addPass(bloom);
+  const finish = new ShaderPass(
+    new THREE.ShaderMaterial({
+      vertexShader: FS_VERT,
+      fragmentShader: FINISH_FRAG,
+      uniforms: {
+        tDiffuse: { value: null },
+        uRes: { value: new THREE.Vector2(1, 1) },
+        uTime: { value: 0 },
+        uSun: { value: new THREE.Vector2(0.9, 0.9) },
+        uSunVis: { value: 0 },
+        uFlash: { value: 0 },
+        uFlashCol: { value: new THREE.Color(1, 1, 1) },
+        uVignette: { value: 0.55 },
+        uGrain: { value: 0.012 },
+      },
+    }),
+  );
+  composer.addPass(finish);
+  composer.addPass(new OutputPass());
+
+  let w = 0;
+  let h = 0;
+  let p = 0;
+  const sync = () => {
+    renderer.getSize(size);
+    const r = renderer.getPixelRatio();
+    if (size.x !== w || size.y !== h || r !== p) {
+      w = size.x;
+      h = size.y;
+      p = r;
+      composer.setPixelRatio(r);
+      composer.setSize(w, h);
+      distort.uniforms.uRes.value.set(w * r, h * r);
+      finish.uniforms.uRes.value.set(w * r, h * r);
+    }
+  };
+  sync();
+  return {
+    render: () => {
+      sync();
+      composer.render();
+    },
+    distort,
+    finish,
+    bloom,
+    sync,
+    dispose: () => {
+      composer.dispose();
+      bloom.dispose();
+      distort.material.dispose();
+      finish.material.dispose();
+    },
+  };
+}
