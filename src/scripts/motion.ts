@@ -12,6 +12,26 @@ export let lenis: Lenis | null = null;
 
 let started = false;
 
+/**
+ * Every page opens at the top. Browsers (and some embedding hosts) can otherwise restore an old
+ * scroll position on reload or keep the previous page's offset. Back/forward keeps its position,
+ * and links to an #anchor still land on the anchor.
+ */
+function startAtTop() {
+  const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+  if (location.hash || nav?.type === 'back_forward') return;
+  const top = () => {
+    if (lenis) lenis.scrollTo(0, { immediate: true, force: true });
+    window.scrollTo(0, 0);
+  };
+  top();
+  // Repeat once everything has loaded (that is when browsers restore), unless the visitor already scrolled.
+  let moved = false;
+  const mark = () => (moved = true);
+  ['wheel', 'touchmove', 'keydown'].forEach((e) => window.addEventListener(e, mark, { once: true, passive: true }));
+  window.addEventListener('load', () => requestAnimationFrame(() => moved || top()), { once: true });
+}
+
 export function initMotion() {
   if (started) return;
   started = true;
@@ -38,6 +58,7 @@ export function initMotion() {
     );
   }
 
+  startAtTop();
   initReveals();
   initSplits();
   initCounters();
