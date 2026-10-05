@@ -90,6 +90,7 @@ const gov = {
   dropFrom: 0,
   holdUntil: -1e9, // no further steps down before this time
   holdMs: 20000,
+  dropStep: 1, // tiers to step down next time (grows when a single step did not help)
   frameMs: 0, // smoothed main-thread ms per tick (diagnostics)
 };
 
@@ -138,21 +139,24 @@ function govSample(ms: number, now: number) {
     // limited by something other than our rendering (a 30 fps battery saver, a busy machine,
     // a throttled tab): go back to the richer tier and stop stepping down for a while instead
     // of sliding to the lightest look for no gain.
+    // The next attempt steps down further, in case only a bigger cut gets under a vsync step.
     const before = gov.dropMean;
     gov.dropMean = 0;
     if (mean > before * 0.93) {
       gov.holdUntil = now + gov.holdMs;
       gov.holdMs = Math.min(300000, gov.holdMs * 3);
+      gov.dropStep = Math.min(MAX_TIER, gov.dropStep + 1);
       setTier(gov.dropFrom);
       return;
     }
+    gov.dropStep = 1;
   }
   if (mean > 20.5 && gov.sinceChange >= 45 && now >= gov.holdUntil && gov.tier < MAX_TIER) {
     // Under ~50 fps on average: lighten. If we only just stepped up, back off for longer.
     if (now - gov.lastUpAt < 8000) gov.upWait = Math.min(120000, gov.upWait * 2);
     gov.dropMean = mean;
     gov.dropFrom = gov.tier;
-    setTier(gov.tier + 1);
+    setTier(gov.tier + gov.dropStep);
     return;
   }
   if (mean < 17.6 && late <= 2) gov.goodFor += 30 * FRAME_MS;

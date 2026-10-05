@@ -126,7 +126,9 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
     uniforms: { uTime: { value: 0 }, uCA: { value: phone ? 0 : 0.012 }, uGrain: { value: 1 } },
   });
   const finish = { uniforms: post.uniforms };
-  stage.setRender(post.render);
+  // Draw nothing until the shaders below are compiled: a render while compileAsync is still
+  // running would force the same compile synchronously (a long main-thread stall).
+  stage.setRender(() => {});
   onQuality((qq) => {
     post.setQuality(qq);
     finish.uniforms.uCA.value = phone || !qq.extras ? 0 : 0.012;
@@ -290,6 +292,8 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
   } catch {
     /* compile on first render instead */
   }
+  stage.setRender(post.render);
+  stage.invalidate();
   stage.onFrame((t) => frame(t));
   if (/[?&]hjdebug\b/.test(location.search)) (window as unknown as { __ss: unknown }).__ss = () => ({ ...sun.dbg, cam: camera.position.toArray(), fs, progress });
   // From here on this canvas is opaque and fills the viewport while its section is pinned:
