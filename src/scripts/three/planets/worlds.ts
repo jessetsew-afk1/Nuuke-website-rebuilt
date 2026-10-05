@@ -324,8 +324,14 @@ void main() {
   pulse = 0.35 + 0.65 * pulse * pulse;
   col += uNight * B.b * (0.12 + 0.88 * nightMask) * pulse * uNightK * (1.0 - 0.45 * cloudHere);
 #elif defined(LIGHTNING)
+  // Storm lightning: each cell flashes now and then with a soft rise and fall (not a hard
+  // 7 Hz on/off strobe, which made the bloom around the planet blink).
   vec2 cell = floor(uv * vec2(70.0, 35.0));
-  float flick = step(0.985, fract(sin(dot(cell, vec2(12.9898, 78.233)) + floor(uTime * 7.0) * 3.17) * 43758.5453));
+  float seed = fract(sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5453);
+  float ph = uTime * (0.35 + seed * 0.4) + seed * 17.0;
+  float on = step(0.94, fract(sin(floor(ph) * 91.7 + seed * 311.0) * 43758.5453));
+  float env = sin(fract(ph) * 3.14159);
+  float flick = on * env * env * 0.6;
   col += uNight * B.b * flick * nightMask * uNightK;
 #else
   float tw = 0.8 + 0.2 * sin(uTime * 2.3 + B.b * 50.0 + vUv.x * 300.0);

@@ -84,6 +84,7 @@ const lines = [
           hw = !/swiftshader|llvmpipe|softpipe|software|basic render/i.test(name);
         }
       } catch (e) {}
+      window.__nuukeHW = hw; // reused by hasHardwareGL(): no second probe context
     }
     if (!hw || matchMedia('(prefers-reduced-motion: reduce)').matches) {
       root.classList.add('is-static');
@@ -142,18 +143,27 @@ const lines = [
           setActive(Math.round(st.progress * (stops - 1)));
         },
       });
+      // Planet labels follow the planets only while the section is on screen, and only touch
+      // the DOM when a value actually changes.
+      const last = labels.map(() => ({ t: '', o: '' }));
+      let raf = 0;
+      let onScreen = false;
       const tick = () => {
-        const r = root.getBoundingClientRect();
-        if (r.bottom > 0 && r.top < window.innerHeight) {
-          scene.planetsOnScreen().forEach((p, i) => {
-            const l = labels[i];
-            l.style.transform = `translate(${p.x}px, ${p.y}px)`;
-            l.style.opacity = p.visible ? '' : '0';
-          });
-        }
-        requestAnimationFrame(tick);
+        raf = 0;
+        if (!onScreen) return;
+        scene.planetsOnScreen().forEach((p, i) => {
+          const l = labels[i];
+          const t = `translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px)`;
+          const o = p.visible ? '' : '0';
+          if (t !== last[i].t) l.style.transform = last[i].t = t;
+          if (o !== last[i].o) l.style.opacity = last[i].o = o;
+        });
+        raf = requestAnimationFrame(tick);
       };
-      tick();
+      new IntersectionObserver((es) => {
+        onScreen = es[0]?.isIntersecting ?? false;
+        if (onScreen && !raf) raf = requestAnimationFrame(tick);
+      }).observe(root);
     }, '600px');
   });
 </script>

@@ -381,11 +381,27 @@ const stages = [
       onLeave: () => (journey?.setFilm(1), setActive(false)),
       onLeaveBack: () => (journey?.setFilm(0), setActive(false)),
     });
+    // Screen size is measured on resize, not per frame (a layout read after GSAP's style
+    // writes would force a synchronous layout every frame). Styles are written only on change.
+    let W = 0;
+    let H = 0;
+    new ResizeObserver(() => {
+      W = screen.offsetWidth;
+      H = screen.offsetHeight;
+    }).observe(screen);
+    const last: Record<string, string> = {};
+    const put = (el: HTMLElement, k: 'transform' | 'clipPath' | 'opacity', key: string, v: string) => {
+      if (last[key] === v) return;
+      last[key] = v;
+      el.style[k] = v;
+    };
     onJourney.push((j) =>
       j.onPorthole((f) => {
         if (!filmOn) return;
-        const W = screen.offsetWidth;
-        const H = screen.offsetHeight;
+        if (!W || !H) {
+          W = screen.offsetWidth;
+          H = screen.offsetHeight;
+        }
         if (!W || !H) return;
         const cx = window.innerWidth / 2;
         const cy = window.innerHeight / 2 - 12;
@@ -397,14 +413,14 @@ const stages = [
         const inset = ((W - H) / 2) * (1 - k2);
         const round = H / 2 + (18 - H / 2) * k2;
         const vis = f.visible ? ease((f.facing - 0.35) / 0.35) : 0;
-        screen.style.transform = `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${s.toFixed(4)})`;
-        screen.style.clipPath = `inset(0px ${inset.toFixed(1)}px round ${round.toFixed(1)}px)`;
-        screen.style.opacity = String(Math.max(vis, k1));
+        put(screen, 'transform', 'st', `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${s.toFixed(4)})`);
+        put(screen, 'clipPath', 'sc', `inset(0px ${inset.toFixed(1)}px round ${round.toFixed(1)}px)`);
+        put(screen, 'opacity', 'so', Math.max(vis, k1).toFixed(3));
         // The heading steps aside once the camera is close to the hull.
-        filmHead.style.opacity = String(Math.min(1, Math.max(0, 1 - f.near * 1.6)));
+        put(filmHead, 'opacity', 'ho', Math.min(1, Math.max(0, 1 - f.near * 1.6)).toFixed(3));
         const bottom = cy + ty + (H / 2) * s;
-        filmBtn.style.transform = `translate(calc(-50% + ${(tx).toFixed(1)}px), ${(bottom + 18).toFixed(1)}px)`;
-        filmBtn.style.opacity = String(Math.max(0.0001, Math.max(vis * ease((f.r - 14) / 20), k1)));
+        put(filmBtn, 'transform', 'bt', `translate(calc(-50% + ${tx.toFixed(1)}px), ${(bottom + 18).toFixed(1)}px)`);
+        put(filmBtn, 'opacity', 'bo', Math.max(0.0001, Math.max(vis * ease((f.r - 14) / 20), k1)).toFixed(4));
       }),
     );
   } else {

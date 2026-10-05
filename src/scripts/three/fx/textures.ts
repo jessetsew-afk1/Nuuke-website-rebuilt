@@ -8,6 +8,17 @@ function once<T>(key: string, make: () => T): T {
   return cache.get(key) as T;
 }
 
+/** Free the launch-pad-only textures (GPU copies and canvases) once the pad is gone. */
+export function releasePadTextures() {
+  for (const key of ['concretetrue', 'concretefalse', 'scorch', 'groundFade']) {
+    const v = cache.get(key) as THREE.Texture | { map: THREE.Texture; rough: THREE.Texture } | undefined;
+    if (!v) continue;
+    const list = v instanceof THREE.Texture ? [v] : [v.map, v.rough];
+    for (const t of list) t.dispose();
+    cache.delete(key);
+  }
+}
+
 // ---------- tiny JS noise ----------
 function rng(seed: number) {
   let s = seed >>> 0 || 1;

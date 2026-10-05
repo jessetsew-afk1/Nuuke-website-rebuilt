@@ -179,12 +179,14 @@ export function makeSun(phone: boolean) {
   const tmp = new THREE.Vector3();
   const dir = new THREE.Vector3();
   let vis = 0;
+  const dbg: Record<string, unknown> = {};
 
   return {
     group,
     flareGroup,
+    dbg,
     /** occluders: world centres + radii of anything that can pass in front of the sun. */
-    update(t: number, camera: THREE.PerspectiveCamera, occluders: { c: THREE.Vector3; r: number }[]) {
+    update(t: number, camera: THREE.PerspectiveCamera, occluders: { c: THREE.Vector3; r: number }[], dt = 1 / 60) {
       sunMat.uniforms.uTime.value = t;
       coronaMat.uniforms.uTime.value = t;
       corona.quaternion.copy(camera.quaternion);
@@ -207,7 +209,13 @@ export function makeSun(phone: boolean) {
         occl = Math.min(occl, k);
       }
       const target = onScreen * occl;
-      vis += (target - vis) * 0.15;
+      // Ease toward the target in time (frame-rate independent), not per frame.
+      vis += (target - vis) * (1 - Math.exp(-9.75 * Math.min(dt, 0.1)));
+      dbg.vis = vis;
+      dbg.target = target;
+      dbg.onScreen = onScreen;
+      dbg.occl = occl;
+      dbg.ndc = [sunNdc.x, sunNdc.y, sunNdc.z];
 
       for (const f of flares) {
         const k = 1 - f.at;
@@ -219,7 +227,8 @@ export function makeSun(phone: boolean) {
         else f.sprite.scale.setScalar(s);
         f.sprite.material.opacity = f.base * vis * (f.at === 0 ? 1 : 0.8 + 0.2 * Math.sin(t * 0.7 + f.at * 5));
       }
-      flareGroup.visible = vis > 0.01;
+      // Fully faded before it is skipped, so switching it off is never visible.
+      flareGroup.visible = vis > 0.002;
     },
   };
 }

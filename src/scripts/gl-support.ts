@@ -6,6 +6,9 @@ export function hasHardwareGL(): boolean {
   if (cached !== null) return cached;
   // ?gl=force (testing on machines without a GPU)
   if (/[?&]gl=force\b/.test(location.search)) return (cached = true);
+  // An inline check earlier on the page may already have probed the GPU.
+  const pre = (window as Window & { __nuukeHW?: boolean }).__nuukeHW;
+  if (typeof pre === 'boolean') return (cached = pre);
   try {
     const c = document.createElement('canvas');
     const gl = (c.getContext('webgl2') || c.getContext('webgl')) as WebGLRenderingContext | null;

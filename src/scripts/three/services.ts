@@ -1,13 +1,9 @@
 // Services as a solar system: the NUUKE star at the centre, one world per service.
 // Scroll progress (0..1) flies a cinematic camera from an overview to each world in turn.
 // Heavy lifting lives in ./planets/*: GPU-baked surfaces, the sun, deep space and belts.
-import { createStage, THREE } from './core';
+import { createStage, isLiteDevice, onQuality, THREE } from './core';
 import { makeRocket } from './rocket';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { makePipeline } from './fx/pipeline';
 import { Baker } from './planets/bake';
 import { makeSun } from './planets/sun';
 import { makeBelt, makeNearDust, makeSpace } from './planets/space';
@@ -21,28 +17,27 @@ export type ServicesScene = {
   dispose: () => void;
 };
 
-// Film finish: soft vignette, a hint of lens fringing toward the edges and fine grain.
-const FINISH = {
-  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uRes: { value: new THREE.Vector2(1, 1) }, uCA: { value: 0.012 } },
-  vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-  fragmentShader: /* glsl */ `
-    uniform sampler2D tDiffuse; uniform float uTime; uniform vec2 uRes; uniform float uCA; varying vec2 vUv;
-    void main() {
-      vec2 c = vUv - 0.5;
-      float r2 = dot(c, c);
-      vec3 col;
-      if (uCA > 0.0) {
-        vec2 off = c * r2 * uCA;
-        col = vec3(texture2D(tDiffuse, vUv + off).r, texture2D(tDiffuse, vUv).g, texture2D(tDiffuse, vUv - off).b);
-      } else {
-        col = texture2D(tDiffuse, vUv).rgb;
-      }
-      col *= 1.0 - smoothstep(0.12, 0.62, r2) * 0.42;
-      float n = fract(sin(dot(floor(vUv * uRes) + fract(uTime * 7.31) * 113.0, vec2(12.9898, 78.233))) * 43758.5453);
-      col += (n - 0.5) * 0.022;
-      gl_FragColor = vec4(col, 1.0);
-    }`,
-};
+// Film finish (after bloom, tone mapping and sRGB, all in the pipeline's single final pass):
+// soft vignette, a hint of lens fringing toward the edges and fine grain.
+const FINISH_FRAG = /* glsl */ `
+uniform float uTime;
+uniform float uCA;
+uniform float uGrain;
+void main() {
+  vec2 c = vUv - 0.5;
+  float r2 = dot(c, c);
+  vec3 col;
+  if (uCA > 0.0) {
+    vec2 off = c * r2 * uCA;
+    col = vec3(display(hdr(vUv + off)).r, display(hdr(vUv)).g, display(hdr(vUv - off)).b);
+  } else {
+    col = display(hdr(vUv));
+  }
+  col *= 1.0 - smoothstep(0.12, 0.62, r2) * 0.42;
+  float n = fract(sin(dot(floor(vUv * uRes) + fract(uTime * 7.31) * 113.0, vec2(12.9898, 78.233))) * 43758.5453);
+  col += (n - 0.5) * 0.022 * uGrain;
+  gl_FragColor = vec4(col, 1.0);
+}`;
 
 const ORBITS = [8.5, 13.5, 20.5, 25.5];
 const ANGLES = [-0.7, 0.3, 4.25, 5.35];
@@ -54,11 +49,13 @@ const smoother = (x: number) => {
 };
 
 export async function initServices(canvas: HTMLCanvasElement, colors: string[]): Promise<ServicesScene> {
-  const phone = window.innerWidth < 760 || window.matchMedia('(pointer: coarse)').matches;
-  const q: Quality = phone ? { phone, tex: 768, seg: 72, particles: 0.45 } : { phone, tex: 1536, seg: 128, particles: 1 };
+  const phone = isLiteDevice();
   const stage = createStage(canvas, { fov: 38, z: 40, alpha: false });
   const { scene, camera, renderer } = stage;
-  if (phone) renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
+  // Surface bakes and particle counts are fixed at build time: pick them from the starting tier.
+  let startTier = 0;
+  onQuality((qq) => (startTier = qq.tier))();
+  const q: Quality = phone || startTier >= 3 ? { phone, tex: 768, seg: 72, particles: 0.45 } : startTier === 2 ? { phone, tex: 1024, seg: 96, particles: 0.75 } : { phone, tex: 1536, seg: 128, particles: 1 };
   camera.near = 0.05;
   camera.far = 2400;
   camera.updateProjectionMatrix();
@@ -107,12 +104,14 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
   const near = makeNearDust(q);
   scene.add(near.points);
 
-  // Point sizes follow the real render pixel ratio.
-  const pr = renderer.getPixelRatio();
-  scene.traverse((o) => {
-    const m = (o as THREE.Mesh).material as THREE.ShaderMaterial | undefined;
-    if (m && 'uniforms' in m && m.uniforms?.uPR) m.uniforms.uPR.value = pr;
-  });
+  // Point sizes follow the real render pixel ratio (which the quality governor may change).
+  const syncPR = () => {
+    const pr = renderer.getPixelRatio();
+    scene.traverse((o) => {
+      const m = (o as THREE.Mesh).material as THREE.ShaderMaterial | undefined;
+      if (m && 'uniforms' in m && m.uniforms?.uPR) m.uniforms.uPR.value = pr;
+    });
+  };
 
   // The little rocket ferries between worlds.
   const rocket = makeRocket({ small: true });
@@ -120,35 +119,19 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
   scene.add(rocket.group);
 
   // ------------------------------------------------------------ post: bloom + film finish
-  const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: phone ? 2 : 4 });
-  const composer = new EffectComposer(renderer, rt);
-  composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), phone ? 0.55 : 0.62, 0.45, 1.0);
-  if (phone) {
-    const set = bloom.setSize.bind(bloom);
-    bloom.setSize = (w: number, h: number) => set(Math.round(w / 2), Math.round(h / 2));
-  }
-  composer.addPass(bloom);
-  composer.addPass(new OutputPass());
-  const finish = new ShaderPass(FINISH);
-  finish.uniforms.uCA.value = phone ? 0 : 0.012;
-  composer.addPass(finish);
-  const size = new THREE.Vector2();
-  let lw = 0;
-  let lh = 0;
-  let lpr = 0;
-  stage.setRender(() => {
-    renderer.getSize(size);
-    const p = renderer.getPixelRatio();
-    if (size.x !== lw || size.y !== lh || p !== lpr) {
-      lw = size.x;
-      lh = size.y;
-      lpr = p;
-      composer.setPixelRatio(p);
-      composer.setSize(lw, lh);
-      finish.uniforms.uRes.value.set(lw * p, lh * p);
-    }
-    composer.render();
+  const post = makePipeline(renderer, scene, camera, {
+    bloom: { strength: phone ? 0.55 : 0.62, radius: 0.45, threshold: 1.0, knee: 0.4 },
+    maxSamples: phone ? 2 : 4,
+    finalFrag: FINISH_FRAG,
+    uniforms: { uTime: { value: 0 }, uCA: { value: phone ? 0 : 0.012 }, uGrain: { value: 1 } },
+  });
+  const finish = { uniforms: post.uniforms };
+  stage.setRender(post.render);
+  onQuality((qq) => {
+    post.setQuality(qq);
+    finish.uniforms.uCA.value = phone || !qq.extras ? 0 : 0.012;
+    finish.uniforms.uGrain.value = qq.extras ? 1 : 0;
+    syncPR();
   });
 
   // ------------------------------------------------------------ camera rig
@@ -289,28 +272,38 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
     space.update(t, camera);
     near.update(t, camera.position);
     worlds.forEach((w, j) => w.group.getWorldPosition(occluders[j].c));
-    sun.update(t, camera, occluders);
+    sun.update(t, camera, occluders, dt);
     finish.uniforms.uTime.value = t;
   };
 
-  // Compile everything up front (in parallel where the browser allows) to avoid a hitch on first view.
+  // Compile everything up front (in parallel where the browser allows) to avoid a hitch on first view,
+  // including the bloom and finish shaders.
   frame(0);
   try {
     if (renderer.extensions.has('KHR_parallel_shader_compile')) await renderer.compileAsync(scene, camera);
     else renderer.compile(scene, camera);
+    post.warm();
   } catch {
     /* compile on first render instead */
   }
   stage.onFrame((t) => frame(t));
+  if (/[?&]hjdebug\b/.test(location.search)) (window as unknown as { __ss: unknown }).__ss = () => ({ ...sun.dbg, cam: camera.position.toArray(), fs, progress });
+  // From here on this canvas is opaque and fills the viewport while its section is pinned:
+  // the journey canvas underneath can stop drawing.
+  canvas.closest<HTMLElement>('[data-ss]')?.setAttribute('data-gl-cover', '');
+  window.dispatchEvent(new Event('nuuke:gl-cover'));
 
   const label = new THREE.Vector3();
+  const onScreen = worlds.map(() => ({ x: 0, y: 0, visible: false }));
   return {
     setProgress: (p) => (progress = p),
     planetsOnScreen: () => {
       const w = canvas.clientWidth;
       const h = canvas.clientHeight;
       up.setFromMatrixColumn(camera.matrixWorld, 1);
-      return worlds.map((wd) => {
+      // On phones the copy sits under the planet, so labels only show in the overview.
+      const free = !isSmall() || fs < 0.5;
+      worlds.forEach((wd, i) => {
         wd.group.getWorldPosition(wp);
         const v = label.copy(wp).project(camera);
         const top = tmp.copy(wp).addScaledVector(up, wd.radius).project(camera);
@@ -319,10 +312,12 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
         const rpx = Math.abs((-top.y * 0.5 + 0.5) * h - y);
         // Sit the label under the disc (or at the centre for tiny, far planets).
         const ly = y + Math.max(0, rpx - 18);
-        // On phones the copy sits under the planet, so labels only show in the overview.
-        const free = !isSmall() || fs < 0.5;
-        return { x, y: ly, visible: free && v.z < 1 && x > -40 && x < w + 40 && ly > -40 && ly < h + 40 };
+        const o = onScreen[i];
+        o.x = x;
+        o.y = ly;
+        o.visible = free && v.z < 1 && x > -40 && x < w + 40 && ly > -40 && ly < h + 40;
       });
+      return onScreen;
     },
     dispose: () => {
       window.removeEventListener('deviceorientation', onOrient);
@@ -341,8 +336,9 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
       });
       textures.forEach((t) => t.dispose());
       baker.dispose();
-      composer.dispose();
-      rt.dispose();
+      post.dispose();
+      canvas.closest<HTMLElement>('[data-ss]')?.removeAttribute('data-gl-cover');
+      window.dispatchEvent(new Event('nuuke:gl-cover'));
       stage.dispose();
     },
   };

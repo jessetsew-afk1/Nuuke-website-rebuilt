@@ -11,6 +11,8 @@ attribute vec4 iB; // heat, tone, alpha, unused
 uniform vec3 uFlamePos;
 uniform float uFlamePow;
 uniform vec2 uSunView;
+uniform float uOpacity;
+uniform float uMaxSize; // cap on a puff's height in NDC units (2 = full viewport); large = off
 varying vec2 vUv;
 varying vec4 vA;
 varying vec4 vB;
@@ -22,16 +24,23 @@ void main() {
   vB = iB;
   if (iA.x <= 0.0) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
   vec4 mv = viewMatrix * vec4(iPos, 1.0);
+  vFade = smoothstep(0.15, 1.6 + iA.y * 0.25, -mv.z);
+  // Skip puffs that would draw nothing (fully faded in / out, behind or at the lens):
+  // saves the fill rate of large transparent quads.
+  float life = iA.x;
+  float fadeOut = smoothstep(0.0, 0.4, life) * vFade * uOpacity;
+  float seen = max((1.0 - smoothstep(0.88, 1.0, life)) * iB.z, iB.x * life * life * life * 2.0) * fadeOut;
+  if (seen < 0.002 || -mv.z < 0.05) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
   float c = cos(iA.z);
   float s = sin(iA.z);
   vec2 k = position.xy;
-  mv.xy += vec2(c * k.x - s * k.y, s * k.x + c * k.y) * iA.y;
+  float size = iA.y * min(1.0, uMaxSize / max(iA.y * projectionMatrix[1][1] / -mv.z, 1e-4));
+  mv.xy += vec2(c * k.x - s * k.y, s * k.x + c * k.y) * size;
   gl_Position = projectionMatrix * mv;
   vUv = uv;
   vLight = vec2(c * uSunView.x + s * uSunView.y, -s * uSunView.x + c * uSunView.y);
   float d = distance(iPos, uFlamePos);
   vGlow = uFlamePow / (1.0 + d * d * 0.35);
-  vFade = smoothstep(0.15, 1.6 + iA.y * 0.25, -mv.z);
 }`;
 
 const SMOKE_FRAG = /* glsl */ `
@@ -109,11 +118,16 @@ export class Smoke {
   private drag: Float32Array;
   private buoy: Float32Array;
   private head = 0;
+  /** Ring size actually used (quality budget); <= N. */
+  private limit: number;
+  /** One past the highest slot that may hold a live particle. */
+  private hi = 0;
   groundY = -1e9;
   alive = 0;
 
   constructor(N: number, lite: boolean) {
     this.N = N;
+    this.limit = N;
     const g = new THREE.InstancedBufferGeometry();
     const quad = new THREE.PlaneGeometry(1, 1);
     g.index = quad.index;
@@ -125,7 +139,7 @@ export class Smoke {
     g.setAttribute('iPos', new THREE.InstancedBufferAttribute(this.pos, 3).setUsage(THREE.DynamicDrawUsage));
     g.setAttribute('iA', new THREE.InstancedBufferAttribute(this.a, 4).setUsage(THREE.DynamicDrawUsage));
     g.setAttribute('iB', new THREE.InstancedBufferAttribute(this.b, 4).setUsage(THREE.DynamicDrawUsage));
-    g.instanceCount = N;
+    g.instanceCount = 0;
     this.geo = g;
     this.vel = new Float32Array(N * 3);
     this.age = new Float32Array(N);
@@ -152,6 +166,7 @@ export class Smoke {
         uAmbTop: { value: new THREE.Color(0.2, 0.22, 0.32) },
         uAmbBot: { value: new THREE.Color(0.07, 0.06, 0.07) },
         uOpacity: { value: 1 },
+        uMaxSize: { value: 1e4 },
         uBack: { value: 0.6 },
         uContrast: { value: 2.6 },
         uCrisp: { value: 0 },
@@ -160,6 +175,13 @@ export class Smoke {
     this.mesh = new THREE.Mesh(g, this.mat);
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = 8;
+    this.mesh.visible = false;
+  }
+
+  /** Scale the particle budget (quality tier). Live particles beyond it just finish their life. */
+  setBudget(k: number) {
+    this.limit = Math.max(8, Math.min(this.N, Math.round(this.N * k)));
+    if (this.head >= this.limit) this.head = 0;
   }
 
   emit(o: EmitOpts) {
@@ -168,7 +190,8 @@ export class Smoke {
     const jt = o.jitter ?? 0.1;
     for (let k = 0; k < n; k++) {
       const i = this.head;
-      this.head = (this.head + 1) % this.N;
+      this.head = (this.head + 1) % this.limit;
+      if (i >= this.hi) this.hi = i + 1;
       const i3 = i * 3;
       const i4 = i * 4;
       this.pos[i3] = o.pos.x + (Math.random() - 0.5) * jt;
@@ -197,7 +220,7 @@ export class Smoke {
 
   /** Push particles horizontally away from a vertical line through `c` (cloud punch). */
   repel(c: THREE.Vector3, radius: number, strength: number, dy = 5) {
-    for (let i = 0; i < this.N; i++) {
+    for (let i = 0; i < this.hi; i++) {
       if (this.a[i * 4] <= 0) continue;
       const i3 = i * 3;
       const dx = this.pos[i3] - c.x;
@@ -216,7 +239,8 @@ export class Smoke {
 
   /** Move every live particle (scroll drift in flight). */
   shift(dx: number, dy: number, dz = 0) {
-    for (let i = 0; i < this.N; i++) {
+    if (!this.alive) return;
+    for (let i = 0; i < this.hi; i++) {
       if (this.a[i * 4] <= 0) continue;
       this.pos[i * 3] += dx;
       this.pos[i * 3 + 1] += dy;
@@ -225,14 +249,19 @@ export class Smoke {
   }
 
   clear() {
-    for (let i = 0; i < this.N; i++) this.a[i * 4] = 0;
+    for (let i = 0; i < this.hi; i++) this.a[i * 4] = 0;
     this.alive = 0;
-    (this.geo.attributes.iA as THREE.BufferAttribute).needsUpdate = true;
+    this.hi = 0;
+    this.head = 0;
+    this.geo.instanceCount = 0;
+    this.mesh.visible = false;
   }
 
   update(dt: number, wind = 0) {
+    if (this.hi === 0) return;
     let alive = 0;
-    for (let i = 0; i < this.N; i++) {
+    let top = 0;
+    for (let i = 0; i < this.hi; i++) {
       const i4 = i * 4;
       if (this.a[i4] <= 0) continue;
       const i3 = i * 3;
@@ -249,6 +278,7 @@ export class Smoke {
         this.a[i4 + 1] = this.s0[i] + (this.s1[i] - this.s0[i]) * Math.pow(g, 0.55);
       }
       alive++;
+      top = i + 1;
       const dr = Math.exp(-this.drag[i] * dt);
       this.vel[i3] = this.vel[i3] * dr + wind * dt;
       this.vel[i3 + 1] = this.vel[i3 + 1] * dr + this.buoy[i] * dt;
@@ -273,15 +303,27 @@ export class Smoke {
       this.a[i4 + 2] += this.rotV[i] * dt;
     }
     this.alive = alive;
-    (this.geo.attributes.iPos as THREE.BufferAttribute).needsUpdate = true;
-    (this.geo.attributes.iA as THREE.BufferAttribute).needsUpdate = true;
-    (this.geo.attributes.iB as THREE.BufferAttribute).needsUpdate = true;
+    // Upload and draw only the slots that can hold live particles.
+    const n = top;
+    this.hi = top;
+    this.geo.instanceCount = n;
+    this.mesh.visible = alive > 0;
+    if (!alive) return;
+    upload(this.geo.attributes.iPos as THREE.BufferAttribute, n * 3);
+    upload(this.geo.attributes.iA as THREE.BufferAttribute, n * 4);
+    upload(this.geo.attributes.iB as THREE.BufferAttribute, n * 4);
   }
 
   dispose() {
     this.geo.dispose();
     this.mat.dispose();
   }
+}
+
+function upload(attr: THREE.BufferAttribute, count: number) {
+  attr.clearUpdateRanges();
+  attr.addUpdateRange(0, count);
+  attr.needsUpdate = true;
 }
 
 // ---------- Sparks / embers as velocity streaks ----------
@@ -336,9 +378,13 @@ export class Sparks {
   private l: Float32Array;
   private max: Float32Array;
   private head = 0;
+  private limit: number;
+  private hi = 0;
+  private alive = 0;
 
   constructor(N: number) {
     this.N = N;
+    this.limit = N;
     const g = new THREE.InstancedBufferGeometry();
     const quad = new THREE.PlaneGeometry(1, 1);
     g.index = quad.index;
@@ -350,7 +396,7 @@ export class Sparks {
     g.setAttribute('iPos', new THREE.InstancedBufferAttribute(this.pos, 3).setUsage(THREE.DynamicDrawUsage));
     g.setAttribute('iVel', new THREE.InstancedBufferAttribute(this.vel, 3).setUsage(THREE.DynamicDrawUsage));
     g.setAttribute('iL', new THREE.InstancedBufferAttribute(this.l, 2).setUsage(THREE.DynamicDrawUsage));
-    g.instanceCount = N;
+    g.instanceCount = 0;
     this.geo = g;
     this.mat = new THREE.ShaderMaterial({
       vertexShader: SPARK_VERT,
@@ -363,12 +409,19 @@ export class Sparks {
     this.mesh = new THREE.Mesh(g, this.mat);
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = 9;
+    this.mesh.visible = false;
+  }
+
+  setBudget(k: number) {
+    this.limit = Math.max(8, Math.min(this.N, Math.round(this.N * k)));
+    if (this.head >= this.limit) this.head = 0;
   }
 
   emit(p: THREE.Vector3, v: THREE.Vector3, n: number, spread: number, life = 1.2) {
     for (let k = 0; k < n; k++) {
       const i = this.head;
-      this.head = (this.head + 1) % this.N;
+      this.head = (this.head + 1) % this.limit;
+      if (i >= this.hi) this.hi = i + 1;
       this.pos[i * 3] = p.x + (Math.random() - 0.5) * 0.15;
       this.pos[i * 3 + 1] = p.y + (Math.random() - 0.5) * 0.1;
       this.pos[i * 3 + 2] = p.z + (Math.random() - 0.5) * 0.15;
@@ -382,7 +435,8 @@ export class Sparks {
   }
 
   shift(dx: number, dy: number) {
-    for (let i = 0; i < this.N; i++) {
+    if (!this.alive) return;
+    for (let i = 0; i < this.hi; i++) {
       if (this.l[i * 2] <= 0) continue;
       this.pos[i * 3] += dx;
       this.pos[i * 3 + 1] += dy;
@@ -390,12 +444,19 @@ export class Sparks {
   }
 
   update(dt: number, gravity = -6) {
-    for (let i = 0; i < this.N; i++) {
+    if (this.hi === 0) return;
+    let alive = 0;
+    let top = 0;
+    const dr = Math.exp(-0.8 * dt);
+    for (let i = 0; i < this.hi; i++) {
       if (this.l[i * 2] <= 0) continue;
       this.l[i * 2] -= dt / this.max[i];
+      if (this.l[i * 2] > 0) {
+        alive++;
+        top = i + 1;
+      }
       const i3 = i * 3;
       this.vel[i3 + 1] += gravity * dt;
-      const dr = Math.exp(-0.8 * dt);
       this.vel[i3] *= dr;
       this.vel[i3 + 2] *= dr;
       this.pos[i3] += this.vel[i3] * dt;
@@ -408,9 +469,14 @@ export class Sparks {
         this.vel[i3 + 2] *= 1.2;
       }
     }
-    (this.geo.attributes.iPos as THREE.BufferAttribute).needsUpdate = true;
-    (this.geo.attributes.iVel as THREE.BufferAttribute).needsUpdate = true;
-    (this.geo.attributes.iL as THREE.BufferAttribute).needsUpdate = true;
+    this.alive = alive;
+    this.hi = top;
+    this.geo.instanceCount = top;
+    this.mesh.visible = alive > 0;
+    if (!alive) return;
+    upload(this.geo.attributes.iPos as THREE.BufferAttribute, top * 3);
+    upload(this.geo.attributes.iVel as THREE.BufferAttribute, top * 3);
+    upload(this.geo.attributes.iL as THREE.BufferAttribute, top * 2);
   }
 
   dispose() {

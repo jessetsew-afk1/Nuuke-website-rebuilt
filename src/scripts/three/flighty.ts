@@ -152,7 +152,9 @@ export function init(canvas: HTMLCanvasElement, routes: GlobeRoute[], airports: 
     target.y += dx * 0.008;
     target.x = Math.max(-1.1, Math.min(1.1, target.x + dy * 0.006));
     idle = 0;
-    stage.render();
+    // The animation loop already draws every frame; an extra draw per pointer event only
+    // helps the static (reduced) mode.
+    if (stage.reduced) stage.render();
   };
   const onUp = () => (dragging = false);
   canvas.addEventListener('pointerdown', onDown);
@@ -194,7 +196,7 @@ export function init(canvas: HTMLCanvasElement, routes: GlobeRoute[], airports: 
       }
       idle = 0;
       onFocus?.(focused);
-      stage.render();
+      if (stage.reduced) stage.render();
     },
     dispose: () => {
       canvas.removeEventListener('pointerdown', onDown);

@@ -283,7 +283,7 @@ export function makeRocket(opts: { lite?: boolean; small?: boolean; flame?: numb
     portholeRadius: GR,
     update(t, thrust, boost = 0) {
       flame.update(t, thrust, opacity * flameK, boost);
-      glow.intensity = thrust * opacity * flameK * (opts.small ? 0.15 : 1) * (5 + Math.sin(t * 40) * 1.2 + Math.sin(t * 17) * 0.8);
+      glow.intensity = thrust * opacity * flameK * (opts.small ? 0.15 : 1) * (5 + Math.sin(t * 40) * 0.45 + Math.sin(t * 17) * 0.3);
       bellInner.emissiveIntensity = Math.min(1.6, thrust * 1.1);
       glassMat.emissiveIntensity = cabin * (0.95 + Math.sin(t * 3.1) * 0.03);
     },

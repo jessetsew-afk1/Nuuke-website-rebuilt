@@ -20,13 +20,23 @@
     const tEl = box.querySelector<HTMLElement>('[data-hud-t]')!;
     const altEl = box.querySelector<HTMLElement>('[data-hud-alt]')!;
     const velEl = box.querySelector<HTMLElement>('[data-hud-vel]')!;
-    const marks = () => [...document.querySelectorAll<HTMLElement>('[data-hud]')];
-    let list = marks();
-    window.addEventListener('resize', () => (list = marks()));
+    // Section tops are measured when the layout changes, not on every HUD update.
+    let list: { name: string; top: number }[] = [];
+    const measure = () => {
+      const sy = window.scrollY;
+      list = [...document.querySelectorAll<HTMLElement>('[data-hud]')].map((el) => ({ name: el.dataset.hud ?? '', top: el.getBoundingClientRect().top + sy }));
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    window.addEventListener('load', measure);
+    let queued = 0;
+    new ResizeObserver(() => {
+      if (!queued) queued = requestAnimationFrame(() => ((queued = 0), measure()));
+    }).observe(document.body);
     const sectionStage = () => {
-      const mid = window.innerHeight * 0.5;
-      let name = list[0]?.dataset.hud ?? '';
-      for (const el of list) if (el.getBoundingClientRect().top <= mid) name = el.dataset.hud ?? name;
+      const mid = window.innerHeight * 0.5 + window.scrollY;
+      let name = list[0]?.name ?? '';
+      for (const m of list) if (m.top <= mid) name = m.name || name;
       return name;
     };
     const fmt = new Intl.NumberFormat('en', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
@@ -36,6 +46,10 @@
     const footer = document.querySelector('footer');
     if (footer) new IntersectionObserver((es) => (footerIn = es[0]?.isIntersecting ?? false)).observe(footer);
     let shownStage = '';
+    const fmtInt = new Intl.NumberFormat('en', { maximumFractionDigits: 0 });
+    const set = (el: HTMLElement, v: string) => {
+      if (el.textContent !== v) el.textContent = v;
+    };
     window.addEventListener('nuuke:hud', (e) => {
       const d = (e as CustomEvent<{ show: boolean; stage: string | null; alt: number; vel: number; t: number }>).detail;
       box.classList.toggle('is-on', d.show && !footerIn);
@@ -46,9 +60,9 @@
         stageEl.textContent = st;
       }
       const t = Math.abs(d.t);
-      tEl.textContent = `${d.t < 0 ? '−' : '+'}${pad(t / 60)}:${pad(t % 60)}`;
-      altEl.textContent = fmt.format(d.alt);
-      velEl.textContent = d.vel > 1000 ? new Intl.NumberFormat('en', { maximumFractionDigits: 0 }).format(d.vel) : fmtV.format(d.vel);
+      set(tEl, `${d.t < 0 ? '−' : '+'}${pad(t / 60)}:${pad(t % 60)}`);
+      set(altEl, fmt.format(d.alt));
+      set(velEl, d.vel > 1000 ? fmtInt.format(d.vel) : fmtV.format(d.vel));
     });
   }
 </script>

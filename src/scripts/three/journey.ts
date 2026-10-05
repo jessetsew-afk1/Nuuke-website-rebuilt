@@ -5,7 +5,7 @@
 // -1..1 of the viewport, scale, opacity; data-m* override on phones). The film section flies
 // the camera up to the porthole, a warp jump precedes the finale and the finale lands the
 // rocket in the "n" of the logo.
-import { createStage, THREE } from './core';
+import { createStage, getQuality, isLiteDevice, onQuality, THREE } from './core';
 import { makeRocket } from './rocket';
 import * as sfx from '../sfx';
 import { makeEnv } from './fx/env';
@@ -13,6 +13,7 @@ import { makeDome, makeStars, makeDust } from './fx/sky';
 import { Smoke, Sparks } from './fx/particles';
 import { makePost } from './fx/post';
 import { makePad, ROCKET_BASE, DECK, type Pad } from './fx/pad';
+import { releasePadTextures } from './fx/textures';
 
 export type FinaleTarget = { x: number; y: number; h: number; tilt: number };
 export type PortholeFrame = { x: number; y: number; r: number; open: number; visible: boolean; facing: number; near: number };
@@ -46,10 +47,9 @@ const sstep = (a: number, b: number, v: number) => smooth(clamp01((v - a) / (b -
 const damp = (k: number, dt: number) => 1 - Math.exp(-k * dt);
 
 export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; shake?: HTMLElement[] } = {}): Journey {
-  const lite = window.innerWidth < 760 || window.matchMedia('(pointer: coarse)').matches;
+  const lite = isLiteDevice();
   const stage = createStage(canvas, { fov: 35, z: 12, env: false, alpha: false });
   const { scene, camera, renderer, onFrame } = stage;
-  if (lite) renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
   renderer.setClearColor(0x000000, 1);
   const isSmall = () => window.innerWidth < 760;
   const qs = new URLSearchParams(location.search);
@@ -79,9 +79,11 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
 
   const dome = makeDome();
   scene.add(dome.mesh);
-  const stars = makeStars(lite ? 1100 : 2600);
+  const STARS_N = lite ? 1100 : 2600;
+  const DUST_N = lite ? 46 : 110;
+  const stars = makeStars(STARS_N);
   scene.add(stars.mesh);
-  const dust = makeDust(lite ? 46 : 110);
+  const dust = makeDust(DUST_N);
   scene.add(dust.mesh);
 
   // ---------- Rocket ----------
@@ -107,7 +109,8 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
   if (withPad) {
     pad = makePad(lite);
     scene.add(pad.group);
-    if (!lite) {
+    // Pad shadows only where the GPU has room for them (decided once: toggling later recompiles).
+    if (!lite && getQuality().tier <= 2) {
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFShadowMap;
       fill.castShadow = true;
@@ -145,8 +148,29 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
   // ---------- Post ----------
   const post = makePost(renderer, scene, camera, lite);
   stage.setRender(post.render);
-  const du = post.distort.uniforms;
-  const fu = post.finish.uniforms;
+  const du = post.u;
+  const fu = post.u;
+
+  // ---------- Quality tier (see core.ts): resolution, bloom size, particle budget, extras ----------
+  let pk = 1; // particle budget multiplier
+  let alphaK = 1; // fewer puffs, each a little denser, so the smoke keeps its body
+  let extras = true;
+  const smokeSystems = [smoke, ground, clouds];
+  onQuality((q) => {
+    pk = q.particles;
+    alphaK = Math.min(1.5, 1 / Math.sqrt(pk));
+    extras = q.extras;
+    smoke.setBudget(pk);
+    ground.setBudget(pk);
+    sparks.setBudget(pk);
+    stars.mesh.geometry.instanceCount = Math.round(STARS_N * Math.max(0.6, pk));
+    dust.mesh.geometry.instanceCount = Math.round(DUST_N * Math.max(0.6, pk));
+    // On the lightest tiers a single puff may not grow past most of the screen (fill rate).
+    const cap = q.tier >= 4 ? 1.0 : q.tier >= 3 ? 1.4 : 1e4;
+    for (const sys of smokeSystems) sys.mat.uniforms.uMaxSize.value = cap;
+    fu.uGrain.value = extras ? 0.012 : 0;
+    post.setQuality(q);
+  });
 
   // ---------- Input: pointer + gyro parallax ----------
   const gyro = new THREE.Vector2();
@@ -186,49 +210,108 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
   };
 
   // ---------- Waypoints (sections hold a pose while they fill the viewport) ----------
-  type Way = { el: HTMLElement; x: number; y: number; s: number; o: number };
+  // Section offsets are measured on resize / layout changes, never per frame (no layout thrash).
+  type Way = { el: HTMLElement; x: number; y: number; s: number; o: number; top: number; h: number };
   let ways: Way[] = [];
+  const measureWays = () => {
+    const sy = window.scrollY;
+    for (const w of ways) {
+      const r = w.el.getBoundingClientRect();
+      w.top = r.top + sy;
+      w.h = r.height;
+    }
+  };
   const readWays = () => {
     const m = isSmall();
     const num = (el: HTMLElement, k: string, d: string) => parseFloat((m && el.dataset['m' + k]) || el.dataset[k] || d);
-    ways = [...document.querySelectorAll<HTMLElement>('[data-fx]')].map((el) => ({ el, x: num(el, 'fx', '0'), y: num(el, 'fy', '0'), s: num(el, 'fs', '1'), o: num(el, 'fo', '1') }));
+    ways = [...document.querySelectorAll<HTMLElement>('[data-fx]')].map((el) => ({ el, x: num(el, 'fx', '0'), y: num(el, 'fy', '0'), s: num(el, 'fs', '1'), o: num(el, 'fo', '1'), top: 0, h: 0 }));
+    measureWays();
   };
   readWays();
-  window.addEventListener('resize', readWays);
+  // Opaque WebGL sections (the services system) that hide this canvas while they fill the screen.
+  type Cover = { el: HTMLElement; top: number; h: number };
+  let covers: Cover[] = [];
+  const measureCovers = () => {
+    const sy = window.scrollY;
+    covers = [...document.querySelectorAll<HTMLElement>('[data-gl-cover]')].map((el) => {
+      const r = el.getBoundingClientRect();
+      return { el, top: r.top + sy, h: r.height };
+    });
+  };
+  measureCovers();
+  let measureQueued = 0;
+  const remeasure = () => {
+    if (measureQueued) return;
+    measureQueued = requestAnimationFrame(() => {
+      measureQueued = 0;
+      measureWays();
+      measureCovers();
+    });
+  };
+  window.addEventListener('resize', () => {
+    readWays();
+    measureCovers();
+  });
+  window.addEventListener('load', remeasure);
+  window.addEventListener('nuuke:gl-cover', remeasure);
+  // Pin spacers, fonts and lazy content change the page height: re-measure when it does.
+  const bodyRO = new ResizeObserver(remeasure);
+  bodyRO.observe(document.body);
   let wayIndex = -1;
+  const zones: number[] = [];
+  const wpOut = { x: 0, y: 0, s: 1, o: 1, i: 0 };
   const waypoint = () => {
     const vh = window.innerHeight;
+    const sy = window.scrollY;
     const mid = vh * 0.5;
     const pad = vh * 0.3;
-    const zones = ways.map((w) => {
-      const r = w.el.getBoundingClientRect();
-      const p = Math.min(pad, r.height / 2);
-      return [r.top + p, r.bottom - p];
-    });
+    zones.length = ways.length * 2;
+    for (let i = 0; i < ways.length; i++) {
+      const w = ways[i];
+      const p = Math.min(pad, w.h / 2);
+      zones[i * 2] = w.top - sy + p;
+      zones[i * 2 + 1] = w.top - sy + w.h - p;
+    }
     let a = 0;
     let b = 0;
     let t = 0;
-    if (!zones.length) return { x: 0, y: 0, s: 1, o: 1, i: 0 };
-    if (mid <= zones[0][0]) a = b = 0;
+    if (!ways.length) return Object.assign(wpOut, { x: 0, y: 0, s: 1, o: 1, i: 0 });
+    const n = ways.length;
+    if (mid <= zones[0]) a = b = 0;
     else {
-      a = b = zones.length - 1;
-      for (let i = 0; i < zones.length; i++) {
-        if (mid >= zones[i][0] && mid <= zones[i][1]) {
+      a = b = n - 1;
+      for (let i = 0; i < n; i++) {
+        if (mid >= zones[i * 2] && mid <= zones[i * 2 + 1]) {
           a = b = i;
           break;
         }
-        if (i < zones.length - 1 && mid > zones[i][1] && mid < zones[i + 1][0]) {
+        if (i < n - 1 && mid > zones[i * 2 + 1] && mid < zones[i * 2 + 2]) {
           a = i;
           b = i + 1;
-          t = smooth((mid - zones[i][1]) / (zones[i + 1][0] - zones[i][1]));
+          t = smooth((mid - zones[i * 2 + 1]) / (zones[i * 2 + 2] - zones[i * 2 + 1]));
           break;
         }
       }
     }
     const A = ways[a];
     const B = ways[b];
-    const l = (p: number, q: number) => p + (q - p) * t;
-    return { x: l(A.x, B.x), y: l(A.y, B.y), s: l(A.s, B.s), o: l(A.o, B.o), i: t < 0.5 ? a : b };
+    wpOut.x = A.x + (B.x - A.x) * t;
+    wpOut.y = A.y + (B.y - A.y) * t;
+    wpOut.s = A.s + (B.s - A.s) * t;
+    wpOut.o = A.o + (B.o - A.o) * t;
+    wpOut.i = t < 0.5 ? a : b;
+    return wpOut;
+  };
+  /** 2 = an opaque section fills the viewport, 1 = one is partly on screen, 0 = none. */
+  const coverState = () => {
+    const sy = window.scrollY;
+    const vh = window.innerHeight;
+    let st = 0;
+    for (const c of covers) {
+      if (sy >= c.top - 1 && sy + vh <= c.top + c.h + 1) return 2;
+      if (c.top < sy + vh && c.top + c.h > sy) st = 1;
+    }
+    return st;
   };
 
   // ---------- State ----------
@@ -263,6 +346,13 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
   let sv = 0;
   let shakeAmp = 0;
   let flash = 0;
+  let sunVis = 0; // eased lens-flare strength
+  const padSun = new THREE.Vector2(2, 2); // sun in uv as seen by the unshaken pad camera
+  // Flight rig: position and aim ease together (see the camera rig below).
+  const rigPos = new THREE.Vector3();
+  const rigLook = new THREE.Vector3();
+  const rigPosT = new THREE.Vector3();
+  const rigLookT = new THREE.Vector3();
   let alt = withPad ? 0 : 1; // 0 = dusk at the pad, 1 = space
   let starFlow = 0; // extra star motion (launch / arrival)
   const starOffset = new THREE.Vector3();
@@ -274,6 +364,7 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
   const tmp3 = new THREE.Vector3();
   const v2 = new THREE.Vector2();
   const v2b = new THREE.Vector2();
+  const tmp4 = new THREE.Vector3();
   const down = new THREE.Vector3(0, -1, 0);
   let emitAcc: Record<string, number> = {};
   const rate = (key: string, perSec: number, dt: number) => {
@@ -298,6 +389,8 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
   };
   padCam(camPos, camLook);
   if (!withPad) flyCam(camPos, camLook, 0);
+  rigPos.copy(camPos);
+  rigLook.copy(camLook);
 
   const setPhaseLook = (space: boolean) => {
     scene.environment = space || !envDusk ? envSpace : envDusk;
@@ -330,14 +423,44 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
     ground.dispose();
     clouds.dispose();
     envDusk?.dispose();
+    releasePadTextures();
+    // The pad was the only shadow caster: free the shadow map too.
+    fill.castShadow = false;
+    renderer.shadowMap.enabled = false;
+    fill.shadow.map?.dispose();
+    fill.shadow.map = null;
   };
 
+  // Compile the flight look (space env, no shadows) while the visitor is still on the pad, so the
+  // cut through the clouds does not stall on shader compilation.
+  const precompileFlight = () => {
+    if (!pad || mode !== 'pad') return;
+    const env = scene.environment;
+    const sm = renderer.shadowMap.enabled;
+    const cs = fill.castShadow;
+    scene.environment = envSpace;
+    renderer.shadowMap.enabled = false;
+    fill.castShadow = false;
+    try {
+      renderer.compileAsync(scene, camera).catch(() => {});
+    } catch {
+      /* compiles on first use instead */
+    } finally {
+      scene.environment = env;
+      renderer.shadowMap.enabled = sm;
+      fill.castShadow = cs;
+    }
+  };
+  if (withPad) {
+    const idle = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+    setTimeout(() => (idle ? idle(precompileFlight, { timeout: 2000 }) : precompileFlight()), 1500);
+  }
+
   // ---------- Frame ----------
-  let lastNow = performance.now();
-  onFrame((t) => {
+  let fpsNow = 60;
+  onFrame((t, frameDt) => {
     const now = performance.now();
-    const realDt = Math.min((now - lastNow) / 1000, dtCap);
-    lastNow = now;
+    const realDt = Math.min(frameDt, dtCap);
     const dt = realDt * (mode === 'launch' ? timeScale : 1);
     const { h, w } = view();
     const k = isSmall() ? 0.62 : 1;
@@ -354,6 +477,7 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
     sv += (dScroll / Math.max(realDt, 1e-3) / 60 - sv) * damp(12, realDt);
     lastScroll = sy;
     look.lerp(v2.set(stage.pointer.x + gyro.x, stage.pointer.y - gyro.y), damp(3, realDt));
+    const lookErr = Math.abs(v2.x - look.x) + Math.abs(v2.y - look.y);
 
     prev.copy(cur);
     // ===== PAD / LAUNCH =====
@@ -398,32 +522,32 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
       rocket.group.updateMatrixWorld();
       const noz = rocket.group.localToWorld(tmp.copy(rocket.nozzle));
       if (load > 0.3 && !liftedOff && pad) {
-        for (let n = rate('vent', 7, dt); n > 0; n--) {
+        for (let n = rate('vent', 7 * pk, dt); n > 0; n--) {
           const v = pad.vents[Math.floor(Math.random() * pad.vents.length)];
-          smoke.emit({ pos: v, vel: tmp2.set((Math.random() - 0.6) * 0.5, -0.12, 0.2), spread: 0.15, size: 0.22, grow: 5, life: 3.2, tone: 1, alpha: 0.28, drag: 1.4, buoy: -0.05 });
+          smoke.emit({ pos: v, vel: tmp2.set((Math.random() - 0.6) * 0.5, -0.12, 0.2), spread: 0.15, size: 0.22, grow: 5, life: 3.2, tone: 1, alpha: 0.28 * alphaK, drag: 1.4, buoy: -0.05 });
         }
       }
       if (mode === 'launch') {
-        if (s < 0.9) sparks.emit(noz, tmp2.set(0, -3, 0), rate('ign', lite ? 160 : 420, dt), 7, 1.1);
-        if (thrust > 0.5) sparks.emit(noz, tmp2.set(0, -6, 0), rate('emb', (lite ? 30 : 80) * thrust, dt), 9, 0.9);
+        if (s < 0.9) sparks.emit(noz, tmp2.set(0, -3, 0), rate('ign', (lite ? 160 : 420) * pk, dt), 7, 1.1);
+        if (thrust > 0.5) sparks.emit(noz, tmp2.set(0, -6, 0), rate('emb', (lite ? 30 : 80) * thrust * pk, dt), 9, 0.9);
         const burn = clamp01((s - 0.35) / (IGNITION - 0.35));
         if (pad && tl < 4) {
           const fade = 1 - sstep(1.5, 4, tl);
           for (const tr of pad.trench) {
-            for (let n = rate('tr' + tr.d.x, (lite ? 22 : 62) * burn * fade, dt); n > 0; n--)
-              ground.emit({ pos: tr.p, vel: tmp2.copy(tr.d).multiplyScalar(6 + Math.random() * 5).add(tmp.set(0, 0.5 + Math.random() * 1.5, (Math.random() - 0.5) * 3.5)), spread: 1.4, jitter: 0.4, size: 1.2, grow: 8, life: 6.5, heat: 0.3, tone: 0.5, alpha: 0.82, drag: 0.5, buoy: 0.5 });
+            for (let n = rate(tr.d.x < 0 ? 'trL' : 'trR', (lite ? 22 : 62) * burn * fade * pk, dt); n > 0; n--)
+              ground.emit({ pos: tr.p, vel: tmp2.copy(tr.d).multiplyScalar(6 + Math.random() * 5).add(tmp4.set(0, 0.5 + Math.random() * 1.5, (Math.random() - 0.5) * 3.5)), spread: 1.4, jitter: 0.4, size: 1.2, grow: 8, life: 6.5, heat: 0.3, tone: 0.5, alpha: 0.82 * alphaK, drag: 0.5, buoy: 0.5 });
           }
           // Billows rolling out from the base across the deck
-          for (let n = rate('ring', (lite ? 16 : 44) * Math.max(0, burn - 0.12) * fade, dt); n > 0; n--) {
+          for (let n = rate('ring', (lite ? 16 : 44) * Math.max(0, burn - 0.12) * fade * pk, dt); n > 0; n--) {
             const a = Math.random() * Math.PI * 2;
             const up = Math.random() < 0.35;
-            ground.emit({ pos: tmp.set(Math.cos(a) * 1.1, DECK + 0.3, Math.sin(a) * 1.1), vel: tmp2.set(Math.cos(a) * (up ? 2 : 5.5), up ? 2.2 : 0.5, Math.sin(a) * (up ? 2 : 5.5)), spread: 1.2, jitter: 0.4, size: 1.1, grow: up ? 5 : 6.5, life: 6, heat: 0.15, tone: 0.55, alpha: 0.7, drag: 0.6, buoy: up ? 0.45 : 0.3 });
+            ground.emit({ pos: tmp4.set(Math.cos(a) * 1.1, DECK + 0.3, Math.sin(a) * 1.1), vel: tmp2.set(Math.cos(a) * (up ? 2 : 5.5), up ? 2.2 : 0.5, Math.sin(a) * (up ? 2 : 5.5)), spread: 1.2, jitter: 0.4, size: 1.1, grow: up ? 5 : 6.5, life: 6, heat: 0.15, tone: 0.55, alpha: 0.7 * alphaK, drag: 0.6, buoy: up ? 0.45 : 0.3 });
           }
         }
         // Exhaust column + trail
-        const colRate = liftedOff ? (lite ? 26 : 60) : (lite ? 12 : 26) * burn;
+        const colRate = (liftedOff ? (lite ? 26 : 60) : (lite ? 12 : 26) * burn) * pk;
         for (let n = rate('col', colRate, dt); n > 0; n--)
-          smoke.emit({ pos: noz, vel: tmp2.set(0, liftedOff ? -6 - Math.random() * 4 : -5, 0), spread: 1.6, jitter: 0.25, size: liftedOff ? 0.7 : 0.5, grow: 6, life: liftedOff ? 7 : 3, heat: 0.8, tone: 0.62, alpha: 0.5, drag: 0.9, buoy: 0.05 });
+          smoke.emit({ pos: noz, vel: tmp2.set(0, liftedOff ? -6 - Math.random() * 4 : -5, 0), spread: 1.6, jitter: 0.25, size: liftedOff ? 0.7 : 0.5, grow: 6, life: liftedOff ? 7 : 3, heat: 0.8, tone: 0.62, alpha: 0.5 * alphaK, drag: 0.9, buoy: 0.05 });
         burnLight.position.set(noz.x, Math.max(DECK + 0.6, noz.y - 1.2), noz.z + 0.6);
         burnLight.intensity = thrust * 26 * (1 - sstep(6, 20, cur.y)) * (0.85 + Math.random() * 0.3);
       }
@@ -433,8 +557,9 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
         if (!punched && cur.y > CLOUD_LO - 1) {
           punched = true;
           sfx.cloudPunch();
-          for (let n = 0; n < (lite ? 16 : 34); n++) {
-            const a = (n / (lite ? 16 : 34)) * Math.PI * 2;
+          const ringN = Math.max(8, Math.round((lite ? 16 : 34) * pk));
+          for (let n = 0; n < ringN; n++) {
+            const a = (n / ringN) * Math.PI * 2;
             smoke.emit({ pos: tmp.set(Math.cos(a) * 0.6, cur.y + 0.6, Math.sin(a) * 0.6), vel: tmp2.set(Math.cos(a) * 7, -1.5, Math.sin(a) * 7), spread: 1, size: 0.6, grow: 5, life: 1.4, tone: 1, alpha: 0.7, drag: 2.2, buoy: 0 });
           }
         }
@@ -453,6 +578,8 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
           smoke.clear();
           sparks.update(10);
           flyCam(camPos, camLook, 0);
+          rigPos.copy(camPos);
+          rigLook.copy(camLook);
           cur.set(O.x - w * 0.15, O.y - h - 3.2, 0);
           prev.copy(cur);
           starFlow = 1;
@@ -524,10 +651,20 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
       spin += realDt * (0.35 + speed * 0.012);
       rocket.group.rotation.y += (spinTarget - rocket.group.rotation.y) * damp(fA > 0 || finale > 0.4 ? 6 : 3, realDt);
 
-      // Camera rig
-      flyCam(tmp2, camLook, parallax);
-      if (mode === 'arrive') camPos.lerp(tmp2, damp(3, realDt));
-      else camPos.copy(tmp2);
+      // Camera rig. It eases in after the cut (arrive) and is locked afterwards. Position and aim
+      // ease together: a lagging position with an instant aim used to swing the view, pulling
+      // the sun (just outside the frame) in and out, and it snapped when arrive turned into fly.
+      flyCam(rigPosT, rigLookT, parallax);
+      if (mode === 'fly' && rigPos.distanceToSquared(rigPosT) < 1e-6) {
+        rigPos.copy(rigPosT);
+        rigLook.copy(rigLookT);
+      } else {
+        const kr = damp(mode === 'arrive' ? 3 : 8, realDt);
+        rigPos.lerp(rigPosT, kr);
+        rigLook.lerp(rigLookT, kr);
+      }
+      camPos.copy(rigPos);
+      camLook.copy(rigLook);
       camPos.x += Math.sin(t * 0.21) * 0.06 * parallax;
       camPos.y += Math.sin(t * 0.17 + 1) * 0.05 * parallax;
 
@@ -552,9 +689,10 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
       if (curOpacity > 0.3 && fA < 0.5) {
         const noz = rocket.group.localToWorld(tmp.copy(rocket.nozzle));
         const back = tmp2.set(0, -1, 0).applyQuaternion(rocket.group.quaternion);
-        const n = rate('trail', 14 + speed * 4.5 + (mode === 'arrive' ? 40 : 0), realDt);
-        for (let i = 0; i < n; i++) smoke.emit({ pos: noz, vel: back.clone().multiplyScalar(2.2 + speed * 0.05), spread: 0.35, jitter: 0.06, size: 0.3 * curScale, grow: 5.5, life: 1.8 + Math.min(1.6, speed / 30), heat: 0.45, tone: 0.62, alpha: 0.34, drag: 1.1, buoy: 0.05 });
-        if (speed > 18) sparks.emit(noz, back.multiplyScalar(5), rate('emb2', speed * 0.6, realDt), 2, 0.6);
+        const n = rate('trail', (14 + speed * 4.5 + (mode === 'arrive' ? 40 : 0)) * pk, realDt);
+        if (n > 0) tmp4.copy(back).multiplyScalar(2.2 + speed * 0.05);
+        for (let i = 0; i < n; i++) smoke.emit({ pos: noz, vel: tmp4, spread: 0.35, jitter: 0.06, size: 0.3 * curScale, grow: 5.5, life: 1.8 + Math.min(1.6, speed / 30), heat: 0.45, tone: 0.62, alpha: 0.34 * alphaK, drag: 1.1, buoy: 0.05 });
+        if (speed > 18) sparks.emit(noz, back.multiplyScalar(5), rate('emb2', speed * 0.6 * pk, realDt), 2, 0.6);
       }
       // Scrolling down = climbing: the world (trail, embers, dust) streams past downward
       const drift = -(dScroll / window.innerHeight) * 2 * h;
@@ -612,6 +750,12 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
     shakeAmp += (shakeTarget - shakeAmp) * damp(shakeTarget > shakeAmp ? 10 : 3, realDt);
     camera.position.copy(camPos);
     camera.lookAt(camLook);
+    if (mode === 'pad' || mode === 'launch') {
+      // Where the sun sits for the steady (unshaken) camera: drives the flare strength.
+      camera.updateMatrixWorld();
+      if (project(tmp.copy(camera.position).addScaledVector(sunDir, 50), v2)) padSun.set(v2.x / window.innerWidth, 1 - v2.y / window.innerHeight);
+      else padSun.set(2, 2);
+    }
     if (shakeAmp > 0.004) {
       const sx = Math.sin(t * 47.3) * 0.6 + Math.sin(t * 91.7 + 1.3) * 0.4 + (Math.random() - 0.5) * 0.5;
       const sy2 = Math.sin(t * 53.1 + 2.1) * 0.6 + Math.sin(t * 77.9) * 0.4 + (Math.random() - 0.5) * 0.5;
@@ -672,13 +816,14 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
 
     // ===== Particles =====
     const flamePos = rocket.group.localToWorld(tmp.copy(rocket.nozzle));
-    for (const sys of [smoke, ground]) {
+    for (let i = 0; i < 2; i++) {
+      const sys = smokeSystems[i];
       sys.mat.uniforms.uFlamePos.value.copy(flamePos);
       sys.mat.uniforms.uFlamePow.value = thrust * curOpacity * (mode === 'launch' ? 1.1 : 0.32);
     }
     tmp2.copy(sunDir).transformDirection(camera.matrixWorldInverse);
     v2.set(tmp2.x, tmp2.y).normalize();
-    for (const sys of [smoke, ground, clouds]) sys.mat.uniforms.uSunView.value.copy(v2);
+    for (const sys of smokeSystems) sys.mat.uniforms.uSunView.value.copy(v2);
     smoke.update(dt, mode === 'pad' ? 0.05 : 0);
     if (pad) ground.update(dt, 0.04);
     sparks.update(dt, mode === 'fly' || mode === 'arrive' ? -1.5 : -7);
@@ -693,7 +838,7 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
     // ===== Post =====
     flash *= Math.exp(-realDt * (cut && arriveT < 0.5 ? 2.5 : 5));
     const hazeOn = project(flamePos, v2);
-    const tail = rocket.group.localToWorld(tmp2.copy(rocket.nozzle).add(down.clone().multiplyScalar(1.6 + thrust)));
+    const tail = rocket.group.localToWorld(tmp2.copy(rocket.nozzle).addScaledVector(down, 1.6 + thrust));
     project(tail, v2b);
     const pr = renderer.getPixelRatio();
     du.uTime.value = t;
@@ -704,23 +849,57 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
     du.uHazeDir.value.set(dx / dl, dy / dl);
     du.uHazeLen.value = dl * pr * 1.4;
     du.uHazeW.value = Math.max(6, curScale * pxPerUnit() * 0.32) * pr;
-    du.uHaze.value = hazeOn ? Math.min(1.2, thrust) * curOpacity * (mode === 'launch' ? 1.5 : 0.8) * pr : 0;
+    du.uHaze.value = hazeOn && extras ? Math.min(1.2, thrust) * curOpacity * (mode === 'launch' ? 1.5 : 0.8) * pr : 0;
     du.uWarp.value = warpK;
-    du.uAberr.value = shakeAmp * 0.012 + warpK * 0.05;
-    // Lens flare from the sun
+    du.uAberr.value = extras ? shakeAmp * 0.012 + warpK * 0.05 : 0;
+    // Lens flare from the sun. It is drawn where the sun really is, but HOW STRONG it is comes
+    // from the steady framing (no shake, pointer parallax or porthole move) and eases over time.
+    // The sun sits right at the edge of the frame in flight, so judging it from the moving
+    // camera made the flare (and the sun's glow) flick on and off with every small camera move.
     tmp.copy(camera.position).addScaledVector(sunDir, 50);
-    const sunOn = project(tmp, v2);
-    const sx = v2.x / window.innerWidth;
-    const syy = 1 - v2.y / window.innerHeight;
-    const edge = sunOn ? sstep(-0.15, 0.05, Math.min(sx, syy, 1 - sx, 1 - syy)) : 0;
-    fu.uSun.value.set(sx, syy);
-    fu.uSunVis.value = edge * (space * 0.85 + (1 - space) * 0.1) * (1 - warpK);
+    project(tmp, v2);
+    fu.uSun.value.set(v2.x / window.innerWidth, 1 - v2.y / window.innerHeight);
+    let bx = padSun.x;
+    let by = padSun.y;
+    if (mode === 'fly' || mode === 'arrive') {
+      // The flight rig always looks straight down -z: project the sun direction analytically.
+      const th = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+      const fz = Math.max(1e-3, -sunDir.z);
+      bx = sunDir.z < 0 ? 0.5 + (0.5 * sunDir.x) / fz / (th * camera.aspect) : 2;
+      by = sunDir.z < 0 ? 0.5 + (0.5 * sunDir.y) / fz / th : 2;
+    }
+    const edge = sstep(-0.15, 0.05, Math.min(bx, by, 1 - bx, 1 - by));
+    const sunTarget = edge * (space * 0.85 + (1 - space) * 0.1) * (1 - warpK);
+    sunVis += (sunTarget - sunVis) * damp(warpK > 0 ? 8 : 2, realDt);
+    fu.uSunVis.value = sunVis;
     fu.uFlash.value = Math.min(1, flash);
     fu.uFlashCol.value.setRGB(0.92, 0.95, 1.0);
     fu.uTime.value = t;
     fu.uVignette.value = 0.5 + warpK * 0.4;
     du2.uFlash.value = 0;
     post.bloom.strength = (mode === 'pad' || mode === 'launch' ? 0.55 : 0.48) + warpK * 0.6;
+
+    // ===== Render policy =====
+    // The rocket is out of sight and nothing moves fast: the backdrop only drifts, so a few
+    // frames a second look identical. Hidden behind an opaque section: hold the last frame.
+    const cover = coverState();
+    const quiet =
+      (mode === 'fly' || mode === 'arrive') &&
+      rigPos.distanceToSquared(rigPosT) < 1e-4 &&
+      curOpacity < 0.004 &&
+      opacity < 0.004 &&
+      Math.abs(sv) < 0.35 &&
+      lookErr < 0.01 &&
+      flash < 0.01 &&
+      shakeAmp < 0.004 &&
+      warpK === 0 &&
+      starFlow < 0.01 &&
+      !smoke.alive;
+    const fps = cover === 2 ? 0 : quiet ? (cover ? 5 : 15) : 60;
+    if (fps !== fpsNow) {
+      fpsNow = fps;
+      stage.setFps(fps);
+    }
 
     // ===== HUD telemetry =====
     hudAcc += realDt;
@@ -757,7 +936,7 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
     }
   });
 
-  if (qs.has('hjdebug')) (window as unknown as { __hj: unknown }).__hj = () => ({ mode, film, curOpacity, finale, warpT, seq, fov: camera.fov, cam: camera.position.toArray(), rocket: cur.toArray(), scale: curScale });
+  if (qs.has('hjdebug')) (window as unknown as { __hj: unknown }).__hj = () => ({ mode, film, curOpacity, finale, warpT, seq, fov: camera.fov, cam: camera.position.toArray(), rocket: cur.toArray(), scale: curScale, sunVis: fu.uSunVis.value, sun: fu.uSun.value.toArray(), fps: fpsNow, smoke: smoke.alive, look: look.toArray(), sv, flash, shakeAmp, starFlow, rigErr: rigPos.distanceTo(rigPosT), camLook: camLook.toArray(), dir: camera.getWorldDirection(new THREE.Vector3()).toArray() });
 
   return {
     setLoad: (p) => (load = p),
@@ -782,6 +961,8 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
       const { h } = view();
       cur.set(O.x, O.y - h - 3, 0);
       flyCam(camPos, camLook, 0);
+      rigPos.copy(camPos);
+      rigLook.copy(camLook);
       missionT0 = performance.now() / 1000 - 30;
     },
     setFinale: (p, target) => {

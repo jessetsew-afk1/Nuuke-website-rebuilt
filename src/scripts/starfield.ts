@@ -98,11 +98,22 @@ export function initStarfield(canvas: HTMLCanvasElement | null) {
     gl.uniform1f(uScroll, scroll);
     gl.drawArrays(gl.POINTS, 0, COUNT);
   };
-  const loop = () => {
-    if (!running) return;
-    // The homepage journey draws its own space; stop this loop once it takes over.
-    if (document.documentElement.classList.contains('hj-gl')) return;
-    draw();
+  let last = 0;
+  let retired = false;
+  const loop = (now = performance.now()) => {
+    if (!running || retired) return;
+    // The homepage journey draws its own space; stop this loop once it takes over and give the
+    // WebGL context back (one less context alive on the page).
+    if (document.documentElement.classList.contains('hj-gl')) {
+      retired = true;
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      return;
+    }
+    // At most 60 draws a second, also on 120/144 Hz screens.
+    if (now - last >= 15) {
+      last = now;
+      draw();
+    }
     requestAnimationFrame(loop);
   };
   if (reduced) {
@@ -122,8 +133,9 @@ export function initStarfield(canvas: HTMLCanvasElement | null) {
   } else {
     loop();
     document.addEventListener('visibilitychange', () => {
+      const wasRunning = running;
       running = !document.hidden;
-      if (running) loop();
+      if (running && !wasRunning) loop();
     });
   }
 }
