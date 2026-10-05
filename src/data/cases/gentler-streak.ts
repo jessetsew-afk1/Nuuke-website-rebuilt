@@ -77,7 +77,7 @@ export function smooth(pts: [number, number][], cont = false) {
 export const dotColor = (v: number) => (v > 1 ? GS.coralDeep : v < -1 ? GS.plum : GS.leaf);
 
 /* ------------------------------------------------------------------ */
-/* 3D wireframe layers (ScreenStack) — the Today screen, 375 × 804      */
+/* 3D wireframe layers (ScreenStack), the Today screen, 375 × 804      */
 /* ------------------------------------------------------------------ */
 const V = 'viewBox="0 0 375 804" xmlns="http://www.w3.org/2000/svg"';
 const B = band(40, 335, 440, 34, tenDays, 9, 0.6);

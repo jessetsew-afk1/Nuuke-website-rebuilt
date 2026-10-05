@@ -11,11 +11,11 @@ const answer = [
 ];
 const answerText = answer.map(([w]) => w).join(' ');
 const stages = [
-  { n: 'T–5', t: 'Pre-flight', s: 'Discover', d: 'Workshops, interviews and a teardown of the competition. We find the one problem worth solving first.' },
-  { n: 'T–4', t: 'Fuelling', s: 'Define', d: 'Flows, information architecture and grey-box wireframes you can react to in days, not weeks.' },
-  { n: 'T–3', t: 'Ignition', s: 'Design', d: 'Clickable prototypes, UI systems and motion. You tap through the product before a line of code exists.' },
-  { n: 'T–2', t: 'Lift-off', s: 'Build', d: 'Native and cross-platform engineering, WebGL and 3D pipelines, tested on real devices.' },
-  { n: 'T–1', t: 'Orbit', s: 'Launch & grow', d: 'Store launch, campaigns and analytics. We measure what changed and keep shipping.' },
+  { n: 'T‑5', t: 'Pre-flight', s: 'Discover', d: 'Workshops, interviews and a teardown of the competition. We find the one problem worth solving first.' },
+  { n: 'T‑4', t: 'Fuelling', s: 'Define', d: 'Flows, information architecture and grey-box wireframes you can react to in days, not weeks.' },
+  { n: 'T‑3', t: 'Ignition', s: 'Design', d: 'Clickable prototypes, UI systems and motion. You tap through the product before a line of code exists.' },
+  { n: 'T‑2', t: 'Lift-off', s: 'Build', d: 'Native and cross-platform engineering, WebGL and 3D pipelines, tested on real devices.' },
+  { n: 'T‑1', t: 'Orbit', s: 'Launch & grow', d: 'Store launch, campaigns and analytics. We measure what changed and keep shipping.' },
 ];
 ---
 
@@ -51,7 +51,6 @@ const stages = [
 
   <!-- 1. WHAT IS NUUKE? -->
   <section class="h-hero container" data-fx="0.5" data-fy="-0.05" data-fs="1.1" data-mfx="0.42" data-mfy="0.52" data-mfs="0.85">
-    <p class="t-label h-kicker">Mobile apps · 3D · Animation · Marketing · AI</p>
     <h1 class="h-q" aria-label="What is NUUKE?">
       <span class="h-w" aria-hidden="true">What</span>
       <span class="h-w" aria-hidden="true">is</span>
@@ -77,7 +76,7 @@ const stages = [
     <p class="h-msg-line h-msg-a" data-msg-a>We don’t design for everyone.</p>
     <p class="h-msg-line h-msg-b" data-msg-b>We design for <span>winners.</span></p>
     <div class="container h-msg-body">
-      <p class="t-lead" data-reveal>Our work doesn’t just look good, it works hard. For your goals, your growth, and your long-term brand value. A specialized unit for market domination — not a vendor.</p>
+      <p class="t-lead" data-reveal>Our work doesn’t just look good, it works hard. For your goals, your growth, and your long-term brand value. A specialized unit for market domination, not a vendor.</p>
     </div>
   </section>
 
@@ -482,13 +481,13 @@ const stages = [
   .h-plan { padding-block: var(--section); display: grid; gap: var(--s-7); max-width: var(--max); }
   .h-plan-head { display: grid; gap: var(--s-3); max-width: 560px; }
   .h-stages { list-style: none; padding: 0; display: grid; gap: var(--s-3); max-width: 720px; }
-  .h-stage { display: grid; grid-template-columns: 5.5rem 1fr; gap: var(--s-5); padding: var(--s-5); border-radius: var(--r-lg); border: 1px solid var(--line); background: rgb(12 12 15 / 0.7); transition: border-color 0.5s, background 0.5s, transform 0.6s var(--ease-out); }
+  .h-stage { display: grid; grid-template-columns: 6.5rem 1fr; align-items: start; gap: var(--s-5); padding: var(--s-5); border-radius: var(--r-lg); border: 1px solid var(--line); background: rgb(12 12 15 / 0.7); transition: border-color 0.5s, background 0.5s, transform 0.6s var(--ease-out); }
   .h-stage.is-lit { border-color: var(--accent); background: rgb(255 46 136 / 0.07); transform: translateX(10px); }
-  .h-stage-n { font-size: var(--fs-2xl); font-weight: 800; color: var(--muted); transition: color 0.5s; }
+  .h-stage-n { font-size: var(--fs-2xl); font-weight: 800; line-height: 1; white-space: nowrap; color: var(--muted); transition: color 0.5s; }
   .h-stage.is-lit .h-stage-n { color: var(--accent); }
   .h-stage-t { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-xl); letter-spacing: -0.02em; }
   .h-stage-t span { color: var(--ink-2); font-weight: 500; }
-  @media (max-width: 600px) { .h-stage { grid-template-columns: 1fr; gap: var(--s-2); } }
+  @media (max-width: 600px) { .h-stage { grid-template-columns: 1fr; gap: var(--s-2); } .h-stage.is-lit { transform: none; } }
 
   /* ---------- 8. Finale ---------- */
   .h-finale { height: 340vh; }

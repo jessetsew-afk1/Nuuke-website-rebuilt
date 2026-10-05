@@ -39,7 +39,7 @@ const { id = 'proto', title, start, tasks, note, device = 'dark' } = Astro.props
       <button type="button" role="radio" aria-checked="true" data-fid="hifi">Hi-fi</button>
       <span class="fid-pill" aria-hidden="true"></span>
     </div>
-    <p class="t-small fid-caption" data-fid-caption>Final UI — fully tappable.</p>
+    <p class="t-small fid-caption" data-fid-caption>Final UI, fully tappable.</p>
 
     <div class="tasks">
       <p class="t-label">Your journey <span data-task-count>0/{tasks.length}</span></p>
@@ -74,7 +74,7 @@ const { id = 'proto', title, start, tasks, note, device = 'dark' } = Astro.props
         </div>
       </div>
     </div>
-    <p class="proto-caption t-label" aria-live="polite"><span data-caption>—</span></p>
+    <p class="proto-caption t-label" aria-live="polite"><span data-caption>…</span></p>
   </div>
 </div>
 
@@ -87,9 +87,9 @@ const { id = 'proto', title, start, tasks, note, device = 'dark' } = Astro.props
 
 <script>
   const CAPTIONS: Record<string, string> = {
-    sketch: 'Day 2 — paper sketches to agree the flow before any pixels.',
-    wire: 'Week 1 — grey-box wireframes: layout, hierarchy and copy length.',
-    hifi: 'Week 3 — final UI. Every screen here is tappable.',
+    sketch: 'Day 2: paper sketches to agree the flow before any pixels.',
+    wire: 'Week 1: grey-box wireframes for layout, hierarchy and copy length.',
+    hifi: 'Week 3: final UI. Every screen here is tappable.',
   };
 
   document.querySelectorAll<HTMLElement>('[data-proto]').forEach((root) => {

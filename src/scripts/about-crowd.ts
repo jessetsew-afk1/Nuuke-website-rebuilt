@@ -1,4 +1,4 @@
-// "The crowd": a lattice of identical grey dots that sway in unison — everything
+// "The crowd": a lattice of identical grey dots that sway in unison, everything
 // that blends in. The rocket (and your pointer / taps) part the crowd and tint
 // it pink. Plain 2D canvas, so it runs everywhere; static when motion is reduced.
 

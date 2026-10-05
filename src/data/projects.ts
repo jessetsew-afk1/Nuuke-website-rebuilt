@@ -22,7 +22,7 @@ export const projects: Project[] = [
   {
     slug: 'rise-science',
     brand: 'Rise Science',
-    title: 'RISE — making invisible biology readable at a glance',
+    title: 'RISE: making invisible biology readable at a glance',
     discipline: 'mobile',
     disciplineLabel: 'Mobile App',
     year: '2026',
@@ -36,7 +36,7 @@ export const projects: Project[] = [
   {
     slug: 'olio',
     brand: 'Olio',
-    title: 'Olio — giving food away faster than throwing it away',
+    title: 'Olio: giving food away faster than throwing it away',
     discipline: 'mobile',
     disciplineLabel: 'Mobile App',
     year: '2026',
@@ -50,7 +50,7 @@ export const projects: Project[] = [
   {
     slug: 'flighty',
     brand: 'Flighty',
-    title: 'Flighty — every flight, read like a departure board',
+    title: 'Flighty: every flight, read like a departure board',
     discipline: 'mobile',
     disciplineLabel: 'Mobile App',
     year: '2026',
@@ -64,7 +64,7 @@ export const projects: Project[] = [
   {
     slug: 'gentler-streak',
     brand: 'Gentler Streak',
-    title: 'Gentler Streak — fitness that knows when to rest',
+    title: 'Gentler Streak: fitness that knows when to rest',
     discipline: 'mobile',
     disciplineLabel: 'Mobile App',
     year: '2026',
@@ -78,7 +78,7 @@ export const projects: Project[] = [
   {
     slug: 'copilot-money',
     brand: 'Copilot Money',
-    title: 'Copilot Money — a money app that tells you what changed',
+    title: 'Copilot Money: a money app that tells you what changed',
     discipline: 'mobile',
     disciplineLabel: 'Mobile App',
     year: '2026',
@@ -92,7 +92,7 @@ export const projects: Project[] = [
   {
     slug: 'tiimo',
     brand: 'Tiimo',
-    title: 'Tiimo — a day you can see',
+    title: 'Tiimo: a day you can see',
     discipline: 'mobile',
     disciplineLabel: 'Mobile App',
     year: '2026',
@@ -106,7 +106,7 @@ export const projects: Project[] = [
   {
     slug: 'heirloom',
     brand: 'Heirloom',
-    title: 'Heirloom — an interactive 3D journey through carbon removal',
+    title: 'Heirloom: an interactive 3D journey through carbon removal',
     discipline: 'web3d',
     disciplineLabel: '3D Website',
     year: '2026',
@@ -120,7 +120,7 @@ export const projects: Project[] = [
   {
     slug: 'fellow',
     brand: 'Fellow',
-    title: 'Fellow — a product film for the perfect pour',
+    title: 'Fellow: a product film for the perfect pour',
     discipline: 'animation',
     disciplineLabel: '3D Animation',
     year: '2026',
@@ -134,7 +134,7 @@ export const projects: Project[] = [
   {
     slug: 'fishwife',
     brand: 'Fishwife',
-    title: 'Fishwife — a campaign that makes tinned fish the main character',
+    title: 'Fishwife: a campaign that makes tinned fish the main character',
     discipline: 'marketing',
     disciplineLabel: 'Digital Marketing',
     year: '2026',

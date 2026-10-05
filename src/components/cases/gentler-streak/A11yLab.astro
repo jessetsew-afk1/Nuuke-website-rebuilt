@@ -51,10 +51,10 @@ const vo = [
     <div class="gs-ax-read" aria-live="polite">
       <p class="t-label">Measured on the screen right now</p>
       <dl>
-        <div><dt>Secondary text contrast</dt><dd data-ax-contrast>—</dd></div>
-        <div><dt>Button label contrast</dt><dd data-ax-btn>—</dd></div>
-        <div><dt>Smallest tap target</dt><dd data-ax-target>—</dd></div>
-        <div><dt>Animations running</dt><dd data-ax-anim>—</dd></div>
+        <div><dt>Secondary text contrast</dt><dd data-ax-contrast>…</dd></div>
+        <div><dt>Button label contrast</dt><dd data-ax-btn>…</dd></div>
+        <div><dt>Smallest tap target</dt><dd data-ax-target>…</dd></div>
+        <div><dt>Animations running</dt><dd data-ax-anim>…</dd></div>
         <div><dt>Meaning by colour alone</dt><dd>None. Days above or below the path are ▲ and ▼, not just red or purple.</dd></div>
       </dl>
     </div>
@@ -175,7 +175,7 @@ const vo = [
       const min = Math.min(...[...screen.querySelectorAll<HTMLElement>('button, .gs-ax-tab')].map((b) => Math.min(b.offsetWidth, b.offsetHeight)));
       root.querySelector<HTMLElement>('[data-ax-target]')!.textContent = `${Math.round(min)} pt · guideline ≥ 44 pt`;
       const running = root.classList.contains('is-rm') ? 0 : 2;
-      root.querySelector<HTMLElement>('[data-ax-anim]')!.textContent = running ? `${running} (breathing orb, today’s pulse)` : '0 — all paused';
+      root.querySelector<HTMLElement>('[data-ax-anim]')!.textContent = running ? `${running} (breathing orb, today’s pulse)` : '0, all paused';
       placeBadges();
     };
 

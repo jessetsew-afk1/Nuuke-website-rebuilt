@@ -225,7 +225,7 @@ export const LIVE_STATES: LiveState[] = [
   },
   {
     id: 'cancelled', label: 'Cancelled', tone: 'cx', ring: 0, lead: 'FL 214', trail: 'Rebook',
-    headline: 'Cancelled', sub: '2 seats left on FL 238 at 16:10', dep: '—', depOld: '14:05', arr: '—', arrOld: '16:38', gate: '—', action: 'See rebooking options',
+    headline: 'Cancelled', sub: '2 seats left on FL 238 at 16:10', dep: '…', depOld: '14:05', arr: '…', arrOld: '16:38', gate: '…', action: 'See rebooking options',
     rule: 'Calm red, then the next step.',
     why: 'Red says “stop” once. The rest of the card is the way forward, so bad news reads as a plan, not a panic.',
   },

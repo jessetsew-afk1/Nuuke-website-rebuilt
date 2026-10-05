@@ -5,7 +5,7 @@ import { createStage, THREE } from './three/core';
 
 const TOP = 2.85;
 const BOT = -1.35;
-/** Hull radius at height y — a pointed ogive that tapers toward the nozzle. */
+/** Hull radius at height y, a pointed ogive that tapers toward the nozzle. */
 function radius(y: number) {
   const c = 0.2;
   if (y >= c) {

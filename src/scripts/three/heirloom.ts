@@ -1014,7 +1014,7 @@ export function init(canvas: HTMLCanvasElement, opts: InitOpts = {}): LoopScene 
     setProgress: (p, instant = false) => {
       state.target = clamp01(p);
       // Static mode (reduced motion or software GL): state comes from progress alone,
-      // so render a frame for it — coalesced, with a guaranteed trailing frame.
+      // so render a frame for it, coalesced, with a guaranteed trailing frame.
       if (instant) renderNow();
       else if (stage.reduced && !pending) pending = window.setTimeout(renderNow, Math.max(0, 110 - (performance.now() - lastRender)));
     },

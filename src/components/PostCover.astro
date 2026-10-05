@@ -1,5 +1,5 @@
 ---
-// Typographic cover art for blog posts — no stock photos.
+// Typographic cover art for blog posts, no stock photos.
 interface Props { category: string; accent: string; seed: number; }
 const { category, accent, seed } = Astro.props;
 const shapes = Array.from({ length: 5 }, (_, i) => ({ x: (seed * 37 + i * 61) % 100, y: (seed * 53 + i * 29) % 100, r: 18 + ((seed + i * 7) % 30) }));

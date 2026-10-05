@@ -1,4 +1,4 @@
-// Copilot Money concept — spatial sketch of net worth.
+// Copilot Money concept, spatial sketch of net worth.
 // Each account is a column of instanced coins on a glass plinth; debt hangs below it.
 // Month changes drop coins in (or lift them out) with a per-coin stagger; drag orbits.
 import { createStage, THREE } from './core';

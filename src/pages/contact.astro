@@ -6,7 +6,7 @@ const services = ['Mobile App', 'Video Production', 'Digital Marketing', '3D Web
 const budgets = ['< $10k', '$10k – $30k', '$30k – $75k', '$75k +', 'Not sure yet'];
 const faq = [
   { q: 'What types of services do you offer?', a: 'NUUKE delivers creative and digital solutions across mobile app development, video production, digital marketing, 3D website experiences, 2D/3D animation, paid advertising, and AI automation. We help brands elevate their presence, tell stronger stories, and scale with modern technology and design.' },
-  { q: 'How can I request a quote or proposal for my project?', a: 'Send us a brief overview of your project — what you need, your goals, and any specific requirements — using the form on this page. Our team reviews the details and puts together a tailored proposal with timeline, pricing, and next steps.' },
+  { q: 'How can I request a quote or proposal for my project?', a: 'Send us a brief overview of your project (what you need, your goals and any specific requirements) using the form on this page. Our team reviews the details and puts together a tailored proposal with timeline, pricing, and next steps.' },
   { q: 'How long does it typically take to complete a project?', a: 'Timelines vary with scope, but most NUUKE projects take from a few weeks to a few months. Smaller deliverables like ads or animations are completed quickly, while full mobile apps, 3D websites, and larger creative builds take longer. We always give you a clear timeline upfront.' },
   { q: 'What is the cost of your services?', a: 'It depends on scope, complexity and deliverables. Smaller creative tasks may range from a few hundred to a few thousand dollars, while full-scale builds like mobile apps, 3D websites, or long-term marketing campaigns are priced on depth and duration. Once we understand your goals, we send a tailored quote so you only pay for what you need.' },
 ];
@@ -15,7 +15,7 @@ const faq = [
 const endpoint = import.meta.env.PUBLIC_FORM_ENDPOINT ?? '';
 ---
 
-<Base title="Contact" description="Tell NUUKE what you’re building. Mobile apps, 3D, animation, marketing and AI — we reply within one business day.">
+<Base title="Contact" description="Tell NUUKE what you’re building. Mobile apps, 3D, animation, marketing and AI. We reply within one business day.">
   <section class="ct container">
     <div class="ct-intro">
       <p class="t-label" data-reveal>Contact</p>
@@ -96,7 +96,7 @@ const endpoint = import.meta.env.PUBLIC_FORM_ENDPOINT ?? '';
         if (status) status.textContent = 'Thanks! We’ll be in touch within one business day.';
       } else {
         const body = `Name: ${data.name}\nEmail: ${data.email}\nPhone: ${data.phone}\nServices: ${data.services}\nBudget: ${data.budget}\n\n${data.details}`;
-        window.location.href = `mailto:hello@nuuke.us?subject=${encodeURIComponent('New project — ' + data.name)}&body=${encodeURIComponent(body)}`;
+        window.location.href = `mailto:hello@nuuke.us?subject=${encodeURIComponent('New project: ' + data.name)}&body=${encodeURIComponent(body)}`;
         if (status) status.textContent = 'Opening your email app… If nothing happens, email hello@nuuke.us.';
       }
     } catch {

@@ -13,7 +13,7 @@ const { id, n, label, title, intro, wide = false } = Astro.props;
 
 <section id={id} class:list={['chapter', { 'chapter--wide': wide }]} aria-labelledby={`${id}-title`}>
   <div class="container chapter-head">
-    <p class="t-label chapter-kicker" data-reveal><span class="t-num">{n}</span> — {label}</p>
+    <p class="t-label chapter-kicker" data-reveal><span class="t-num">{n}</span> · {label}</p>
     <h2 id={`${id}-title`} class="t-h2 chapter-title" data-split="words">{title}</h2>
     {intro && <p class="t-lead measure" data-reveal set:html={intro} />}
   </div>

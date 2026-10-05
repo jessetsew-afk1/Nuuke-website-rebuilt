@@ -18,7 +18,7 @@ const { project: p, chapters, sources, meta } = Astro.props;
 const next = nextOf(p.slug);
 ---
 
-<Base title={p.brand + ' — concept case study'} description={p.summary} accent={p.accent}>
+<Base title={p.brand + ': concept case study'} description={p.summary} accent={p.accent}>
   <article class="case" style={`--a:${p.accent};--b:${p.accent2};--a-ink:${p.ink}`}>
     <!-- HERO -->
     <header class="case-hero">
@@ -27,7 +27,7 @@ const next = nextOf(p.slug);
         <div class="case-hero-copy">
           <nav class="crumbs t-label" aria-label="Breadcrumb"><a href="/works">Works</a> / {p.disciplineLabel}</nav>
           <h1 class="t-h1 case-title" data-split>{p.brand}</h1>
-          <p class="t-lead case-sub" data-reveal>{p.title.split('—')[1]?.trim() ?? p.title}</p>
+          <p class="t-lead case-sub" data-reveal>{p.title.includes(': ') ? p.title.slice(p.title.indexOf(': ') + 2) : p.title}</p>
           <div class="case-chips" data-reveal style="--delay:.15s">
             <span class="chip chip--accent">{p.disciplineLabel}</span>
             {p.tags.map((t) => <span class="chip">{t}</span>)}

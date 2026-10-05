@@ -95,7 +95,7 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
 
   const col = colors.map((c) => new THREE.Color(c));
 
-  // 1. Mobile — banded planet, phone moon, ring of app tiles
+  // 1. Mobile, banded planet, phone moon, ring of app tiles
   {
     const g = new THREE.Group();
     const body = new THREE.Mesh(new THREE.SphereGeometry(1.5, 48, 48), new THREE.MeshStandardMaterial({ map: bandTexture('#3a0d22', colors[0]), roughness: 0.6, emissive: col[0], emissiveIntensity: 0.12 }));
@@ -130,7 +130,7 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
     });
     planets.push(g);
   }
-  // 2. 3D & animation — faceted low-poly planet with geometric moons
+  // 2. 3D & animation, faceted low-poly planet with geometric moons
   {
     const g = new THREE.Group();
     const body = new THREE.Mesh(new THREE.IcosahedronGeometry(1.6, 1), new THREE.MeshStandardMaterial({ color: col[1], flatShading: true, roughness: 0.4, metalness: 0.2 }));
@@ -149,7 +149,7 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
     });
     planets.push(g);
   }
-  // 3. Marketing — planet broadcasting signal rings
+  // 3. Marketing, planet broadcasting signal rings
   {
     const g = new THREE.Group();
     const body = new THREE.Mesh(new THREE.SphereGeometry(1.45, 48, 48), new THREE.MeshStandardMaterial({ map: bandTexture('#0a3328', colors[2]), roughness: 0.5, emissive: col[2], emissiveIntensity: 0.1 }));
@@ -170,7 +170,7 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
     });
     planets.push(g);
   }
-  // 4. AI — neural sphere
+  // 4. AI, neural sphere
   {
     const g = new THREE.Group();
     const pts: THREE.Vector3[] = [];

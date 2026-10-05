@@ -27,7 +27,7 @@ const rel = projects.filter((p) => related[s.slug].includes(p.discipline));
 const others = services.filter((x) => x.slug !== s.slug);
 ---
 
-<Base title={s.title} description={`${s.title} at NUUKE — ${s.tagline}`} accent={s.accent}>
+<Base title={s.title} description={`${s.title} at NUUKE. ${s.tagline}`} accent={s.accent}>
   <section class="sd-hero container">
     <div class="sd-copy">
       <nav class="t-label" aria-label="Breadcrumb"><a href="/services">Services</a> / {s.index}</nav>

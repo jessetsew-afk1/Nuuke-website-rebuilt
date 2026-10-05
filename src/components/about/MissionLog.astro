@@ -1,7 +1,7 @@
 ---
 // Mission log: the three ways to work with us as mission profiles. Pick a mission
-// and the rocket flies its trajectory — a sub-orbital hop (Sprint), a launch into
-// orbit (Build) or a steady orbit that keeps going (Partner) — lighting each stage.
+// and the rocket flies its trajectory, a sub-orbital hop (Sprint), a launch into
+// orbit (Build) or a steady orbit that keeps going (Partner), lighting each stage.
 const missions = [
   {
     id: 'sprint',
@@ -16,7 +16,7 @@ const missions = [
     log: [
       { t: 'Kickoff', d: 'Agree the problem worth solving, who it’s for and what would prove it worked.' },
       { t: 'Research & flows', d: 'Map the journeys and the screens or scenes that matter most.' },
-      { t: 'Prototype', d: 'A tappable prototype or 3D concept — something real to react to.' },
+      { t: 'Prototype', d: 'A tappable prototype or 3D concept, something real to react to.' },
       { t: 'Test & decide', d: 'Put it in front of real users, then decide what to build next.' },
     ],
   },
@@ -26,7 +26,7 @@ const missions = [
     k: 'Ship a product',
     dur: '2–6 months',
     profile: 'Launch to orbit',
-    d: 'Design, engineering and launch of an app, 3D website or film — with a dedicated squad.',
+    d: 'Design, engineering and launch of an app, 3D website or film, with a dedicated squad.',
     path: 'M150 319 C 150 220, 210 160, 300 160 A 250 140 0 0 1 550 300 A 250 140 0 0 1 50 300 A 250 140 0 0 1 300 160',
     stops: [0.02, 0.13, 0.3, 0.86],
     loop: false,
@@ -62,7 +62,7 @@ const paths = JSON.stringify(missions.map((m) => ({ path: m.path, stops: m.stops
   <div class="container">
     <div class="ab-log-head">
       <div>
-        <p class="t-label ab-sec-label" data-reveal>04 — Mission log</p>
+        <p class="t-label ab-sec-label" data-reveal>04 · Mission log</p>
         <h2 id="ab-log-title" class="t-h1 ab-log-h" data-split>Ways to work with us</h2>
       </div>
       <p class="t-lead" data-reveal>Three mission profiles. Pick one to see how it flies.</p>

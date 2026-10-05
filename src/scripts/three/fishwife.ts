@@ -1,4 +1,4 @@
-// Fishwife concept — the "Tin O'Clock" hero tin.
+// Fishwife concept, the "Tin O'Clock" hero tin.
 // A procedural rounded-rectangle tin with an original illustrated wrap label
 // (CanvasTexture), a pull-ring lid that peels back as you scroll, drag-to-spin,
 // and a flavour switcher that redraws the label and swaps what's inside.
@@ -179,7 +179,7 @@ function clock(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, f
     ctx.fill();
   }
   ctx.lineCap = 'round';
-  // 12:30 — hour hand halfway to 1, minute hand on 6.
+  // 12:30, hour hand halfway to 1, minute hand on 6.
   const hand = (a: number, len: number, w: number, c: string) => {
     ctx.strokeStyle = c;
     ctx.lineWidth = w;

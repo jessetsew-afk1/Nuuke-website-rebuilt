@@ -94,10 +94,10 @@ const payload = JSON.stringify({ events: simEvents, end: SIM_END, route });
       <span class="t-small" data-ff>Real time</span>
     </div>
     <dl class="sim-stats">
-      <div><dt class="t-label">Photo → live</dt><dd class="t-num" data-s-live>—</dd></div>
+      <div><dt class="t-label">Photo → live</dt><dd class="t-num" data-s-live>…</dd></div>
       <div><dt class="t-label">Neighbours alerted</dt><dd class="t-num" data-s-alerted>0</dd></div>
-      <div><dt class="t-label">Live → reserved</dt><dd class="t-num" data-s-claim>—</dd></div>
-      <div><dt class="t-label">Extra alerts avoided</dt><dd class="t-num" data-s-saved>—</dd></div>
+      <div><dt class="t-label">Live → reserved</dt><dd class="t-num" data-s-claim>…</dd></div>
+      <div><dt class="t-label">Extra alerts avoided</dt><dd class="t-num" data-s-saved>…</dd></div>
     </dl>
 
     <div class="sim-controls">
@@ -210,10 +210,10 @@ const payload = JSON.stringify({ events: simEvents, end: SIM_END, route });
       root.classList.toggle('is-done', t >= ARRIVE);
       // Stats
       $('[data-clock]').textContent = fmtClock(t);
-      $('[data-s-live]').textContent = t >= 1 ? '1 min' : '—';
+      $('[data-s-live]').textContent = t >= 1 ? '1 min' : '…';
       $('[data-s-alerted]').textContent = String(alerted);
-      $('[data-s-claim]').textContent = t >= RES ? '5 min' : '—';
-      $('[data-s-saved]').textContent = t >= RES ? `${wouldHaveBeen}` : '—';
+      $('[data-s-claim]').textContent = t >= RES ? '5 min' : '…';
+      $('[data-s-saved]').textContent = t >= RES ? `${wouldHaveBeen}` : '…';
       $('[data-ff]').textContent = t > 7.5 && t < LEAVE ? 'Skipping ahead ⏩' : t >= ARRIVE ? 'Collected ✓' : 'Real time';
       // Events
       let cur = 0;

@@ -95,7 +95,7 @@ export const funnel: FunnelStage[] = [
   {
     id: 'awareness',
     label: 'Awareness',
-    job: 'Make “12:30 on a weekday” mean “open a tin” — before anyone has tasted one.',
+    job: 'Make “12:30 on a weekday” mean “open a tin”, before anyone has tasted one.',
     who: 'Snack-plate Sofia and her feed',
     channels: ['TikTok & Reels creators', 'Paid social (lunch-hour dayparting)', 'OOH near office districts in LA & NYC', 'PR: the Tin O’Clock “alarm” drop'],
     formats: ['12:30 alarm stunt video', '15-sec recipe-in-a-tin', 'Postcard billboards'],
@@ -113,7 +113,7 @@ export const funnel: FunnelStage[] = [
   {
     id: 'purchase',
     label: 'Purchase',
-    job: 'Put the tin where lunch is bought — online and on the shelf.',
+    job: 'Put the tin where lunch is bought, online and on the shelf.',
     who: 'Pete in-store, Sofia online',
     channels: ['Retail shelf takeover & wobblers', 'Retail media (grocery apps)', 'DTC “Weekday Lunch Box” bundle', 'Shoppable creator posts'],
     formats: ['Shelf strip + clock wobbler', 'QR to 30-sec recipes', '5-tin weekday bundle'],
@@ -122,7 +122,7 @@ export const funnel: FunnelStage[] = [
   {
     id: 'loyalty',
     label: 'Loyalty',
-    job: 'Turn one good lunch into a weekly ritual — and a gift people pass on.',
+    job: 'Turn one good lunch into a weekly ritual, and a gift people pass on.',
     who: 'Gifting Grace and every repeat buyer',
     channels: ['Subscribe & save “Tin O’Clock club”', 'SMS 12:30 nudge (opt-in)', 'UGC reposts & creator community', 'Gift sets for hosts'],
     formats: ['Weekly lunch drop', 'Limited Tin O’Clock label', 'Shareable lunch “stamp card”'],
@@ -144,7 +144,7 @@ export type StoryPost = {
 export const posts: StoryPost[] = [
   { id: 'recipe', title: '30-second recipe in a tin', format: 'Reel / TikTok · 30s', hook: 'A timer starts at 0:30 in the first frame.', cta: 'Save for tomorrow’s lunch', persona: 'Protein Pete', why: 'Speed is the objection. A visible countdown answers it before anyone asks.' },
   { id: 'glowup', title: 'Desk-lunch glow-up', format: 'Reel · 12s before/after', hook: 'The sad sandwich, then the wipe.', cta: 'Show us your desk lunch', persona: 'Snack-plate Sofia', why: 'Borrows the snack-plate aesthetic Sofia already loves and moves it to a Tuesday.' },
-  { id: 'alarm', title: 'The 12:30 Tin O’Clock alarm', format: 'Story + opt-in SMS · 8s', hook: 'Your lock screen rings at 12:30.', cta: 'Set your Tin O’Clock alarm', persona: 'Everyone', why: 'Rituals need a cue. We give lunch a literal alarm — the campaign’s signature mechanic.' },
+  { id: 'alarm', title: 'The 12:30 Tin O’Clock alarm', format: 'Story + opt-in SMS · 8s', hook: 'Your lock screen rings at 12:30.', cta: 'Set your Tin O’Clock alarm', persona: 'Everyone', why: 'Rituals need a cue. We give lunch a literal alarm, the campaign’s signature mechanic.' },
   { id: 'sourcing', title: 'Where the fish comes from', format: 'Carousel / Story · 4 frames', hook: 'Six canneries, four places, one map.', cta: 'Read the sourcing story', persona: 'Protein Pete', why: 'Makes the fine print (canneries, certification, traceable salmon) feel like a travel postcard.' },
   { id: 'duet', title: 'Creator duet: “My Tin O’Clock”', format: 'TikTok duet · 20s', hook: 'Split screen: their lunch vs. yours.', cta: 'Duet this with your tin', persona: 'Snack-plate Sofia', why: 'A format built to be copied. Every duet is a free, native ad for the ritual.' },
 ];
@@ -211,7 +211,7 @@ export const adTests: AdTest[] = [
     hypothesis: 'A clock-time cue (“It’s 12:30”) builds a repeatable trigger and lifts weekday purchase intent more than a recipe cue.',
     metric: 'Lunch-hour click-through, saves, add-to-cart between 11:00 and 14:00',
     audience: 'Broad lunch-hour audience, 25–44',
-    a: { headline: 'It’s 12:30. Open a tin.', sub: 'Tin O’Clock — every weekday.', visual: 'clock', cta: 'Shop lunch tins' },
+    a: { headline: 'It’s 12:30. Open a tin.', sub: 'Tin O’Clock, every weekday.', visual: 'clock', cta: 'Shop lunch tins' },
     b: { headline: 'Salmon, chili crisp, rice.', sub: 'Lunch in 30 seconds.', visual: 'bowl', cta: 'Get the recipe' },
   },
   {

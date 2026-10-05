@@ -1,5 +1,5 @@
 // Copilot Money concept (NUUKE). Sample data, palette and the exploded-layer artwork.
-// Every amount in this file is invented sample data for the concept — not real user data.
+// Every amount in this file is invented sample data for the concept, not real user data.
 
 /** Working approximation of the brand palette (third-party sample, see sources). */
 export const CM = {

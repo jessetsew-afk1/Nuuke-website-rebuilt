@@ -27,12 +27,12 @@ const chapters = [
   { id: 'measure', label: 'Measure' },
 ];
 const sources = [
-  { label: 'Built In Chicago — app launch & funding', url: 'https://www.builtinchicago.org/articles/rise-science-app-launch-15m-funding' },
-  { label: 'Crunchbase News — $15.5M raise', url: 'https://news.crunchbase.com/health-wellness-biotech/get-out-of-sleep-debt-rise-science-secures-15-5m-for-app-to-boost-energy-levels/' },
-  { label: 'Northwestern McCormick — founders', url: 'https://www.mccormick.northwestern.edu/magazine/fall-2021/rise-shine/' },
-  { label: 'Rise Science — about', url: 'https://www.risescience.com/about-us' },
+  { label: 'Built In Chicago: app launch & funding', url: 'https://www.builtinchicago.org/articles/rise-science-app-launch-15m-funding' },
+  { label: 'Crunchbase News: $15.5M raise', url: 'https://news.crunchbase.com/health-wellness-biotech/get-out-of-sleep-debt-rise-science-secures-15-5m-for-app-to-boost-energy-levels/' },
+  { label: 'Northwestern McCormick: founders', url: 'https://www.mccormick.northwestern.edu/magazine/fall-2021/rise-shine/' },
+  { label: 'Rise Science: about', url: 'https://www.risescience.com/about-us' },
   { label: 'Apple Design Awards 2023', url: 'https://developer.apple.com/design/awards/2023/' },
-  { label: 'IDEO — sleep system for athletes', url: 'https://www.ideo.com/works/a-game-changing-approach-to-sleep-for-athletes' },
+  { label: 'IDEO: sleep system for athletes', url: 'https://www.ideo.com/works/a-game-changing-approach-to-sleep-for-athletes' },
 ];
 const meta = [
   { label: 'Brand', value: 'Rise Science, Chicago' },
@@ -41,7 +41,7 @@ const meta = [
   { label: 'Timeline (concept)', value: '4-week design sprint' },
 ];
 const personas = [
-  { name: 'Deep-work Dana', meta: '31 · product manager', quote: 'I want my hardest work in my sharpest hours — and no 3pm crash.', goals: ['Know when her focus peaks', 'Block calendar time automatically', 'One glance, not a dashboard'], pains: ['Charts she has to interpret', 'Guilt-trip sleep scores', 'Too many notifications'], color: '#ffb27a' },
+  { name: 'Deep-work Dana', meta: '31 · product manager', quote: 'I want my hardest work in my sharpest hours, and no 3pm crash.', goals: ['Know when her focus peaks', 'Block calendar time automatically', 'One glance, not a dashboard'], pains: ['Charts she has to interpret', 'Guilt-trip sleep scores', 'Too many notifications'], color: '#ffb27a' },
   { name: 'New-parent Marcus', meta: '36 · two kids under 4', quote: 'Eight hours is a fantasy. Tell me how to survive on what I get.', goals: ['Realistic sleep-debt targets', 'Nap timing that actually helps', 'Wins he can feel this week'], pains: ['Apps that assume he controls his sleep', 'Red warning colours', 'Long onboarding'], color: '#7b61ff' },
   { name: 'Night-owl Priya', meta: '22 · grad student', quote: 'My body clock is late. I need a plan, not a lecture.', goals: ['Shift bedtime gradually', 'Light & caffeine timing', 'Progress she can see'], pains: ['Morning-person defaults', 'Judgemental copy', 'Losing streaks'], color: '#3ee6b0' },
 ];
@@ -51,7 +51,7 @@ const stages = [
   { label: 'Afternoon', doing: 'Hits the 3pm dip, reaches for coffee #3.', feeling: 'Drained, frustrated.', score: -1.6, opportunity: 'Pre-warn the dip and suggest a walk or 20-min nap instead of late caffeine.' },
   { label: 'Evening', doing: 'Scrolls in bed with bright screens.', feeling: 'Wired but tired.', score: -0.5, opportunity: 'A gentle “dim the lights” nudge timed to their Melatonin Window.' },
   { label: 'Bedtime', doing: 'Goes to sleep inside the window.', feeling: 'In control, calm.', score: 1.2, opportunity: 'Smart alarm + one line of feedback tomorrow: debt went down.' },
-  { label: 'Next day', doing: 'Sees debt drop from 3h 20m to 2h 40m.', feeling: 'Motivated — it’s working.', score: 1.8, opportunity: 'Celebrate progress, not perfection. Keep the streak forgiving.' },
+  { label: 'Next day', doing: 'Sees debt drop from 3h 20m to 2h 40m.', feeling: 'Motivated, it’s working.', score: 1.8, opportunity: 'Celebrate progress, not perfection. Keep the streak forgiving.' },
 ];
 const nodes = [
   { id: 'welcome', label: 'Welcome', x: 90, y: 90, kind: 'start' as const },
@@ -90,7 +90,7 @@ const bars = [4.1, 3.8, 3.9, 3.5, 3.6, 3.2, 3.4, 3.0, 3.3, 3.1, 2.9, 3.4, 3.3, 3
 
   <Chapter id="brief" n="01" label="The brief" title="An energy app that people read in two seconds.">
     <Brief
-      story="Rise Science grew out of sleep coaching for pro teams like the Chicago Bulls, then launched the RISE app in 2021. It sells <strong>energy</strong>, not sleep scores: it models two levers — <em>sleep debt</em> and <em>circadian rhythm</em> — to show when you’ll peak and dip each day."
+      story="Rise Science grew out of sleep coaching for pro teams like the Chicago Bulls, then launched the RISE app in 2021. It sells <strong>energy</strong>, not sleep scores: it models two levers, <em>sleep debt</em> and <em>circadian rhythm</em>, to show when you’ll peak and dip each day."
       facts={[
         { v: '2015', k: 'Founded in Chicago (Northwestern alumni)' },
         { v: '$15.5M', k: 'Raised by the 2021 launch' },
@@ -98,7 +98,7 @@ const bars = [4.1, 3.8, 3.9, 3.5, 3.6, 3.2, 3.4, 3.0, 3.3, 3.1, 2.9, 3.4, 3.3, 3
         { v: '10M+', k: 'Users, as reported by Rise' },
       ]}
       problems={[
-        { title: 'Make invisible biology legible', text: 'The energy curve is the product. It has to read in under two seconds — on the home screen, lock screen and wrist.' },
+        { title: 'Make invisible biology legible', text: 'The energy curve is the product. It has to read in under two seconds, on the home screen, lock screen and wrist.' },
         { title: 'Debt without guilt', text: '“Sleep debt” can feel like a scolding. Parents and shift-workers need it to motivate, not shame.' },
         { title: 'From insight to action', text: '20+ timed habits is a lot. Turn them into one calm plan with a single “next best action”.' },
       ]}
@@ -106,11 +106,11 @@ const bars = [4.1, 3.8, 3.9, 3.5, 3.6, 3.2, 3.4, 3.0, 3.3, 3.1, 2.9, 3.4, 3.3, 3
     />
   </Chapter>
 
-  <Chapter id="research" n="02" label="Research" title="Three people, three very different nights." intro="We built personas from Rise’s public audience — knowledge workers, parents and students — then stress-tested every screen against them.">
+  <Chapter id="research" n="02" label="Research" title="Three people, three very different nights." intro="We built personas from Rise’s public audience (knowledge workers, parents and students), then stress-tested every screen against them.">
     <Personas personas={personas} />
   </Chapter>
 
-  <Chapter id="journey" n="03" label="Journey map" title="Where a day goes wrong — and where the app can help." intro="Hover or tap each moment to see what the user is doing, how they feel, and the design opportunity we found.">
+  <Chapter id="journey" n="03" label="Journey map" title="Where a day goes wrong, and where the app can help." intro="Hover or tap each moment to see what the user is doing, how they feel, and the design opportunity we found.">
     <JourneyMap stages={stages} />
   </Chapter>
 
@@ -118,7 +118,7 @@ const bars = [4.1, 3.8, 3.9, 3.5, 3.6, 3.2, 3.4, 3.0, 3.3, 3.1, 2.9, 3.4, 3.3, 3
     <FlowMap nodes={nodes} edges={edges} width={1100} height={420} />
   </Chapter>
 
-  <Chapter id="layers" n="05" label="3D wireframe" title="Take the home screen apart, layer by layer." intro="Every screen is built in five layers. Scroll and the exploded view assembles into the final UI — drag to look around it.">
+  <Chapter id="layers" n="05" label="3D wireframe" title="Take the home screen apart, layer by layer." intro="Every screen is built in five layers. Scroll and the exploded view assembles into the final UI. Drag to look around it.">
     <ScreenStack layers={riseLayers} accent={p.accent} />
   </Chapter>
 
@@ -130,7 +130,7 @@ const bars = [4.1, 3.8, 3.9, 3.5, 3.6, 3.2, 3.4, 3.0, 3.3, 3.1, 2.9, 3.4, 3.3, 3
         <div class="rs-pad rs-bottom">
           <p class="t rs-kicker">RISE</p>
           <h4 class="t rs-h1">Know your energy, not just your sleep.</h4>
-          <p class="t rs-p">Science-backed predictions of when you’ll peak and dip — every day.</p>
+          <p class="t rs-p">Science-backed predictions of when you’ll peak and dip, every day.</p>
           <button class="btn rs-cta" data-go="quiz"><span class="t">Get started</span></button>
         </div>
       </section>
@@ -222,7 +222,7 @@ const bars = [4.1, 3.8, 3.9, 3.5, 3.6, 3.2, 3.4, 3.0, 3.3, 3.1, 2.9, 3.4, 3.3, 3
           <h4 class="t rs-h2">Afternoon dip</h4>
           <p class="t rs-p">Your circadian rhythm naturally drops after lunch. It’s biology, not laziness.</p>
           <div class="ui rs-card"><p class="t rs-row-t">Do</p><p class="t rs-row-s">Easy tasks, a 10-min walk outside, or a 20-min nap before 3:30.</p></div>
-          <div class="ui rs-card"><p class="t rs-row-t">Avoid</p><p class="t rs-row-s">Coffee after 2:15 pm — it will push tonight’s bedtime later.</p></div>
+          <div class="ui rs-card"><p class="t rs-row-t">Avoid</p><p class="t rs-row-s">Coffee after 2:15 pm will push tonight’s bedtime later.</p></div>
           <button class="btn rs-cta" data-back><span class="t">Got it</span></button>
         </div>
       </section>
@@ -328,7 +328,7 @@ const bars = [4.1, 3.8, 3.9, 3.5, 3.6, 3.2, 3.4, 3.0, 3.3, 3.1, 2.9, 3.4, 3.3, 3
             <button class="rs-back t" data-back>‹ Back</button>
             <p class="t rs-kicker">Science · 2 min</p>
             <h4 class="t rs-h2">Why your 3pm dip happens</h4>
-            <p class="t rs-p">Two systems drive your energy: sleep pressure, which builds every hour you’re awake, and your circadian rhythm, a roughly 24-hour clock. In the early afternoon the clock’s alerting signal briefly dips while pressure keeps rising — so you feel it.</p>
+            <p class="t rs-p">Two systems drive your energy: sleep pressure, which builds every hour you’re awake, and your circadian rhythm, a roughly 24-hour clock. In the early afternoon the clock’s alerting signal briefly dips while pressure keeps rising, so you feel it.</p>
             <p class="t rs-p">The fix isn’t more coffee. Light, movement or a short nap before 3:30 pm lifts you without stealing tonight’s sleep.</p>
           </div>
         </div>

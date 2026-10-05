@@ -1,7 +1,7 @@
 ---
 // "Design is the engine." Words ignite as you scroll; an engine bell beside them
 // throttles up through Identity → Emotion → Impact as those words light. Then the
-// lockup lands: a specialized unit for market domination — not a vendor.
+// lockup lands: a specialized unit for market domination, not a vendor.
 type W = { w: string; k?: 'hl' | 'strike' | 'pill'; g?: number };
 const head: W[] = [
   { w: 'We' }, { w: 'don’t' }, { w: 'do' }, { w: '“pretty', k: 'hl' }, { w: 'for', k: 'hl' }, { w: 'the', k: 'hl' }, { w: 'sake', k: 'hl' }, { w: 'of', k: 'hl' }, { w: 'pretty.”', k: 'hl' },
@@ -22,7 +22,7 @@ const marquee = 'MOBILE APPS ✦ IMMERSIVE 3D ✦ 2D/3D ANIMATION ✦ DIGITAL MA
   <div class="ab-mani-sticky">
     <div class="ab-mani-grid container" data-ab-mani-grid>
       <div class="ab-mani-copy">
-        <p class="t-label ab-mani-label">01 — Manifesto</p>
+        <p class="t-label ab-mani-label">01 · Manifesto</p>
         <h2 id="ab-mani-title" class="ab-mani-head">
           <span class="visually-hidden">{text(head)}</span>
           {head.map((x) => <span class:list={['ab-w', x.k && `ab-w--${x.k}`]} aria-hidden="true" style={`--i:${n++}`}>{x.w}</span>)}
@@ -80,7 +80,7 @@ const marquee = 'MOBILE APPS ✦ IMMERSIVE 3D ✦ 2D/3D ANIMATION ✦ DIGITAL MA
       <p class="ab-lock-text">
         <span class="ab-lock-a">A specialized unit</span>
         <span class="ab-lock-b">for market domination</span>
-        <span class="ab-lock-c">— not a <span class="ab-lock-strike">vendor</span>.</span>
+        <span class="ab-lock-c">not a <span class="ab-lock-strike">vendor</span>.</span>
       </p>
     </div>
 

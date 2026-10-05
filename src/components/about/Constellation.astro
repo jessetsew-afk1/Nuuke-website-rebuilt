@@ -1,12 +1,12 @@
 ---
 // Values as a constellation. Each value is a star (a tab); charting all four draws
-// the NUUKE "n" across the sky — and the rocket lifts off inside it, like the logo.
+// the NUUKE "n" across the sky, and the rocket lifts off inside it, like the logo.
 import Rocket from './Rocket.astro';
 
 const values = [
   { t: 'Strategy before pixels', d: 'Every project starts with the problem worth solving, the people it’s for and the number that will prove it worked.', x: 20, y: 82, pos: 'br' },
   { t: 'Show, don’t tell', d: 'You tap a prototype in week one and spin the 3D in week two. Decisions get made on real things, not slide decks.', x: 23, y: 30, pos: 'tl' },
-  { t: 'One team, no hand-offs', d: 'Strategists, designers, engineers and marketers work in the same room — what we design is what ships.', x: 74, y: 30, pos: 'tr' },
+  { t: 'One team, no hand-offs', d: 'Strategists, designers, engineers and marketers work in the same room, so what we design is what ships.', x: 74, y: 30, pos: 'tr' },
   { t: 'Built for longevity', d: 'Design systems, clean code and documentation, so your product keeps getting better after launch day.', x: 78, y: 82, pos: 'bl' },
 ];
 // deterministic background stars
@@ -31,7 +31,7 @@ const pts = JSON.stringify(values.map((v) => [v.x, v.y]));
 <section class="ab-con section" aria-labelledby="ab-con-title" data-ab-con data-pts={pts}>
   <div class="container">
     <div class="ab-con-head">
-      <p class="t-label ab-sec-label" data-reveal>03 — Values</p>
+      <p class="t-label ab-sec-label" data-reveal>03 · Values</p>
       <h2 id="ab-con-title" class="t-h1" data-split>How we think</h2>
       <p class="t-lead measure" data-reveal>Four principles we navigate by. Select each star to chart them.</p>
     </div>

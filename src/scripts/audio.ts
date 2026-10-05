@@ -1,14 +1,15 @@
 // NUUKE score engine.
-// One orchestral track (public/audio/score.mp3, 1:58) played through Web Audio:
+// One orchestral track (public/audio/score.mp3, 2:26, normalised to about -18 LUFS) played through Web Audio:
 //   deck A/B (for crossfades) → low-pass filter → dry + reverb → master.
 // Scroll drives "intensity": the filter opens, the room tightens and the level rises,
-// so the strings feel far away at the top of a page and arrive in full as you go deeper.
+// so the strings sit softly behind the page at the top and come forward as you go deeper.
+// It stays background music: never louder than ~0.5 and never filtered below ~1.8 kHz.
 // Browsers only allow sound after a tap/click/key, so `enable()` must run inside one.
 
 const SRC = '/audio/score.mp3';
-const LOOP_IN = 12.2; // skip the near-silent first bars when looping
-const LOOP_OUT = 116.6;
-const CLIMAX = 97.5; // the final build (peaks around 106 s)
+const LOOP_IN = 16; // the strings are in by here; the opening bars are only for the first play
+const LOOP_OUT = 134; // before the fade-out at 136 s
+const CLIMAX = 92; // the swell into the strongest passage (96 to 102 s)
 const KEY_PREF = 'nuuke:sound';
 const KEY_TIME = 'nuuke:sound-t';
 
@@ -95,17 +96,17 @@ function build() {
   setInterval(() => enabled && store.set(KEY_TIME, String(decks[live].el.currentTime), sessionStorage), 1000);
 }
 
-const level = () => 0.32 + 0.68 * Math.pow(intensity, 0.8);
+const level = () => 0.22 + 0.3 * Math.pow(intensity, 0.8);
 
 /** Push the current intensity into the audio graph. */
 function apply(now = false) {
   if (!ctx) return;
   const t = ctx.currentTime;
   const k = now ? 0.01 : 0.35;
-  const cutoff = 650 * Math.pow(28, intensity); // ~650 Hz (far away) → ~18 kHz (in the room)
+  const cutoff = 1800 * Math.pow(10, intensity); // ~1.8 kHz (soft, still clear) → ~18 kHz (in the room)
   filter.frequency.setTargetAtTime(cutoff, t, k);
-  dry.gain.setTargetAtTime(0.55 + 0.45 * intensity, t, k);
-  wet.gain.setTargetAtTime(0.55 - 0.4 * intensity, t, k);
+  dry.gain.setTargetAtTime(0.75 + 0.25 * intensity, t, k);
+  wet.gain.setTargetAtTime(0.35 - 0.2 * intensity, t, k);
   if (enabled && !document.hidden) master.gain.setTargetAtTime(level(), t, now ? 0.6 : k);
 }
 
