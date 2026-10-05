@@ -12,12 +12,12 @@
 // every other page plays a calmer ambient track. Each keeps its own playback position.
 const TRACKS = {
   // Violins, 2:26: strings are in by 16 s, fade-out starts at 136 s, strongest passage 96 to 102 s.
-  score: { webm: '/audio/score.webm', m4a: '/audio/score.m4a', loopIn: 16, loopOut: 134, climax: 92 },
+  score: { webm: '/audio/score.webm', m4a: '/audio/score.mp4', loopIn: 16, loopOut: 134, climax: 92 },
   // Ambient, 2:33: full texture from 24 s, breakdown at 120 s, fade-out from 146 s.
-  ambient: { webm: '/audio/ambient.webm', m4a: '/audio/ambient.m4a', loopIn: 24, loopOut: 144, climax: 24 },
+  ambient: { webm: '/audio/ambient.webm', m4a: '/audio/ambient.mp4', loopIn: 24, loopOut: 144, climax: 24 },
 };
 const TRACK = typeof document !== 'undefined' && document.body?.dataset.score === 'custom' ? TRACKS.score : TRACKS.ambient;
-// Opus in WebM is about 40% smaller than AAC for the same quality; older Safari gets AAC.
+// Opus in WebM is about 40% smaller than AAC for the same quality; older Safari gets AAC (in an .mp4 container).
 const opus = typeof document !== 'undefined' && !!document.createElement('audio').canPlayType('audio/webm; codecs="opus"');
 const SRC = opus ? TRACK.webm : TRACK.m4a;
 const LOOP_IN = TRACK.loopIn;
