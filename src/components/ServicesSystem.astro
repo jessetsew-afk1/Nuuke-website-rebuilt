@@ -1,6 +1,6 @@
 ---
 // Services as a solar system you scroll through. Used on the homepage and /services.
-import { services } from '../data/site';
+import { services, marketingStudio } from '../data/site';
 import ServiceVisual from './ServiceVisual.astro';
 
 interface Props {
@@ -36,11 +36,22 @@ const lines = [
             <p class="ss-line">{lines[i]}</p>
             <ul class="ss-chips" role="list">{s.deliverables.slice(0, 5).map((d) => <li>{d}</li>)}</ul>
             <a class="ss-link" href={`/services/${s.slug}`}>Explore {s.short} <span aria-hidden="true">→</span></a>
+            {s.slug === 'digitalmarketing' && (
+              <a class="ss-mk" href={marketingStudio.href} target="_blank" rel="noopener">
+                Go deeper at {marketingStudio.host} <span aria-hidden="true">↗</span>
+                <span class="visually-hidden"> (our marketing studio, opens in a new tab)</span>
+              </a>
+            )}
           </div>
         ))
       }
     </div>
 
+    <!-- A satellite that orbits the marketing world and links to our marketing studio. -->
+    <a class="ss-sat" data-ss-sat href={marketingStudio.href} target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">
+      <span class="ss-sat-craft"><i></i><b></b><i></i></span>
+      <span class="ss-sat-tag">{marketingStudio.host} ↗</span>
+    </a>
     <div class="ss-labels" aria-hidden="true">
       {services.map((s, i) => <button type="button" tabindex="-1" class="ss-label" data-ss-label={i} style={`--c:${s.accent}`}>{s.short}</button>)}
     </div>
@@ -104,6 +115,8 @@ const lines = [
     const panels = [...root.querySelectorAll<HTMLElement>('[data-ss-panel]')];
     const dots = [...root.querySelectorAll<HTMLButtonElement>('[data-ss-go]')];
     const labels = [...root.querySelectorAll<HTMLButtonElement>('[data-ss-label]')];
+    const sat = root.querySelector<HTMLAnchorElement>('[data-ss-sat]');
+    const mkIndex = services.findIndex((x) => x.slug === 'digitalmarketing');
     const stops = panels.length;
 
     if (reducedMotion || !hasHardwareGL()) {
@@ -122,6 +135,7 @@ const lines = [
         d.setAttribute('aria-current', j === i ? 'true' : 'false');
       });
       labels.forEach((l, j) => l.classList.toggle('is-on', j + 1 === i));
+      sat?.classList.toggle('is-on', i === mkIndex + 1);
     };
     const scrollToStop = (i: number) => {
       const top = root.getBoundingClientRect().top + window.scrollY;
@@ -208,6 +222,8 @@ const lines = [
       // Planet labels follow the planets only while the section is on screen, and only touch
       // the DOM when a value actually changes.
       const last = labels.map(() => ({ t: '', o: '' }));
+      let lastSat = '';
+      let satW = 0;
       let raf = 0;
       let onScreen = false;
       const tick = () => {
@@ -219,6 +235,15 @@ const lines = [
           const o = p.visible ? '' : '0';
           if (t !== last[i].t) l.style.transform = last[i].t = t;
           if (o !== last[i].o) l.style.opacity = last[i].o = o;
+          if (i === mkIndex && sat) {
+            // Up and to the right of the planet, kept inside the screen.
+            if (!satW) satW = sat.offsetWidth;
+            const small = window.innerWidth < 760;
+            const sx = Math.max(12, Math.min(window.innerWidth - (satW || 200) - 12, p.x + (small ? 40 : 150)));
+            const sy = Math.max(70, p.y - (small ? 150 : 270));
+            const st = `translate(${sx.toFixed(1)}px, ${sy.toFixed(1)}px)`;
+            if (st !== lastSat) sat.style.transform = lastSat = st;
+          }
         });
         raf = requestAnimationFrame(tick);
       };
@@ -262,6 +287,18 @@ const lines = [
   .ss-chips li { padding: 0.35rem 0.8rem; border-radius: 99px; border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); background: rgb(5 5 6 / 0.6); font: 500 var(--fs-label) var(--font-ui); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
   .ss-link { justify-self: start; display: inline-flex; gap: var(--s-2); align-items: center; padding: 0.8rem 1.3rem; border-radius: 99px; background: var(--c); color: #0b0b0f; font: 700 var(--fs-sm) var(--font-ui); letter-spacing: 0.04em; text-transform: uppercase; transition: transform var(--dur-2) var(--ease-out); }
   .ss-link:hover { transform: translateX(6px); }
+  .ss-mk { justify-self: start; font: 600 var(--fs-sm) var(--font-ui); color: var(--ink); border-bottom: 1px solid color-mix(in srgb, var(--c) 70%, transparent); padding-bottom: 2px; transition: color var(--dur-1); }
+  .ss-mk:hover { color: var(--c); }
+  .ss-sat { position: absolute; left: 0; top: 0; z-index: 2; display: flex; align-items: center; gap: 10px; opacity: 0; pointer-events: none; transition: opacity 0.6s var(--ease-out); }
+  .ss-sat.is-on { opacity: 1; pointer-events: auto; }
+  .ss.is-static .ss-sat, .ss:not(.is-ready) .ss-sat { display: none; }
+  .ss-sat-craft { display: flex; align-items: center; gap: 2px; animation: ss-sat-bob 5s ease-in-out infinite; }
+  .ss-sat-craft i { width: 18px; height: 9px; background: repeating-linear-gradient(90deg, #2bd9c9 0 3px, #0d3b44 3px 5px); border: 1px solid rgb(255 255 255 / 0.5); }
+  .ss-sat-craft b { width: 12px; height: 12px; border-radius: 3px; background: linear-gradient(135deg, #f3f3f6, #8a8a96); box-shadow: 0 0 12px rgb(43 217 201 / 0.7); }
+  .ss-sat-tag { padding: 0.3rem 0.7rem; border-radius: 99px; border: 1px solid #2bd9c9; background: rgb(5 5 6 / 0.8); color: var(--ink); font: 600 11px var(--font-ui); letter-spacing: 0.08em; white-space: nowrap; transition: background var(--dur-1), color var(--dur-1); }
+  .ss-sat:hover .ss-sat-tag { background: #2bd9c9; color: #0b0b0f; }
+  @keyframes ss-sat-bob { 50% { transform: translate(6px, -8px) rotate(-8deg); } }
+  @media (prefers-reduced-motion: reduce) { .ss-sat-craft { animation: none; } }
   .ss-labels { position: absolute; inset: 0; pointer-events: none; }
   .ss-label { position: absolute; left: 0; top: 0; margin: 28px 0 0 -40px; padding: 0.3rem 0.7rem; border-radius: 99px; border: 1px solid var(--c); background: rgb(5 5 6 / 0.75); color: var(--ink); font: 600 11px var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; pointer-events: auto; transition: opacity var(--dur-2), background var(--dur-1); white-space: nowrap; }
   .ss-label.is-on, .ss-label:hover { background: var(--c); color: #0b0b0f; }

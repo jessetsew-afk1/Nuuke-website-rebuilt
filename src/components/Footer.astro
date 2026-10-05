@@ -1,8 +1,12 @@
 ---
-import { nav, services, site } from '../data/site';
+import { nav, services, site, marketingStudio } from '../data/site';
+import MarketingStrip from './marketing/MarketingStrip.astro';
+import Partners from './partners/Partners.astro';
 const year = new Date().getFullYear();
 ---
 
+<MarketingStrip />
+<Partners />
 <footer class="footer">
   <div class="container footer-grid">
     <div class="footer-brand">
@@ -15,7 +19,10 @@ const year = new Date().getFullYear();
     </div>
     <div class="footer-col">
       <p class="t-label">Services</p>
-      <ul role="list">{services.map((s) => <li><a href={`/services/${s.slug}`}>{s.title}</a></li>)}</ul>
+      <ul role="list">
+        {services.map((s) => <li><a href={`/services/${s.slug}`}>{s.title}</a></li>)}
+        <li><a href={marketingStudio.href} target="_blank" rel="noopener">{marketingStudio.name} ↗</a></li>
+      </ul>
     </div>
     <div class="footer-col">
       <p class="t-label">Contact</p>

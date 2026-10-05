@@ -17,6 +17,22 @@ export const site = {
   ],
 };
 
+/** Our sister studio for deeper marketing work. */
+export const marketingStudio = {
+  name: 'NUUKE Marketing',
+  href: 'https://www.nuuke.marketing',
+  host: 'nuuke.marketing',
+  line: 'Our social-first marketing studio',
+  pitch: 'Campaigns, creators and content, taken all the way.',
+};
+
+/** Partner companies shown in the "In good company" banner. */
+export const partners = [
+  { name: 'Bright Systems', href: 'https://www.bright-systems.com/', mark: 'bright' },
+  { name: 'Piermont Studios', href: 'https://piermontstudios.com/', mark: 'piermont' },
+  { name: 'Knight Market', href: null, mark: 'knight' },
+] as const;
+
 export const nav = [
   { label: 'Home', href: '/' },
   { label: 'Works', href: '/works' },

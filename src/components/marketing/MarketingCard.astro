@@ -1,0 +1,50 @@
+---
+// Compact "sister studio" card for marketing-related pages.
+import { marketingStudio as m } from '../../data/site';
+interface Props {
+  title?: string;
+}
+const { title = 'Want the full marketing playbook?' } = Astro.props;
+---
+
+<aside class="mk-card container" aria-label={m.name}>
+  <a class="mk-card-in" href={m.href} target="_blank" rel="noopener">
+    <span class="mk-orbit" aria-hidden="true"><span class="mk-sat"></span></span>
+    <span class="mk-card-text">
+      <span class="t-label">{m.line}</span>
+      <span class="mk-card-title">{title}</span>
+      <span class="mk-card-sub">{m.pitch}</span>
+    </span>
+    <span class="mk-card-cta">{m.host} <span aria-hidden="true">↗</span><span class="visually-hidden"> (opens in a new tab)</span></span>
+  </a>
+</aside>
+
+<style>
+  .mk-card { margin-block: var(--s-7); }
+  .mk-card-in {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--s-5);
+    padding: var(--s-5) var(--s-6);
+    border-radius: var(--r-lg);
+    border: 1px solid var(--line-strong);
+    background: radial-gradient(120% 140% at 0% 50%, rgb(255 46 136 / 0.12), transparent 60%), rgb(255 255 255 / 0.02);
+    transition: border-color var(--dur-2), transform 0.5s var(--ease-out);
+  }
+  .mk-card-in:hover, .mk-card-in:focus-visible { border-color: rgb(255 46 136 / 0.6); transform: translateY(-2px); }
+  .mk-orbit { position: relative; width: 56px; height: 56px; border-radius: 50%; border: 1px dashed var(--line-strong); }
+  .mk-orbit::before { content: ''; position: absolute; inset: 18px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ff8fc0, var(--accent) 55%, #6d0a3a); }
+  .mk-sat { position: absolute; top: 50%; left: 50%; width: 9px; height: 9px; margin: -4.5px; border-radius: 2px; background: var(--ink); box-shadow: 0 0 10px rgb(255 255 255 / 0.6); animation: mk-orbit 5s linear infinite; }
+  @keyframes mk-orbit { from { transform: rotate(0) translateX(28px) rotate(0); } to { transform: rotate(360deg) translateX(28px) rotate(-360deg); } }
+  .mk-card-in:hover .mk-sat { animation-duration: 1.8s; }
+  .mk-card-text { display: grid; gap: 4px; min-width: 0; }
+  .mk-card-title { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-xl); letter-spacing: -0.02em; color: var(--ink); }
+  .mk-card-sub { color: var(--ink-2); }
+  .mk-card-cta { padding: 0.65rem 1.1rem; border-radius: 99px; background: var(--accent); color: #0b0b0f; font: 700 var(--fs-sm) var(--font-ui); white-space: nowrap; }
+  @media (max-width: 700px) {
+    .mk-card-in { grid-template-columns: auto 1fr; }
+    .mk-card-cta { grid-column: 1 / -1; justify-self: start; }
+  }
+  @media (prefers-reduced-motion: reduce) { .mk-sat { animation: none; transform: translateX(28px); } }
+</style>

@@ -1,0 +1,94 @@
+---
+// "In good company": a slow sliding banner of partner marks above the footer.
+import { partners } from '../../data/site';
+import PartnerMark from './PartnerMark.astro';
+// Repeat the set so the track is always wider than the screen, then run two copies for a seamless loop.
+const set = [...partners, ...partners, ...partners];
+---
+
+<section class="pt" aria-labelledby="pt-title">
+  <div class="container pt-head">
+    <h2 id="pt-title" class="t-label">In good company</h2>
+  </div>
+  <div class="pt-viewport">
+    {
+      [0, 1].map((copy) => (
+        <ul class="pt-track" role="list" aria-hidden={copy === 1 ? 'true' : undefined}>
+          {set.map((p, i) => {
+            const hidden = copy === 1 || i >= partners.length;
+            return (
+              <li class="pt-item" aria-hidden={hidden && copy === 0 ? 'true' : undefined}>
+                {p.href ? (
+                  <a class="pt-logo" href={p.href} target="_blank" rel="noopener" tabindex={hidden ? -1 : undefined} aria-label={`${p.name} (opens in a new tab)`}>
+                    <PartnerMark mark={p.mark} />
+                  </a>
+                ) : (
+                  <span class="pt-logo">
+                    <PartnerMark mark={p.mark} />
+                  </span>
+                )}
+                <span class="pt-name" aria-hidden="true">{p.name}</span>
+              </li>
+            );
+          })}
+        </ul>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .pt { position: relative; z-index: 1; padding-block: var(--s-7) var(--s-6); margin-top: var(--s-6); }
+  .pt-head { margin-bottom: var(--s-5); }
+  .pt-viewport {
+    display: flex;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  }
+  .pt-track {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: clamp(3rem, 8vw, 7rem);
+    padding-right: clamp(3rem, 8vw, 7rem);
+    animation: pt-slide 48s linear infinite;
+  }
+  .pt-viewport:hover .pt-track,
+  .pt-viewport:focus-within .pt-track { animation-play-state: paused; }
+  @keyframes pt-slide { to { transform: translateX(-100%); } }
+  .pt-item { position: relative; display: grid; justify-items: center; gap: var(--s-2); }
+  .pt-logo {
+    display: block;
+    height: clamp(34px, 4vw, 46px);
+    color: var(--ink);
+    opacity: 0.5;
+    filter: grayscale(1);
+    transition: opacity var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out), filter var(--dur-2);
+  }
+  .pt-logo :global(.pm--piermont) { height: 130%; margin-top: -8%; }
+  .pt-item:hover .pt-logo,
+  .pt-logo:focus-visible { opacity: 1; transform: translateY(-3px); filter: drop-shadow(0 0 14px rgb(255 46 136 / 0.45)); }
+  .pt-name {
+    position: absolute;
+    top: 100%;
+    margin-top: 6px;
+    font: 500 var(--fs-label) var(--font-ui);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity var(--dur-2), transform var(--dur-2) var(--ease-out);
+  }
+  .pt-item:hover .pt-name { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .pt-track { animation: none; }
+    .pt-track[aria-hidden='true'], .pt-item[aria-hidden='true'] { display: none; }
+    .pt-viewport { justify-content: center; -webkit-mask-image: none; mask-image: none; }
+  }
+</style>

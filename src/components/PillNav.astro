@@ -1,5 +1,5 @@
 ---
-import { nav, services, site } from '../data/site';
+import { nav, services, site, marketingStudio } from '../data/site';
 
 const path = Astro.url.pathname.replace(/(\/index)?\.html$/, '').replace(/\/$/, '') || '/';
 const isActive = (href: string) => (href === '/' ? path === '/' : path === href || path.startsWith(href + '/') || (href === '/blog' && path.startsWith('/blog-posts')));
@@ -42,6 +42,11 @@ const primary = nav.filter((n) => ['/', '/works', '/about', '/contact'].includes
       <ul role="list">
         {services.map((s) => <li><a href={`/services/${s.slug}`}>{s.title}</a></li>)}
       </ul>
+      <a class="menu-mk" href={marketingStudio.href} target="_blank" rel="noopener">
+        <span class="menu-mk-dot" aria-hidden="true"></span>
+        {marketingStudio.name}
+        <span aria-hidden="true">↗</span><span class="visually-hidden"> (opens in a new tab)</span>
+      </a>
       <p class="t-label">Talk to us</p>
       <ul role="list">
         <li><a href={site.phoneHref}>{site.phone}</a></li>
@@ -200,6 +205,11 @@ const primary = nav.filter((n) => ['/', '/works', '/about', '/contact'].includes
   .menu-side ul { list-style: none; padding: 0; margin-bottom: var(--s-5); display: grid; gap: var(--s-2); }
   .menu-side a { color: var(--ink-2); }
   .menu-side a:hover { color: var(--ink); }
+  .menu-mk { justify-self: start; display: inline-flex; align-items: center; gap: 0.6rem; margin-bottom: var(--s-5); padding: 0.55rem 1rem; border-radius: var(--r-pill); border: 1px solid rgb(255 46 136 / 0.55); background: rgb(255 46 136 / 0.08); color: var(--ink) !important; font: 600 var(--fs-sm) var(--font-ui); letter-spacing: 0.02em; transition: background var(--dur-2), transform var(--dur-2) var(--ease-out); }
+  .menu-mk:hover { background: rgb(255 46 136 / 0.2); transform: translateX(4px); }
+  .menu-mk-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); animation: menu-mk-pulse 2s ease-in-out infinite; }
+  @keyframes menu-mk-pulse { 50% { opacity: 0.35; } }
+  @media (prefers-reduced-motion: reduce) { .menu-mk-dot { animation: none; } }
   .menu-close {
     position: fixed;
     left: 50%;

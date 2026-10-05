@@ -4,6 +4,7 @@ import Cta from '../../components/Cta.astro';
 import ServiceVisual from '../../components/ServiceVisual.astro';
 import ProjectCover from '../../components/ProjectCover.astro';
 import { services } from '../../data/site';
+import MarketingCard from '../../components/marketing/MarketingCard.astro';
 import { projects, type Discipline } from '../../data/projects';
 
 type MdModule = { Content: any; frontmatter: Record<string, unknown> };
@@ -40,6 +41,8 @@ const others = services.filter((x) => x.slug !== s.slug);
     </div>
     <div class="sd-visual" data-reveal><ServiceVisual slug={s.slug} accent={s.accent} /></div>
   </section>
+
+  {s.slug === 'digitalmarketing' && <MarketingCard title="Need a bigger marketing engine?" />}
 
   <section class="container sd-body">
     <aside class="sd-aside">
