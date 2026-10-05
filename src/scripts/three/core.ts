@@ -13,6 +13,8 @@ export type Stage = {
   pointer: THREE.Vector2; // smoothed, -1..1
   onFrame: (fn: (t: number, dt: number) => void) => void;
   render: () => void;
+  /** Swap how a frame is drawn, e.g. to run an EffectComposer (bloom) instead of a plain render. */
+  setRender: (fn: () => void) => void;
   dispose: () => void;
   reduced: boolean;
 };
@@ -58,7 +60,8 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
   const timer = new THREE.Timer();
   let visible = true;
   let raf = 0;
-  const render = () => renderer.render(scene, camera);
+  let draw = () => renderer.render(scene, camera);
+  const render = () => draw();
   const tick = () => {
     raf = 0;
     if (!visible || document.hidden) return;
@@ -117,6 +120,9 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
       start();
     },
     render,
+    setRender: (fn) => {
+      draw = fn;
+    },
     dispose: () => {
       io.disconnect();
       ro.disconnect();
