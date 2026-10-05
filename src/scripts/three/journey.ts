@@ -347,6 +347,8 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
   let shakeAmp = 0;
   let flash = 0;
   let sunVis = 0; // eased lens-flare strength
+  const hjDebug = qs.has('hjdebug');
+  let sunRawDbg = 0;
   const padSun = new THREE.Vector2(2, 2); // sun in uv as seen by the unshaken pad camera
   // Flight rig: position and aim ease together (see the camera rig below).
   const rigPos = new THREE.Vector3();
@@ -857,8 +859,14 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
     // The sun sits right at the edge of the frame in flight, so judging it from the moving
     // camera made the flare (and the sun's glow) flick on and off with every small camera move.
     tmp.copy(camera.position).addScaledVector(sunDir, 50);
-    project(tmp, v2);
+    const sunOn = project(tmp, v2);
     fu.uSun.value.set(v2.x / window.innerWidth, 1 - v2.y / window.innerHeight);
+    if (hjDebug) {
+      // Test readout: what the old per-frame rule (judged from the moving camera, no easing) gave.
+      const ux = fu.uSun.value.x;
+      const uy = fu.uSun.value.y;
+      sunRawDbg = (sunOn ? sstep(-0.15, 0.05, Math.min(ux, uy, 1 - ux, 1 - uy)) : 0) * (space * 0.85 + (1 - space) * 0.1) * (1 - warpK);
+    }
     let bx = padSun.x;
     let by = padSun.y;
     if (mode === 'fly' || mode === 'arrive') {
@@ -936,7 +944,7 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
     }
   });
 
-  if (qs.has('hjdebug')) (window as unknown as { __hj: unknown }).__hj = () => ({ mode, film, curOpacity, finale, warpT, seq, fov: camera.fov, cam: camera.position.toArray(), rocket: cur.toArray(), scale: curScale, sunVis: fu.uSunVis.value, sun: fu.uSun.value.toArray(), fps: fpsNow, smoke: smoke.alive, look: look.toArray(), sv, flash, shakeAmp, starFlow, rigErr: rigPos.distanceTo(rigPosT), camLook: camLook.toArray(), dir: camera.getWorldDirection(new THREE.Vector3()).toArray() });
+  if (hjDebug) (window as unknown as { __hj: unknown }).__hj = () => ({ mode, film, curOpacity, finale, warpT, seq, fov: camera.fov, cam: camera.position.toArray(), rocket: cur.toArray(), scale: curScale, sunVis: fu.uSunVis.value, sunRaw: sunRawDbg, sun: fu.uSun.value.toArray(), fps: fpsNow, smoke: smoke.alive, look: look.toArray(), sv, flash, shakeAmp, starFlow, rigErr: rigPos.distanceTo(rigPosT), camLook: camLook.toArray(), dir: camera.getWorldDirection(new THREE.Vector3()).toArray() });
 
   return {
     setLoad: (p) => (load = p),

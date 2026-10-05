@@ -146,7 +146,11 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
   const fwd = new THREE.Vector3();
   const poseA = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
   const poseB = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
-  const isSmall = () => canvas.clientWidth < 760;
+  // Canvas size in CSS px as last measured by the stage's ResizeObserver (no layout reads per frame).
+  const cssSize = new THREE.Vector2();
+  const viewW = () => renderer.getSize(cssSize).x || 1;
+  const viewH = () => renderer.getSize(cssSize).y || 1;
+  const isSmall = () => viewW() < 760;
 
   const stopPose = (s: number, t: number, out: { pos: THREE.Vector3; look: THREE.Vector3 }) => {
     const small = isSmall();
@@ -223,8 +227,8 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
     camPos.copy(tmp);
 
     // Framing: keep the subject clear of the copy (left on desktop, bottom on phones).
-    const W = canvas.clientWidth || 1;
-    const H = canvas.clientHeight || 1;
+    const W = viewW();
+    const H = viewH();
     const small = isSmall();
     const stopW = Math.min(1, fs);
     const ox = small ? 0 : W * THREE.MathUtils.lerp(0.1, 0.18, stopW);
@@ -298,8 +302,8 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
   return {
     setProgress: (p) => (progress = p),
     planetsOnScreen: () => {
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
+      const w = viewW();
+      const h = viewH();
       up.setFromMatrixColumn(camera.matrixWorld, 1);
       // On phones the copy sits under the planet, so labels only show in the overview.
       const free = !isSmall() || fs < 0.5;

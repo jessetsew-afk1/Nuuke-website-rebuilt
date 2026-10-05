@@ -179,7 +179,8 @@ export function makeSun(phone: boolean) {
   const tmp = new THREE.Vector3();
   const dir = new THREE.Vector3();
   let vis = 0;
-  const dbg: Record<string, unknown> = {};
+  // Test-only readout (?hjdebug): the flare's visibility and what drives it.
+  const dbg: Record<string, unknown> | null = /[?&]hjdebug\b/.test(location.search) ? {} : null;
 
   return {
     group,
@@ -211,11 +212,13 @@ export function makeSun(phone: boolean) {
       const target = onScreen * occl;
       // Ease toward the target in time (frame-rate independent), not per frame.
       vis += (target - vis) * (1 - Math.exp(-9.75 * Math.min(dt, 0.1)));
-      dbg.vis = vis;
-      dbg.target = target;
-      dbg.onScreen = onScreen;
-      dbg.occl = occl;
-      dbg.ndc = [sunNdc.x, sunNdc.y, sunNdc.z];
+      if (dbg) {
+        dbg.vis = vis;
+        dbg.target = target;
+        dbg.onScreen = onScreen;
+        dbg.occl = occl;
+        dbg.ndc = [sunNdc.x, sunNdc.y, sunNdc.z];
+      }
 
       for (const f of flares) {
         const k = 1 - f.at;

@@ -122,6 +122,8 @@ export function initStarfield(canvas: HTMLCanvasElement | null) {
     window.addEventListener(
       'scroll',
       () => {
+        // Hidden under the homepage journey: nothing to redraw.
+        if (document.documentElement.classList.contains('hj-gl')) return;
         const now = performance.now();
         if (now - lastDraw > 250) {
           lastDraw = now;

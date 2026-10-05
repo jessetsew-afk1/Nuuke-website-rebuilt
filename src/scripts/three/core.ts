@@ -85,7 +85,11 @@ const gov = {
   goodFor: 0, // ms of consecutive "comfortable" windows
   upWait: 6000, // ms of headroom needed before trying a richer tier
   lastUpAt: -1e9,
-  lastFrameTs: -1,
+  // Did the last step down actually help? (see govSample)
+  dropMean: 0, // mean frame interval just before the last step down; 0 = nothing to check
+  dropFrom: 0,
+  holdUntil: -1e9, // no further steps down before this time
+  holdMs: 20000,
   frameMs: 0, // smoothed main-thread ms per tick (diagnostics)
 };
 
@@ -125,12 +129,29 @@ function govSample(ms: number, now: number) {
   let late = 0;
   for (let i = 0; i < gov.win.length; i++) {
     sum += gov.win[i];
-    if (gov.win[i] > 25) late++;
+    // 28 ms, not 25: on a 75 Hz screen the 60 fps cap leaves one 26.7 ms gap in every four.
+    if (gov.win[i] > 28) late++;
   }
   const mean = sum / gov.win.length;
-  if (mean > 20.5 && gov.sinceChange >= 45) {
+  if (gov.dropMean) {
+    // First full window after a step down. If it bought (almost) nothing, the frame rate is
+    // limited by something other than our rendering (a 30 fps battery saver, a busy machine,
+    // a throttled tab): go back to the richer tier and stop stepping down for a while instead
+    // of sliding to the lightest look for no gain.
+    const before = gov.dropMean;
+    gov.dropMean = 0;
+    if (mean > before * 0.93) {
+      gov.holdUntil = now + gov.holdMs;
+      gov.holdMs = Math.min(300000, gov.holdMs * 3);
+      setTier(gov.dropFrom);
+      return;
+    }
+  }
+  if (mean > 20.5 && gov.sinceChange >= 45 && now >= gov.holdUntil && gov.tier < MAX_TIER) {
     // Under ~50 fps on average: lighten. If we only just stepped up, back off for longer.
     if (now - gov.lastUpAt < 8000) gov.upWait = Math.min(120000, gov.upWait * 2);
+    gov.dropMean = mean;
+    gov.dropFrom = gov.tier;
     setTier(gov.tier + 1);
     return;
   }
@@ -242,7 +263,7 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
 
   const frames: ((t: number, dt: number) => void)[] = [];
   const timer = new THREE.Timer();
-  const fixedDt = qsNum('fixeddt'); // debug: advance a fixed number of ms per tick (frame captures)
+  const fixedDt = debug ? qsNum('fixeddt') : null; // ?perf&fixeddt=ms: advance a fixed number of ms per tick (frame captures)
   let fixedT = 0;
   let visible = true;
   let raf = 0;
@@ -253,6 +274,7 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
   let lastTick = -1; // rAF timestamp of the last tick that ran
   let acc = 0;
   let renderedPrev = false;
+  let prevRenderTs = 0;
   const dbg: DebugStage = { name: canvas.className || canvas.id || 'canvas', renders: 0, ticks: 0, fps: 60, info: () => ({ ...renderer.info.memory, calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, pr: renderer.getPixelRatio(), size: [canvas.width, canvas.height] }) };
   if (debug) debugStages.push(dbg);
 
@@ -306,7 +328,6 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
     if (again && !stepMode) raf = requestAnimationFrame(tick);
   };
   if (stepMode) stepHooks.push((ts) => tick(ts));
-  let prevRenderTs = 0;
   // In static mode, still animate for a few seconds after the visitor interacts.
   let activeUntil = 0;
   if (reduced) {
