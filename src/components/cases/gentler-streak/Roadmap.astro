@@ -1,0 +1,99 @@
+---
+// The journey of making an app, as a six-week plan. Each phase is a button; the
+// panel explains what happens, what the client gets and where it lives on this page.
+const phases = [
+  { n: 'Discover', w: [1, 1], at: 'brief', color: '#FF7A45', what: 'Desk research, App Store review mining, a teardown of the current app and the fitness category.', get: ['Research brief', 'Assumptions to test', 'Sourced fact sheet'], you: 'One 60-min kickoff' },
+  { n: 'Define', w: [1, 2], at: 'research', color: '#F4C430', what: 'Personas and a journey map, so every later decision can be traced back to a person and a moment.', get: ['3 personas', 'Journey map', 'Problem statements'], you: 'A 45-min review' },
+  { n: 'Structure', w: [2, 2], at: 'ia', color: '#7ED957', what: 'A card sort to find how people group features, then the information architecture and user flows.', get: ['Card-sort results', 'Tab structure', 'Flow map'], you: 'Recruit 15–20 sorters' },
+  { n: 'Design', w: [3, 3], at: 'layers', color: '#8DB4E6', what: 'Wireframes first, then a layered build of each screen: grid, content, colour, type and motion.', get: ['Wireframes', 'Hi-fi screens', 'Motion specs'], you: 'Two design crits' },
+  { n: 'Prototype & test', w: [4, 4], at: 'prototype', color: '#B9A6E8', what: 'A tappable prototype with guided tasks. We test with five people per round and fix what trips them.', get: ['Clickable prototype', 'Test script', 'Findings & fixes'], you: 'Watch one session live' },
+  { n: 'Watch', w: [4, 5], at: 'watch', color: '#FF7A45', what: 'Watch-first flows and complications, designed for a two-second glance and one action per screen.', get: ['Complication set', 'Workout flow', 'Glance rules'], you: 'A 30-min review' },
+  { n: 'Include', w: [5, 5], at: 'a11y', color: '#F4C430', what: 'An accessibility pass across Dynamic Type, contrast, motion, colour vision and VoiceOver order.', get: ['A11y audit', 'Fixes in the system', 'Annotated VoiceOver order'], you: 'Optional: assistive-tech testers' },
+  { n: 'Ship & learn', w: [6, 6], at: 'measure', color: '#7ED957', what: 'Design system handoff, TestFlight beta and the metrics we’d watch after launch.', get: ['Tokens & components', 'Dev handoff', 'KPI dashboard spec'], you: 'Sign-off and launch plan' },
+];
+---
+
+<div class="gs-road" data-gs-road>
+  <div class="gs-road-chart">
+    <div class="gs-road-weeks" aria-hidden="true">
+      <span></span>{[1, 2, 3, 4, 5, 6].map((w) => <span>Wk {w}</span>)}
+    </div>
+    <ol class="gs-road-list" role="list">
+      {
+        phases.map((p, i) => (
+          <li>
+            <button type="button" class="gs-road-row" aria-pressed={i === 0 ? 'true' : 'false'} data-i={i} style={`--c:${p.color};--s:${p.w[0]};--e:${p.w[1] + 1}`}>
+              <span class="gs-road-n">
+                <span class="t-num">{String(i + 1).padStart(2, '0')}</span> {p.n}
+              </span>
+              <span class="gs-road-bar" aria-hidden="true" />
+            </button>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+  <div class="gs-road-panel" aria-live="polite">
+    {
+      phases.map((p, i) => (
+        <article class:list={['gs-road-card', { 'is-on': i === 0 }]} data-card={i} style={`--c:${p.color}`} hidden={i !== 0}>
+          <p class="t-label">
+            Phase {i + 1} of {phases.length} · Week {p.w[0] === p.w[1] ? p.w[0] : `${p.w[0]}–${p.w[1]}`}
+          </p>
+          <h4 class="gs-road-h">{p.n}</h4>
+          <p class="t-body">{p.what}</p>
+          <p class="t-label gs-road-k">What you get</p>
+          <ul role="list" class="gs-road-get">
+            {p.get.map((g) => <li>{g}</li>)}
+          </ul>
+          <p class="t-small"><strong>Your time:</strong> {p.you}</p>
+          <a class="gs-road-jump" href={`#${p.at}`}>See it on this page ↓</a>
+        </article>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-gs-road]').forEach((root) => {
+    const rows = [...root.querySelectorAll<HTMLButtonElement>('.gs-road-row')];
+    const cards = [...root.querySelectorAll<HTMLElement>('[data-card]')];
+    const pick = (i: number) => {
+      rows.forEach((r, j) => r.setAttribute('aria-pressed', String(i === j)));
+      cards.forEach((c, j) => {
+        c.hidden = i !== j;
+        c.classList.toggle('is-on', i === j);
+      });
+    };
+    rows.forEach((r, i) => r.addEventListener('click', () => pick(i)));
+  });
+</script>
+
+<style>
+  .gs-road { display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--s-6); align-items: start; margin-top: var(--s-6); }
+  .gs-road-chart { padding: var(--s-5); border-radius: var(--r-lg); border: 1px solid var(--line); background: var(--bg-2); }
+  .gs-road-weeks, .gs-road-row { display: grid; grid-template-columns: minmax(8.5rem, 1.2fr) repeat(6, 1fr); align-items: center; gap: 4px; }
+  .gs-road-weeks { font: 600 var(--fs-label) / 1 var(--font-ui); color: var(--muted); padding: 0 8px var(--s-3); }
+  .gs-road-list { list-style: none; padding: 0; display: grid; gap: 4px; }
+  .gs-road-row { width: 100%; padding: 10px 8px; border-radius: 12px; text-align: left; color: var(--ink-2); transition: background var(--dur-1), color var(--dur-1); background-image: repeating-linear-gradient(90deg, transparent 0 calc(100% / 7 - 1px), var(--line) calc(100% / 7 - 1px) calc(100% / 7)); }
+  .gs-road-row:hover { background-color: var(--surface); color: var(--ink); }
+  .gs-road-row[aria-pressed='true'] { background-color: color-mix(in srgb, var(--c) 12%, transparent); color: var(--ink); }
+  .gs-road-n { font: 600 var(--fs-sm) / 1.2 var(--font-ui); }
+  .gs-road-n .t-num { color: var(--c); margin-right: 4px; }
+  .gs-road-bar { grid-column: calc(var(--s) + 1) / calc(var(--e) + 1); height: 14px; border-radius: 99px; background: var(--c); opacity: 0.55; transition: opacity var(--dur-1), transform var(--dur-2) var(--ease-out); transform-origin: left; }
+  .gs-road-row[aria-pressed='true'] .gs-road-bar { opacity: 1; transform: scaleY(1.3); }
+  .gs-road-card { padding: var(--s-6); border-radius: var(--r-lg); border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); background: radial-gradient(80% 60% at 100% 0%, color-mix(in srgb, var(--c) 16%, transparent), transparent 70%), var(--bg-2); display: grid; gap: var(--s-3); }
+  .gs-road-card.is-on { animation: gs-road-in 0.6s var(--ease-out); }
+  @keyframes gs-road-in { from { opacity: 0; transform: translateY(10px); } }
+  .gs-road-h { font: 800 var(--fs-xl) / 1.1 var(--font-display); letter-spacing: -0.02em; }
+  .gs-road-k { margin-top: var(--s-2); }
+  .gs-road-get { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .gs-road-get li { padding: 0.35rem 0.7rem; border-radius: 99px; background: var(--surface-2); font-size: var(--fs-sm); color: var(--ink); }
+  .gs-road-jump { justify-self: start; margin-top: var(--s-2); font: 600 var(--fs-sm) var(--font-ui); color: var(--ink); text-decoration: underline; text-decoration-color: var(--c); text-underline-offset: 4px; text-decoration-thickness: 2px; }
+  @media (max-width: 900px) {
+    .gs-road { grid-template-columns: 1fr; }
+    .gs-road-chart { padding: var(--s-3); }
+    .gs-road-weeks, .gs-road-row { grid-template-columns: minmax(7.2rem, 1.3fr) repeat(6, 1fr); }
+    .gs-road-weeks span { font-size: 0.62rem; }
+  }
+</style>

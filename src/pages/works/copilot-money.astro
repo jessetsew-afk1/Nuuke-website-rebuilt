@@ -1,0 +1,715 @@
+---
+import Case from '../../layouts/Case.astro';
+import Chapter from '../../components/case/Chapter.astro';
+import Brief from '../../components/case/Brief.astro';
+import Personas from '../../components/case/Personas.astro';
+import JourneyMap from '../../components/case/JourneyMap.astro';
+import FlowMap from '../../components/case/FlowMap.astro';
+import ScreenStack from '../../components/case/ScreenStack.astro';
+import Prototype from '../../components/case/Prototype.astro';
+import DesignSystem from '../../components/case/DesignSystem.astro';
+import Metrics from '../../components/case/Metrics.astro';
+import Hero from '../../components/cases/copilot-money/Hero.astro';
+import Overture from '../../components/cases/copilot-money/Overture.astro';
+import Roadmap from '../../components/cases/copilot-money/Roadmap.astro';
+import TrustFlow from '../../components/cases/copilot-money/TrustFlow.astro';
+import DataLab from '../../components/cases/copilot-money/DataLab.astro';
+import Spatial from '../../components/cases/copilot-money/Spatial.astro';
+import Handoff from '../../components/cases/copilot-money/Handoff.astro';
+import { bySlug } from '../../data/projects';
+import { copilotLayers, netWorth } from '../../data/cases/copilot-money';
+
+const p = bySlug('copilot-money');
+const chapters = [
+  { id: 'brief', label: 'Brief' },
+  { id: 'research', label: 'Research' },
+  { id: 'journey', label: 'Journey' },
+  { id: 'flow', label: 'User flow' },
+  { id: 'trust', label: 'Trust-first onboarding' },
+  { id: 'dataviz', label: 'Data-viz lab' },
+  { id: 'layers', label: '3D wireframe' },
+  { id: 'prototype', label: 'Prototype' },
+  { id: 'spatial', label: 'Spatial sketch' },
+  { id: 'handoff', label: 'Dev handoff' },
+  { id: 'system', label: 'Design system' },
+  { id: 'measure', label: 'Measure' },
+];
+const sources = [
+  { label: 'Copilot Money — homepage', url: 'https://www.copilot.money/' },
+  { label: 'Copilot Money — FAQ', url: 'https://www.copilot.money/faq' },
+  { label: 'Copilot Money — Series A post', url: 'https://copilot.money/series-a' },
+  { label: 'Copilot Money — web app launch', url: 'https://www.copilot.money/dispatch/web-app' },
+  { label: 'TechCrunch — $6M Series A', url: 'https://techcrunch.com/2024/03/21/budgeting-app-copilot-mint-6m-series-a/' },
+  { label: 'Crowdfund Insider — Series A', url: 'https://www.crowdfundinsider.com/2024/03/223058-copilot-raises-6m-in-series-a-funding-to-expand-personal-finance-tool/' },
+  { label: 'Apple Developer — Copilot spotlight', url: 'https://developer.apple.com/news/?id=m1mmw99d' },
+  { label: 'Apple Design Awards 2024 (finalists)', url: 'https://developer.apple.com/design/awards/2024/' },
+  { label: 'App Store listing', url: 'https://apps.apple.com/us/app/copilot-track-budget-money/id1447330651' },
+  { label: 'Copilot help centre — settings', url: 'https://help.copilot.money/en/articles/11062072-settings-overview' },
+  { label: 'Blake Crosley — third-party colour analysis', url: 'https://blakecrosley.com/guides/design/copilot-money' },
+];
+const meta = [
+  { label: 'Brand', value: 'Copilot Money, New York' },
+  { label: 'Discipline', value: 'Mobile app · UX/UI · data viz' },
+  { label: 'Our role', value: 'Research, onboarding, data viz, prototype, handoff' },
+  { label: 'Timeline (concept)', value: '6-week design sprint' },
+];
+const personas = [
+  { name: 'Ex-Mint Priya', meta: '33 · nurse', quote: 'My old app shut down. I want something calm I can actually trust with my bank.', goals: ['A painless move from her old app', 'Know she can trust where her data goes', 'A two-minute check-in after shifts'], pains: ['Ads dressed up as “offers”', 'Re-linking banks that keep breaking', 'Dashboards she has to decode'], color: '#00CC4B' },
+  { name: 'Couple-finances Sam & Alex', meta: '30s · shared rent, separate cards', quote: 'Every Sunday we ask the same thing: where did the money go this week?', goals: ['One shared view of joint spending', 'Budgets both of them believe', 'Catch subscriptions neither remembers'], pains: ['Two apps, two versions of the truth', 'Arguments over miscategorised spends', 'Monthly surprises'], color: '#FF4433' },
+  { name: 'Net-worth Nate', meta: '41 · engineer', quote: 'Investments, crypto, the house. I want the whole picture on one line.', goals: ['Net worth across every asset', 'Performance and allocation at a glance', 'Charts that respect the data'], pains: ['Pie charts with twelve slivers', 'Stale balances', 'Having to export to a spreadsheet'], color: '#1C6CFF' },
+];
+const stages = [
+  { label: 'Payday', doing: 'Paycheck lands; checks the balance.', feeling: 'Relieved, briefly.', score: 1, opportunity: 'Show what’s already spoken for (rent, recurring) so “available” is honest.' },
+  { label: 'Week one', doing: 'Taps a card twenty times; no idea where it’s going.', feeling: 'Vague, a little uneasy.', score: -0.3, opportunity: 'A daily two-minute review inbox: confirm, re-categorise, done.' },
+  { label: 'Mid-month', doing: 'Finds out dining is running hot, by accident.', feeling: 'Anxious, a bit guilty.', score: -1.5, opportunity: 'A proactive “what changed” card: Dining is $90 ahead of last month, with 13 days left.' },
+  { label: 'A renewal', doing: 'A free trial quietly turns into a subscription.', feeling: 'Annoyed.', score: -1.2, opportunity: 'Flag “new subscription spotted” after the first charge, before the second.' },
+  { label: 'Month end', doing: 'Reviews budgets; rolls unspent grocery money forward.', feeling: 'In control.', score: 1.2, opportunity: 'Rollovers make under-spending feel like progress, not a reset.' },
+  { label: 'Next month', doing: 'Sees net worth tick up 1.8%.', feeling: 'Motivated.', score: 1.8, opportunity: 'Close every month with one line: what changed, and what to watch next.' },
+];
+const nodes = [
+  { id: 'connect', label: 'Connect accounts', x: 90, y: 210, kind: 'start' as const },
+  { id: 'dash', label: 'Dashboard', x: 290, y: 210, kind: 'key' as const },
+  { id: 'review', label: 'To review', x: 490, y: 80 },
+  { id: 'recat', label: 'Pick category', x: 690, y: 80 },
+  { id: 'ai', label: 'Why this category?', x: 890, y: 80 },
+  { id: 'cats', label: 'Spending', x: 490, y: 210 },
+  { id: 'cat', label: 'Dining detail', x: 690, y: 210 },
+  { id: 'budget', label: 'Budgets', x: 490, y: 340 },
+  { id: 'recurring', label: 'Recurring', x: 690, y: 340 },
+  { id: 'networth', label: 'Net worth', x: 890, y: 340, kind: 'end' as const },
+];
+const edges = [
+  { from: 'connect', to: 'dash', label: 'link' },
+  { from: 'dash', to: 'review', label: '4 new' },
+  { from: 'review', to: 'recat', label: 'tap chip' },
+  { from: 'recat', to: 'ai', label: 'why?' },
+  { from: 'dash', to: 'cats' },
+  { from: 'cats', to: 'cat' },
+  { from: 'dash', to: 'budget' },
+  { from: 'dash', to: 'recurring' },
+  { from: 'recurring', to: 'networth' },
+];
+const tasks = [
+  { label: 'Link a bank and land on your month', screen: 'dash' },
+  { label: 'Open today’s review inbox', screen: 'review' },
+  { label: 'Re-categorise a dinner', screen: 'recat' },
+  { label: 'Ask why it was categorised that way', screen: 'ai' },
+  { label: 'See what changed in Dining', screen: 'cat' },
+  { label: 'Check budget rollovers', screen: 'budget' },
+  { label: 'Catch a new subscription', screen: 'recurring' },
+  { label: 'Look at net worth', screen: 'networth' },
+];
+const banks = [
+  ['HF', 'Hudson Federal', 'Checking · savings', '#1C6CFF'],
+  ['PC', 'Pinecrest Credit Union', 'Checking', '#00CC4B'],
+  ['NS', 'Northstar Card', 'Credit card', '#FF4433'],
+  ['MV', 'Meridian Invest', 'Brokerage', '#9085e9'],
+];
+const pace = 'M 6 120 C 40 116, 60 106, 90 96 S 150 70, 190 58 S 236 44, 252 36';
+const paceLast = 'M 6 120 C 50 116, 90 104, 130 96 S 210 80, 250 74 S 300 66, 330 62';
+const reviewRows = [
+  { m: 'Corner Café', e: '☕', c: 'Coffee', a: '$6.50', col: '#c98500', go: 'recat', t: 'Today · 8:12 am' },
+  { m: 'Lucia’s Trattoria', e: '🍜', c: 'Dining', a: '$48.20', col: '#199e70', go: 'recat', t: 'Yesterday · 8:40 pm' },
+  { m: 'Metro Transit', e: '🚇', c: 'Transport', a: '$2.90', col: '#d55181', go: 'recat', t: 'Yesterday' },
+  { m: 'StreamBox', e: '🎬', c: 'Subscriptions', a: '$15.99', col: '#FECE4C', go: 'recurring', t: 'New · monthly?' },
+];
+const catRows = [
+  ['🏠', 'Rent', 1900, 1900, '#3987e5'],
+  ['🛒', 'Groceries', 402, 600, '#d95926'],
+  ['🍜', 'Dining', 388, 400, '#199e70'],
+  ['🛍️', 'Shopping', 210, 450, '#c98500'],
+  ['🚇', 'Transport', 132, 300, '#d55181'],
+  ['📦', 'Other', 150, 750, '#9085e9'],
+] as const;
+const nwPts = netWorth.map((v, i) => `${(8 + i * (334 / 11)).toFixed(1)},${(150 - (v - 96) * 3.6).toFixed(1)}`).join(' ');
+---
+
+<Case project={p} chapters={chapters} sources={sources} meta={meta}>
+  <Hero slot="hero" />
+
+  <Overture />
+
+  <Chapter id="brief" n="01" label="The brief" title="A money app that tells you what changed.">
+    <Brief
+      story="Copilot Money is a New York subscription app built by founder and CEO <strong>Andrés Ugarte</strong>, a software engineer who quit his job in 2018 to make it; it launched publicly around 2020. It brings bank, card and investment accounts from <strong>10,000+ US institutions</strong> into one view, with ML categorisation, budgets with rollovers, recurring tracking and net worth. The model is subscription-only: <em>“no ads, no gimmicks”</em> and no data selling. The day Mint’s shutdown was announced, in November 2023, was Copilot’s biggest day ever."
+      facts={[
+        { v: '100K+', k: 'Subscribers, as of March 2024' },
+        { v: '$6M', k: 'Series A led by Adjacent, March 2024' },
+        { v: '$10.5M', k: 'Total venture capital raised' },
+        { v: 'ADA ’24', k: 'Apple Design Awards finalist, Innovation' },
+      ]}
+      problems={[
+        { title: 'Trust at the connect step', text: 'Linking a bank is the scariest moment in any finance app. The copy, motion and security cues have to answer every fear before it becomes a bounce.' },
+        { title: 'Charts that answer questions', text: 'Most money apps show what happened. People open them to learn what changed. Every chart has to earn its place by answering one question.' },
+        { title: 'Review as a ritual', text: 'Checking new transactions should be a satisfying two-minute loop, and every correction should teach the model something.' },
+      ]}
+      goal="Every screen answers “what changed?” before “what happened?”, and the scariest step, linking a bank, feels like the safest one."
+    />
+    <Roadmap />
+  </Chapter>
+
+  <Chapter id="research" n="02" label="Research" title="Three people, one question: where did it go?" intro="We built personas from Copilot’s public audience (design-minded, Apple-first US professionals, many of them former Mint users) and tested every screen against them.">
+    <Personas personas={personas} />
+  </Chapter>
+
+  <Chapter id="journey" n="03" label="Journey map" title="A month with money, and where it hurts." intro="Tap each moment to see what Priya is doing, how she feels, and the design opportunity it gave us. The two lows (mid-month and a surprise renewal) are both <strong>things that changed without anyone saying so</strong>.">
+    <JourneyMap stages={stages} />
+  </Chapter>
+
+  <Chapter id="flow" n="04" label="User flow" title="Ten screens. One loop: review, understand, adjust." intro="Onboarding happens once; the daily loop is <strong>dashboard → review → what changed</strong>. Tap any screen to jump to it in the live prototype.">
+    <FlowMap nodes={nodes} edges={edges} width={1100} height={430} />
+  </Chapter>
+
+  <Chapter id="trust" n="05" label="Trust-first onboarding" title="Six moments between “hello” and “here’s what changed”." intro="We designed onboarding around the moment people are most likely to leave: handing a bank login to an app. Step through it and <strong>tap the numbered pins</strong> to see what we show at each moment and why.">
+    <TrustFlow />
+  </Chapter>
+
+  <Chapter id="dataviz" n="06" label="Data-visualisation lab" title="Same data, five charts, one right answer per question." intro="Before drawing a single dashboard, we put one sample month through every chart type and asked which one answers each question fastest. <strong>Pick a question, try each chart,</strong> and read our reasoning. The star marks our pick.">
+    <DataLab />
+  </Chapter>
+
+  <Chapter id="layers" n="07" label="3D wireframe" title="Take the dashboard apart, layer by layer." intro="From grid to motion, every screen is built in five layers. Scroll and the exploded view assembles into the final UI. Drag to look around it.">
+    <ScreenStack layers={copilotLayers} accent={p.accent} />
+  </Chapter>
+
+  <Chapter id="prototype" n="08" label="Prototype" title="Tap through it. Then switch to the wireframe." intro="This is the prototype we’d put in front of ten Copilot-style users. Follow the journey on the left and flip between <strong>Sketch</strong>, <strong>Wireframe</strong> and <strong>Hi-fi</strong> to see how each screen evolved. All amounts are sample data.">
+    <Prototype title="Copilot daily loop" start="connect" tasks={tasks} note="Eight tasks, ten screens. Everything that glows is tappable.">
+      <!-- Connect -->
+      <section class="scr cmp" data-screen="connect" data-title="Connect accounts">
+        <div class="cmp-scroll" data-scroll>
+          <div class="cmp-pad cmp-top">
+            <p class="t cmp-kick">Get started</p>
+            <h4 class="t cmp-h1">Connect your first account</h4>
+            <div class="ui cmp-search"><span class="ico cmp-sico">⌕</span><span class="t">Search 10,000+ institutions</span></div>
+            <div class="cmp-list">
+              {
+                banks.map(([i, n, s, c]) => (
+                  <button class="ui cmp-row" data-go="dash">
+                    <span class="ico cmp-av" style={`--c:${c}`}>{i}</span>
+                    <span><span class="t cmp-row-t">{n}</span><br /><span class="t cmp-row-s">{s}</span></span>
+                    <span class="t cmp-chev">›</span>
+                  </button>
+                ))
+              }
+            </div>
+            <div class="ui cmp-promise">
+              <span class="ico cmp-lock">🔒</span>
+              <span><span class="t cmp-row-t">No ads. No data selling.</span><br /><span class="t cmp-row-s">Bank names here are invented for this concept.</span></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Dashboard -->
+      <section class="scr cmp" data-screen="dash" data-title="Dashboard">
+        <div class="cmp-scroll cmp-scroll--tabs" data-scroll>
+          <div class="cmp-pad cmp-top">
+            <p class="t cmp-kick">October · spent so far</p>
+            <p class="t cmp-giant">$3,182<span>.40</span></p>
+            <p class="t cmp-row-s">of $4,600 budget · 13 days left</p>
+            <div class="ui cmp-card cmp-pace">
+              <svg viewBox="0 0 340 130" class="img" aria-hidden="true">
+                <defs>
+                  <linearGradient id="cmp-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1C6CFF" stop-opacity=".35" /><stop offset="1" stop-color="#1C6CFF" stop-opacity="0" /></linearGradient>
+                </defs>
+                <path d={paceLast} fill="none" stroke="#3b5079" stroke-width="2.5" stroke-dasharray="2 6" stroke-linecap="round" />
+                <path d={`${pace} L 252 130 L 6 130 Z`} fill="url(#cmp-fill)" />
+                <path d={pace} fill="none" stroke="#1C6CFF" stroke-width="3.5" stroke-linecap="round" />
+                <circle cx="252" cy="36" r="6" fill="#F2F6FF" stroke="#001533" stroke-width="3" />
+              </svg>
+              <p class="t cmp-legend"><i class="cmp-k1"></i> This month <i class="cmp-k2"></i> Last month</p>
+            </div>
+            <div class="cmp-head"><p class="t cmp-kick">What changed</p><button class="t cmp-link" data-go="cats">All categories ›</button></div>
+            <button class="ui cmp-row cmp-change" data-go="cat">
+              <span class="ico cmp-em" style="--c:#FF4433">🍜</span>
+              <span><span class="t cmp-row-t">Dining is up $90</span><br /><span class="t cmp-row-s">vs. September, same day</span></span>
+              <span class="t cmp-amt cmp-out">+$90</span>
+            </button>
+            <button class="ui cmp-row cmp-change" data-go="recurring">
+              <span class="ico cmp-em" style="--c:#FECE4C">🎬</span>
+              <span><span class="t cmp-row-t">New subscription</span><br /><span class="t cmp-row-s">StreamBox · monthly</span></span>
+              <span class="t cmp-amt cmp-new">$15.99</span>
+            </button>
+            <button class="ui cmp-row cmp-change" data-go="networth">
+              <span class="ico cmp-em" style="--c:#00CC4B">💰</span>
+              <span><span class="t cmp-row-t">Savings grew</span><br /><span class="t cmp-row-s">3 months in a row</span></span>
+              <span class="t cmp-amt cmp-in">+$410</span>
+            </button>
+            <button class="btn cmp-cta cmp-cta--review" data-go="review"><span class="t">4 transactions to review</span><span class="t cmp-badge">4</span></button>
+          </div>
+        </div>
+        <nav class="cmp-tabs ui">
+          <button class="is-on" data-go="dash"><span class="ico">⌂</span><span class="t">Home</span></button>
+          <button data-go="review"><span class="ico">✓</span><span class="t">Review</span></button>
+          <button data-go="budget"><span class="ico">◔</span><span class="t">Budgets</span></button>
+          <button data-go="recurring"><span class="ico">↻</span><span class="t">Recurring</span></button>
+          <button data-go="networth"><span class="ico">↗</span><span class="t">Net worth</span></button>
+        </nav>
+      </section>
+
+      <!-- Review -->
+      <section class="scr cmp" data-screen="review" data-title="To review">
+        <div class="cmp-scroll" data-scroll>
+          <div class="cmp-pad cmp-top">
+            <button class="cmp-back t" data-back>‹ Back</button>
+            <h4 class="t cmp-h2">To review</h4>
+            <p class="t cmp-row-s">Four new since yesterday. Tap ✓ to confirm, tap a category to change it.</p>
+            {
+              reviewRows.map((r) => (
+                <div class="ui cmp-rev">
+                  <span class="ico cmp-em" style={`--c:${r.col}`}>{r.e}</span>
+                  <span class="cmp-rev-main">
+                    <span class="t cmp-row-t">{r.m}</span>
+                    <span class="t cmp-row-s">{r.t}</span>
+                    <button class="ui cmp-chip" style={`--c:${r.col}`} data-go={r.go} data-sheet={r.go === 'recat' ? '' : undefined}>
+                      <span class="t">{r.e} {r.c} ▾</span>
+                    </button>
+                  </span>
+                  <span class="cmp-rev-end">
+                    <span class="t cmp-amt">{r.a}</span>
+                    <button class="ui cmp-ok" data-toggle aria-label={`Mark ${r.m} reviewed`}>✓</button>
+                  </span>
+                </div>
+              ))
+            }
+            <button class="btn cmp-cta" data-go="dash"><span class="t">Mark all reviewed</span></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Re-categorise sheet -->
+      <section class="scr cmp cmp-sheet-scr" data-screen="recat" data-title="Pick a category (sheet)">
+        <div class="cmp-sheet ui">
+          <div class="cmp-grab"></div>
+          <p class="t cmp-kick">Lucia’s Trattoria · $48.20</p>
+          <h4 class="t cmp-h2">Choose a category</h4>
+          <div class="cmp-grid3">
+            {
+              [
+                ['🍜', 'Dining', true],
+                ['🛒', 'Groceries', false],
+                ['☕', 'Coffee', false],
+                ['🎉', 'Going out', false],
+                ['🎁', 'Gifts', false],
+                ['💼', 'Work', false],
+              ].map(([e, n, on]) => (
+                <button class:list={['ui', 'cmp-cat', { 'is-on': on }]} data-toggle>
+                  <span class="ico cmp-cat-e">{e}</span>
+                  <span class="t">{n}</span>
+                </button>
+              ))
+            }
+          </div>
+          <div class="ui cmp-row cmp-rule">
+            <span><span class="t cmp-row-t">Always use for Lucia’s</span><br /><span class="t cmp-row-s">Future transactions only</span></span>
+            <button class="cmp-switch ui is-on" data-toggle aria-label="Always use this category for Lucia’s"><i></i></button>
+          </div>
+          <button class="ui cmp-why" data-go="ai"><span class="t">✦ Why did we pick Dining?</span><span class="t">›</span></button>
+          <button class="btn cmp-cta" data-back><span class="t">Done</span></button>
+        </div>
+      </section>
+
+      <!-- AI explanation -->
+      <section class="scr cmp" data-screen="ai" data-title="Why this category?">
+        <div class="cmp-scroll" data-scroll>
+          <div class="cmp-pad cmp-top">
+            <button class="cmp-back t" data-back>‹ Back</button>
+            <p class="t cmp-kick">Auto-categorisation</p>
+            <h4 class="t cmp-h2">Why we chose 🍜 Dining</h4>
+            <div class="ui cmp-card">
+              <p class="t cmp-row-s">How sure we were</p>
+              <div class="cmp-conf img"><i style="width:92%"></i></div>
+              <p class="t cmp-row-t">Very likely · 92%</p>
+            </div>
+            <p class="t cmp-kick cmp-mt">What we looked at</p>
+            {
+              [
+                ['🧾', 'Your history', 'You put Lucia’s in Dining 14 times before.'],
+                ['🏷️', 'Merchant type', 'Listed by the bank as a restaurant.'],
+                ['🕗', 'Time and amount', 'Friday, 8:40 pm, $48: looks like dinner.'],
+              ].map(([e, t, s]) => (
+                <div class="ui cmp-row cmp-signal">
+                  <span class="ico cmp-em" style="--c:#1C6CFF">{e}</span>
+                  <span><span class="t cmp-row-t">{t}</span><br /><span class="t cmp-row-s">{s}</span></span>
+                </div>
+              ))
+            }
+            <div class="ui cmp-card cmp-learn">
+              <p class="t cmp-row-t">When you change it</p>
+              <p class="t cmp-row-s">We learn from your choice for this merchant. Past months stay as they are unless you ask.</p>
+            </div>
+            <p class="t cmp-tiny">Concept: the explanation pattern is ours. Signals shown are illustrative.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Spending categories -->
+      <section class="scr cmp" data-screen="cats" data-title="Spending by category">
+        <div class="cmp-scroll" data-scroll>
+          <div class="cmp-pad cmp-top">
+            <button class="cmp-back t" data-back>‹ Back</button>
+            <h4 class="t cmp-h2">Spending · October</h4>
+            <p class="t cmp-row-s">So far, against each budget.</p>
+            {
+              catRows.map(([e, n, s, b, c]) => (
+                <button class="ui cmp-catrow" data-go={n === 'Dining' ? 'cat' : undefined} data-toggle={n === 'Dining' ? undefined : ''}>
+                  <span class="ico cmp-em" style={`--c:${c}`}>{e}</span>
+                  <span class="cmp-catrow-main">
+                    <span class="cmp-catrow-top"><span class="t cmp-row-t">{n}</span><span class="t cmp-amt">${s.toLocaleString('en-US')}</span></span>
+                    <span class="cmp-bar img"><i style={`width:${Math.min(100, (s / b) * 100)}%;background:${c}`}></i></span>
+                    <span class="t cmp-row-s">{Math.round((s / b) * 100)}% of ${b.toLocaleString('en-US')}</span>
+                  </span>
+                </button>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- Category detail -->
+      <section class="scr cmp" data-screen="cat" data-title="Dining detail">
+        <div class="cmp-scroll" data-scroll>
+          <div class="cmp-pad cmp-top">
+            <button class="cmp-back t" data-back>‹ Back</button>
+            <div class="cmp-cathead">
+              <span class="ico cmp-em cmp-em--lg" style="--c:#199e70">🍜</span>
+              <span><h4 class="t cmp-h2">Dining</h4><span class="t cmp-row-s">$388 of $400 · 13 days left</span></span>
+            </div>
+            <div class="ui cmp-card cmp-what">
+              <p class="t cmp-kick">What changed</p>
+              <p class="t cmp-row-t">$90 ahead of September by this date. Three more dinners out, all on Fridays.</p>
+            </div>
+            <div class="ui cmp-card">
+              <div class="cmp-cols img">
+                {[360, 380, 390, 410, 430, 388].map((v, i) => <i class:list={[{ 'is-now': i === 5 }]} style={`height:${(v / 520) * 100}%`}></i>)}
+              </div>
+              <p class="t cmp-axis"><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span></p>
+            </div>
+            <p class="t cmp-kick cmp-mt">Top merchants</p>
+            {
+              [
+                ['Lucia’s Trattoria', '3 visits', '$142'],
+                ['Noodle Bar 22', '4 visits', '$96'],
+                ['Taco Corner', '5 visits', '$71'],
+              ].map(([m, v, a]) => (
+                <div class="ui cmp-row">
+                  <span class="ico cmp-dot" style="background:#199e70"></span>
+                  <span><span class="t cmp-row-t">{m}</span><br /><span class="t cmp-row-s">{v}</span></span>
+                  <span class="t cmp-amt">{a}</span>
+                </div>
+              ))
+            }
+            <p class="t cmp-kick cmp-mt">Category colour</p>
+            <div class="cmp-swatches">
+              {['#199e70', '#FF4433', '#1C6CFF', '#FECE4C', '#9085e9'].map((c, i) => <button class:list={['ui', 'cmp-swatch', { 'is-on': i === 0 }]} style={`--c:${c}`} data-toggle aria-label={`Category colour ${c}`}></button>)}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Budgets -->
+      <section class="scr cmp" data-screen="budget" data-title="Budgets">
+        <div class="cmp-scroll" data-scroll>
+          <div class="cmp-pad cmp-top">
+            <button class="cmp-back t" data-back>‹ Back</button>
+            <h4 class="t cmp-h2">Budgets · October</h4>
+            <div class="ui cmp-card cmp-ringcard">
+              <div class="cmp-ring img">
+                <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="50" stroke="#0a2147" stroke-width="12" fill="none" /><circle cx="60" cy="60" r="50" stroke="#00CC4B" stroke-width="12" fill="none" stroke-dasharray="314" stroke-dashoffset="97" stroke-linecap="round" transform="rotate(-90 60 60)" /></svg>
+                <span class="t cmp-ring-n">69%</span>
+              </div>
+              <span><span class="t cmp-row-t">$1,418 left</span><br /><span class="t cmp-row-s">$3,182 of $4,600 · on pace</span></span>
+            </div>
+            {
+              [
+                ['🛒', 'Groceries', 402, 600, '+$35', '#d95926'],
+                ['🍜', 'Dining', 388, 400, '', '#199e70'],
+                ['🛍️', 'Shopping', 210, 450, '+$60', '#c98500'],
+                ['🚇', 'Transport', 132, 300, '+$12', '#d55181'],
+              ].map(([e, n, s, b, r, c]) => (
+                <div class="ui cmp-budget">
+                  <div class="cmp-catrow-top">
+                    <span class="t cmp-row-t">
+                      {e} {n}
+                    </span>
+                    <span class="t cmp-row-s">
+                      ${s} / ${b}
+                    </span>
+                  </div>
+                  <span class="cmp-bar img">
+                    <i style={`width:${((s as number) / (b as number)) * 100}%;background:${c}`}></i>
+                  </span>
+                  {r ? <span class="t cmp-roll">↻ {r} rolled over from September</span> : <span class="t cmp-roll cmp-roll--warn">Close to the limit · 97%</span>}
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- Recurring -->
+      <section class="scr cmp" data-screen="recurring" data-title="Recurring">
+        <div class="cmp-scroll" data-scroll>
+          <div class="cmp-pad cmp-top">
+            <button class="cmp-back t" data-back>‹ Back</button>
+            <h4 class="t cmp-h2">Recurring</h4>
+            <p class="t cmp-row-s">Next 14 days · $1,958.97</p>
+            <div class="ui cmp-flag">
+              <p class="t cmp-kick cmp-kick--y">New subscription spotted</p>
+              <p class="t cmp-row-t">🎬 StreamBox · $15.99 / month</p>
+              <p class="t cmp-row-s">First charge Oct 16. Next expected Nov 16.</p>
+              <div class="cmp-flag-btns">
+                <button class="ui cmp-pill is-on" data-toggle><span class="t">Keep tracking</span></button>
+                <button class="ui cmp-pill" data-toggle><span class="t">Not recurring</span></button>
+              </div>
+            </div>
+            {
+              [
+                ['🏠', 'Rent', 'Oct 31', '$1,900.00'],
+                ['📱', 'Phone plan', 'Oct 24', '$35.00'],
+                ['🏋️', 'Gym', 'Oct 26', '$23.97'],
+                ['🎵', 'Music', 'Nov 2', '$10.99'],
+              ].map(([e, n, d, a]) => (
+                <div class="ui cmp-row">
+                  <span class="ico cmp-em" style="--c:#1C6CFF">{e}</span>
+                  <span><span class="t cmp-row-t">{n}</span><br /><span class="t cmp-row-s">{d}</span></span>
+                  <span class="t cmp-amt">{a}</span>
+                </div>
+              ))
+            }
+            <button class="btn cmp-cta" data-go="networth"><span class="t">See net worth</span></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Net worth -->
+      <section class="scr cmp" data-screen="networth" data-title="Net worth">
+        <div class="cmp-scroll" data-scroll>
+          <div class="cmp-pad cmp-top">
+            <button class="cmp-back t" data-back>‹ Back</button>
+            <p class="t cmp-kick">Net worth</p>
+            <p class="t cmp-giant">$148,600</p>
+            <p class="t cmp-row-s"><span class="cmp-in">▲ $3,480 (2.4%)</span> this month</p>
+            <div class="ui cmp-card">
+              <svg viewBox="0 0 350 160" class="img" aria-hidden="true">
+                <defs>
+                  <linearGradient id="cmp-nw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1C6CFF" stop-opacity=".4" /><stop offset="1" stop-color="#1C6CFF" stop-opacity="0" /></linearGradient>
+                </defs>
+                <polygon points={`8,160 ${nwPts} 342,160`} fill="url(#cmp-nw)" />
+                <polyline points={nwPts} fill="none" stroke="#1C6CFF" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" />
+              </svg>
+              <div class="cmp-seg">
+                {['1M', '3M', '1Y', 'All'].map((s, i) => <button class:list={['ui', { 'is-on': i === 2 }]} data-toggle><span class="t">{s}</span></button>)}
+              </div>
+            </div>
+            <div class="ui cmp-card cmp-alloc">
+              <div class="cmp-donut img">
+                <svg viewBox="0 0 100 100" aria-hidden="true">
+                  <circle cx="50" cy="50" r="36" fill="none" stroke="#9085e9" stroke-width="14" stroke-dasharray="135 227" transform="rotate(-90 50 50)" />
+                  <circle cx="50" cy="50" r="36" fill="none" stroke="#3987e5" stroke-width="14" stroke-dasharray="45 227" stroke-dashoffset="-137" transform="rotate(-90 50 50)" />
+                  <circle cx="50" cy="50" r="36" fill="none" stroke="#c98500" stroke-width="14" stroke-dasharray="20 227" stroke-dashoffset="-184" transform="rotate(-90 50 50)" />
+                  <circle cx="50" cy="50" r="36" fill="none" stroke="#199e70" stroke-width="14" stroke-dasharray="19 227" stroke-dashoffset="-206" transform="rotate(-90 50 50)" />
+                </svg>
+              </div>
+              <ul class="cmp-alloc-l" role="list">
+                <li><i style="background:#9085e9"></i><span class="t">Stocks 60%</span></li>
+                <li><i style="background:#3987e5"></i><span class="t">Bonds 20%</span></li>
+                <li><i style="background:#c98500"></i><span class="t">Crypto 9%</span></li>
+                <li><i style="background:#199e70"></i><span class="t">Cash 11%</span></li>
+              </ul>
+            </div>
+            <p class="t cmp-tiny">Sample data for this concept.</p>
+          </div>
+        </div>
+      </section>
+    </Prototype>
+  </Chapter>
+
+  <Chapter id="spatial" n="09" label="Spatial sketch" title="Net worth you can walk around." intro="Copilot already runs on iPhone, iPad, Mac, the web and Apple Vision. We sketched what net worth could feel like in space: every account a stack of coins, debt hanging below the line. <strong>Drag to orbit, scrub or play the year, tap an account to focus it.</strong>">
+    <Spatial />
+  </Chapter>
+
+  <Chapter id="handoff" n="10" label="Design-to-dev handoff" title="From token to SwiftUI, with nothing lost in between." intro="Founder Andrés Ugarte has said a native Swift app “makes a difference the moment you start interacting with it.” So our handoff speaks Swift. <strong>Change a token</strong> and watch the component and its code update together; turn on the redline to see the spec.">
+    <Handoff />
+  </Chapter>
+
+  <Chapter id="system" n="11" label="Design system" title="Deep navy calm, with money in colour.">
+    <DesignSystem
+      colors={[
+        { name: 'Canvas', hex: '#000814', use: 'App background' },
+        { name: 'Surface', hex: '#001533', use: 'Cards, sheets, charts' },
+        { name: 'Income', hex: '#00CC4B', use: 'Money in, savings, primary CTA' },
+        { name: 'Spend', hex: '#FF4433', use: 'Money out, over budget' },
+        { name: 'Net worth', hex: '#1C6CFF', use: 'Interactive, long-term lines' },
+        { name: 'Pending', hex: '#FECE4C', use: 'Needs review, new and unsure' },
+      ]}
+      type={[
+        { role: 'Display / numbers', sample: '$3,182.40', spec: 'SF Pro Rounded 800 · 44/48 · tabular', style: "font-family:-apple-system,BlinkMacSystemFont,'SF Pro Rounded',Inter,system-ui,sans-serif;font-weight:800;font-size:2.6rem;letter-spacing:-0.04em;font-variant-numeric:tabular-nums" },
+        { role: 'Title', sample: 'What changed', spec: 'SF Pro 700 · 24/28', style: "font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',Inter,system-ui,sans-serif;font-weight:700;font-size:1.5rem" },
+        { role: 'Body', sample: 'Dining is up $90 vs. September.', spec: 'SF Pro 400 · 15/22', style: "font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',Inter,system-ui,sans-serif;font-size:1rem" },
+        { role: 'Label', sample: 'OCTOBER · SPENT SO FAR', spec: 'SF Pro 600 · 11/14 · +0.12em', style: "font-family:-apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif;font-weight:600;font-size:.72rem;letter-spacing:.12em" },
+      ]}
+      note="Hex values are our working approximation, based on a third-party analysis of Copilot’s UI, not official brand values. Copilot doesn’t publish its typography; SF is our inference (Inter stands in on non-Apple screens). Chart colours for categories were validated for colour-blind separation on the navy surface."
+    >
+      <div class="cm-ds">
+        <p class="t-label">Components</p>
+        <div class="cm-ds-grid">
+          <div class="cm-ds-item">
+            <span class="cm-ds-chip" style="--c:#199e70">🍜 Dining</span>
+            <span class="cm-ds-chip" style="--c:#d95926">🛒 Groceries</span>
+            <span class="cm-ds-chip" style="--c:#FECE4C">🎬 New</span>
+            <span class="t-small">Category chip · user-set emoji and colour</span>
+          </div>
+          <div class="cm-ds-item">
+            <span class="cm-ds-change"><span class="cm-ds-e">🍜</span><span><b>Dining is up $90</b><br /><small>vs. September</small></span><em>+$90</em></span>
+            <span class="t-small">“What changed” card · one change, one number</span>
+          </div>
+          <div class="cm-ds-item">
+            <span class="cm-ds-btns"><span class="cm-ds-btn">Connect an account</span><span class="cm-ds-btn cm-ds-btn--ghost">Not now</span></span>
+            <span class="t-small">Buttons · green primary with navy text (contrast 9:1)</span>
+          </div>
+        </div>
+      </div>
+    </DesignSystem>
+  </Chapter>
+
+  <Chapter id="measure" n="12" label="Measure" title="How we’d know it worked.">
+    <Metrics
+      metrics={[
+        { name: 'Connect completion', hypothesis: 'More people who start linking a bank finish it, because every scary moment has an answer on screen.', how: 'Step-by-step funnel from “Connect” to first successful sync, A/B against today’s flow.' },
+        { name: 'Time to first insight', hypothesis: 'New users see their first “what changed” card within three minutes of opening the app.', how: 'Install → first insight card view, median and 90th percentile.' },
+        { name: 'Review as a ritual', hypothesis: 'Most days, the review inbox is cleared in under two minutes.', how: 'Review session length and clear rate, by week of use.' },
+        { name: 'Chart comprehension', hypothesis: 'People answer “what changed this month?” correctly in one glance more often with our chosen chart than with the alternatives.', how: 'Five-second tests per chart type, same sample dataset, 30 people each.' },
+        { name: 'Learning categoriser', hypothesis: 'Manual re-categorisations per user fall over the first 30 days as the model learns from each fix.', how: 'Re-categorisation rate by weekly cohort.' },
+      ]}
+    />
+  </Chapter>
+</Case>
+
+<style>
+  /* ---------- Copilot concept screens (inside the prototype phone) ---------- */
+  .cmp { background: #000814; color: #f2f6ff; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, system-ui, sans-serif; }
+  .cmp-scroll { position: absolute; inset: 0 0 0; padding-bottom: 40px; }
+  .cmp-scroll--tabs { inset: 0 0 86px; padding-bottom: 16px; }
+  .cmp-pad { padding: 0 20px; }
+  .cmp-top { padding-top: 64px; display: grid; gap: 12px; }
+  .cmp-kick { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #a9b7d3; font-weight: 600; }
+  .cmp-kick--y { color: #fece4c; }
+  .cmp-h1 { font-size: 32px; line-height: 1.06; font-weight: 800; letter-spacing: -0.03em; }
+  .cmp-h2 { font-size: 26px; line-height: 1.12; font-weight: 800; letter-spacing: -0.02em; }
+  .cmp-giant { font-size: 50px; font-weight: 800; letter-spacing: -0.045em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .cmp-giant span { font-size: 0.5em; color: #a9b7d3; letter-spacing: 0; }
+  .cmp-row-t { font-weight: 700; font-size: 15px; }
+  .cmp-row-s { font-size: 13px; color: #a9b7d3; line-height: 1.4; }
+  .cmp-tiny { font-size: 11px; color: #a9b7d3; }
+  .cmp-mt { margin-top: 8px; }
+  .cmp-amt { font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .cmp-out { color: #ff6a57; }
+  .cmp-new { color: #fece4c; }
+  .cmp-in { color: #00cc4b; }
+  .cmp-search { display: flex; gap: 10px; align-items: center; height: 48px; padding: 0 14px; border-radius: 14px; background: #001533; border: 1px solid #1b3157; color: #a9b7d3; font-size: 15px; }
+  .cmp-sico { font-size: 18px; }
+  .cmp-list { display: grid; gap: 8px; }
+  .cmp-row { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; width: 100%; padding: 12px 14px; border-radius: 16px; background: #001533; color: #f2f6ff; text-align: left; }
+  .cmp-chev { color: #a9b7d3; font-size: 20px; }
+  .cmp-av { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; background: color-mix(in srgb, var(--c) 28%, #001533); box-shadow: inset 0 0 0 1.5px var(--c); font-size: 12px; font-weight: 800; }
+  .cmp-promise { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; padding: 14px; border-radius: 16px; background: linear-gradient(135deg, rgb(0 204 75 / 0.16), rgb(28 108 255 / 0.12)); border: 1px solid rgb(0 204 75 / 0.4); }
+  .cmp-lock { font-size: 22px; }
+  .cmp-card { display: grid; gap: 8px; padding: 14px; border-radius: 18px; background: #001533; width: 100%; text-align: left; }
+  .cmp-pace svg { width: 100%; height: auto; }
+  .cmp-legend { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #a9b7d3; }
+  .cmp-legend i { width: 16px; height: 3px; border-radius: 2px; background: #1c6cff; }
+  .cmp-legend .cmp-k2 { background: #3b5079; margin-left: 8px; }
+  .cmp-head { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+  .cmp-link { color: #5b93ff; font-size: 14px; font-weight: 600; }
+  .cmp-em { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: color-mix(in srgb, var(--c) 22%, #001533); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) 65%, transparent); font-size: 20px; }
+  .cmp-em--lg { width: 56px; height: 56px; font-size: 28px; border-radius: 16px; }
+  .cmp-change { padding: 11px 14px; }
+  .cmp-cta { display: flex; justify-content: center; align-items: center; gap: 10px; width: 100%; height: 54px; border-radius: 16px; background: #00cc4b; color: #000814; font-weight: 700; font-size: 16px; margin-top: 4px; }
+  .cmp-cta--review { background: #fece4c; }
+  .cmp-badge { display: grid; place-items: center; min-width: 24px; height: 24px; border-radius: 12px; background: #000814; color: #fece4c; font-size: 12px; }
+  .cmp-tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 86px; padding: 8px 6px 26px; display: grid; grid-template-columns: repeat(5, 1fr); background: #000a1c; border-top: 1px solid #1b3157; }
+  .cmp-tabs button { display: grid; justify-items: center; gap: 2px; color: #a9b7d3; font-size: 10.5px; }
+  .cmp-tabs .ico { font-size: 18px; line-height: 24px; width: 26px; height: 24px; }
+  .cmp-tabs .is-on { color: #5b93ff; }
+  .cmp-back { justify-self: start; color: #a9b7d3; font-size: 15px; }
+
+  .cmp-rev { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; padding: 12px 14px; border-radius: 16px; background: #001533; }
+  .cmp-rev-main { display: grid; gap: 2px; justify-items: start; }
+  .cmp-rev-end { display: grid; gap: 8px; justify-items: end; }
+  .cmp-chip { margin-top: 6px; padding: 5px 10px; border-radius: 99px; background: color-mix(in srgb, var(--c) 20%, #001533); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 70%, transparent); color: #f2f6ff; font-size: 12px; font-weight: 600; }
+  .cmp-ok { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid #2a4068; color: #a9b7d3; font-weight: 800; transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.3s var(--ease-out); }
+  .cmp-ok.is-on { background: #00cc4b; border-color: #00cc4b; color: #000814; transform: scale(1.08); }
+
+  .cmp-sheet-scr { background: rgb(0 4 12 / 0.6); }
+  .cmp-sheet { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 20px 40px; border-radius: 30px 30px 0 0; background: #001533; display: grid; gap: 12px; }
+  .cmp-grab { width: 40px; height: 5px; border-radius: 3px; background: #2a4068; justify-self: center; }
+  .cmp-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .cmp-cat { display: grid; justify-items: center; gap: 4px; padding: 12px 6px; border-radius: 14px; background: #0a2147; border: 1.5px solid transparent; color: #f2f6ff; font-size: 13px; font-weight: 600; }
+  .cmp-cat.is-on { border-color: #00cc4b; background: rgb(0 204 75 / 0.12); }
+  .cmp-cat-e { font-size: 22px; }
+  .cmp-rule { background: #0a2147; }
+  .cmp-switch { width: 52px; height: 32px; border-radius: 16px; background: #2a4068; position: relative; transition: background 0.25s; }
+  .cmp-switch i { position: absolute; left: 3px; top: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  .cmp-switch.is-on { background: #00cc4b; }
+  .cmp-switch.is-on i { transform: translateX(20px); }
+  .cmp-why { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 14px; background: rgb(28 108 255 / 0.14); box-shadow: inset 0 0 0 1px rgb(91 147 255 / 0.5); color: #8fb3ff; font-size: 14px; font-weight: 700; }
+
+  .cmp-conf { height: 10px; border-radius: 5px; background: #0a2147; overflow: hidden; }
+  .cmp-conf i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, #1c6cff, #00cc4b); }
+  .cmp-signal { padding: 10px 14px; }
+  .cmp-learn { background: linear-gradient(160deg, #0a2147, #001533); }
+
+  .cmp-catrow { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; width: 100%; padding: 12px 14px; border-radius: 16px; background: #001533; color: #f2f6ff; text-align: left; }
+  .cmp-catrow-main { display: grid; gap: 5px; }
+  .cmp-catrow-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .cmp-bar { display: block; height: 6px; border-radius: 3px; background: #0a2147; overflow: hidden; }
+  .cmp-bar i { display: block; height: 100%; border-radius: 3px; }
+  .cmp-cathead { display: flex; gap: 14px; align-items: center; }
+  .cmp-what { background: linear-gradient(160deg, rgb(255 68 51 / 0.16), #001533 70%); box-shadow: inset 0 0 0 1px rgb(255 68 51 / 0.4); }
+  .cmp-cols { display: flex; align-items: flex-end; gap: 10px; height: 110px; }
+  .cmp-cols i { flex: 1; border-radius: 6px 6px 0 0; background: #23365a; }
+  .cmp-cols i.is-now { background: #199e70; }
+  .cmp-axis { display: flex; justify-content: space-around; font-size: 11px; color: #a9b7d3; }
+  .cmp-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .cmp-swatches { display: flex; gap: 10px; }
+  .cmp-swatch { width: 40px; height: 40px; border-radius: 50%; background: var(--c); border: 3px solid #000814; box-shadow: 0 0 0 2px transparent; }
+  .cmp-swatch.is-on { box-shadow: 0 0 0 2px #f2f6ff; }
+
+  .cmp-ringcard { grid-template-columns: auto 1fr; align-items: center; gap: 16px; }
+  .cmp-ring { position: relative; width: 96px; height: 96px; display: grid; place-items: center; }
+  .cmp-ring svg { position: absolute; inset: 0; }
+  .cmp-ring-n { font-weight: 800; font-size: 20px; }
+  .cmp-budget { display: grid; gap: 6px; padding: 12px 14px; border-radius: 16px; background: #001533; }
+  .cmp-roll { font-size: 12px; color: #00cc4b; font-weight: 600; }
+  .cmp-roll--warn { color: #fece4c; }
+
+  .cmp-flag { display: grid; gap: 6px; padding: 14px; border-radius: 18px; background: rgb(254 206 76 / 0.1); box-shadow: inset 0 0 0 1.5px rgb(254 206 76 / 0.55); }
+  .cmp-flag-btns { display: flex; gap: 8px; margin-top: 6px; }
+  .cmp-pill { padding: 8px 14px; border-radius: 99px; background: #0a2147; color: #f2f6ff; font-size: 13px; font-weight: 600; }
+  .cmp-pill.is-on { background: #fece4c; color: #000814; }
+
+  .cmp-seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 3px; border-radius: 10px; background: #0a2147; }
+  .cmp-seg button { padding: 6px 0; border-radius: 8px; color: #a9b7d3; font-size: 13px; font-weight: 600; }
+  .cmp-seg button.is-on { background: #1c6cff; color: #fff; }
+  .cmp-alloc { grid-template-columns: 110px 1fr; align-items: center; gap: 16px; }
+  .cmp-donut svg { width: 110px; height: 110px; }
+  .cmp-alloc-l { list-style: none; padding: 0; display: grid; gap: 6px; font-size: 14px; }
+  .cmp-alloc-l li { display: flex; align-items: center; gap: 8px; }
+  .cmp-alloc-l i { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* ---------- Design system components ---------- */
+  .cm-ds { display: grid; gap: var(--s-4); }
+  .cm-ds-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-4); }
+  .cm-ds-item { display: flex; flex-wrap: wrap; align-content: flex-start; align-items: center; gap: var(--s-3); padding: var(--s-5); border-radius: var(--r-lg); background: #000814; border: 1px solid #1b3157; }
+  .cm-ds-item .t-small { flex-basis: 100%; color: #a9b7d3; }
+  .cm-ds-chip { padding: 6px 12px; border-radius: 99px; background: color-mix(in srgb, var(--c) 20%, #001533); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 70%, transparent); font: 600 13px/1 var(--font-ui); color: #f2f6ff; }
+  .cm-ds-change { flex: 1; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 16px; background: #001533; color: #f2f6ff; font: 500 14px/1.3 var(--font-ui); }
+  .cm-ds-change small { color: #a9b7d3; }
+  .cm-ds-change em { font-style: normal; font-weight: 700; color: #ff6a57; }
+  .cm-ds-e { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: rgb(255 68 51 / 0.2); }
+  .cm-ds-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cm-ds-btn { padding: 12px 18px; border-radius: 14px; background: #00cc4b; color: #000814; font: 700 14px/1 var(--font-ui); }
+  .cm-ds-btn--ghost { background: transparent; color: #f2f6ff; box-shadow: inset 0 0 0 1.5px #2a4068; }
+  @media (max-width: 1000px) { .cm-ds-grid { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,57 @@
+---
+// Case hero: a soft clay Activity Path in Three.js (hardware GL only),
+// over the code-drawn cover as its designed static fallback.
+import type { Project } from '../../../data/projects';
+import Cover from './Cover.astro';
+interface Props {
+  project: Project;
+}
+const { project } = Astro.props;
+---
+
+<div class="gs-hero" data-gs-hero>
+  <div class="gs-hero-fb"><Cover project={project} /></div>
+  <canvas class="gs-hero-canvas" data-gs-hero-canvas aria-hidden="true"></canvas>
+  <div class="gs-hero-chips" aria-hidden="true">
+    <span class="gs-chip gs-chip--a"><i class="gs-chip-dot"></i>Readiness · steady</span>
+    <span class="gs-chip gs-chip--b"><i class="gs-chip-moon"></i>Rest day · counted</span>
+    <span class="gs-chip gs-chip--c"><i class="gs-chip-dot gs-chip-dot--in"></i>Inside your path</span>
+  </div>
+</div>
+
+<script>
+  import { whenNear } from '../../../scripts/motion';
+  import { hasHardwareGL } from '../../../scripts/gl-support';
+  document.querySelectorAll<HTMLElement>('[data-gs-hero]').forEach((root) => {
+    const canvas = root.querySelector<HTMLCanvasElement>('[data-gs-hero-canvas]')!;
+    const force = new URLSearchParams(location.search).has('gs3d');
+    if (!hasHardwareGL() && !force) return;
+    whenNear(root, () =>
+      import('../../../scripts/three/gentler')
+        .then((m) => {
+          m.initHero(canvas);
+          requestAnimationFrame(() => root.classList.add('is-live'));
+        })
+        .catch(() => root.classList.remove('is-live')),
+    );
+  });
+</script>
+
+<style>
+  .gs-hero { position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: 28px; overflow: hidden; background: radial-gradient(90% 80% at 72% 22%, #ffd2b8, #ffe7d6 45%, #f7b9a0 100%); box-shadow: 0 40px 100px -30px rgb(255 122 69 / 0.45), 0 0 0 1px rgb(255 255 255 / 0.08); }
+  .gs-hero-fb { position: absolute; inset: 0; transition: opacity 1.2s cubic-bezier(0.45, 0, 0.55, 1); }
+  .gs-hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 1.2s cubic-bezier(0.45, 0, 0.55, 1); }
+  .gs-hero.is-live .gs-hero-canvas { opacity: 1; }
+  .gs-hero.is-live .gs-hero-fb { opacity: 0; }
+  .gs-hero-chips { position: absolute; inset: 0; pointer-events: none; }
+  .gs-chip { position: absolute; display: inline-flex; align-items: center; gap: 8px; padding: 0.5rem 0.85rem; border-radius: var(--r-pill); background: rgb(255 244 236 / 0.92); color: #2b1208; font: 600 clamp(0.62rem, 0.5rem + 0.4vw, 0.8rem) / 1 var(--font-ui); box-shadow: 0 10px 30px -10px rgb(43 18 8 / 0.35); animation: gs-hero-float 5.5s cubic-bezier(0.45, 0, 0.55, 1) infinite; white-space: nowrap; }
+  .gs-chip--a { left: 5%; bottom: 10%; }
+  .gs-chip--b { right: 4%; top: 6%; animation-delay: -1.8s; }
+  .gs-chip--c { right: 6%; bottom: 7%; animation-delay: -3.6s; }
+  .gs-hero:not(.is-live) .gs-chip--c { display: none; }
+  .gs-chip-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff7a45; }
+  .gs-chip-dot--in { background: #2f7d32; }
+  .gs-chip-moon { width: 11px; height: 11px; border-radius: 50%; background: #8a6fd1; -webkit-mask: radial-gradient(circle at 78% 30%, transparent 38%, #000 40%); mask: radial-gradient(circle at 78% 30%, transparent 38%, #000 40%); }
+  @keyframes gs-hero-float { 50% { transform: translateY(-6px); } }
+  @media (prefers-reduced-motion: reduce) { .gs-chip { animation: none; } }
+</style>

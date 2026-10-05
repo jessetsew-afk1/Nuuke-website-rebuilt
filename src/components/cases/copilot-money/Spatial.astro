@@ -1,0 +1,184 @@
+---
+// Spatial sketch: net worth as stacks of coins you can walk around (a visionOS-minded
+// motion study). Each account is a column of coins; debt hangs below the glass line.
+// Scrub or play the year. WebGL only on real GPUs; otherwise a drawn SVG version.
+import { spatialAccounts, spatialMonths, COIN_K } from '../../../data/cases/copilot-money';
+const last = spatialMonths.length - 1;
+const total = (m: number) => spatialAccounts.reduce((s, a) => s + a.k[m], 0);
+const payload = JSON.stringify({ accounts: spatialAccounts, months: spatialMonths, coin: COIN_K });
+---
+
+<div class="cms" data-cms data-payload={payload}>
+  <div class="cms-stage">
+    <canvas class="cms-canvas" data-cms-canvas tabindex="0" aria-label="3D coin stacks, one per account. Drag or use the left and right arrow keys to orbit."></canvas>
+    <div class="cms-fallback" data-cms-fallback aria-hidden="true"></div>
+    <div class="cms-tags" data-cms-tags aria-hidden="true"></div>
+    <p class="cms-hint" aria-hidden="true">Drag to orbit · one coin = ${COIN_K}k (sample)</p>
+  </div>
+
+  <div class="cms-side">
+    <div class="cms-read">
+      <p class="t-label">Net worth · <span data-cms-month>{spatialMonths[last]}</span> <span class="cms-sample">sample</span></p>
+      <p class="cms-total t-num"><span data-cms-total>${total(last)}</span>k</p>
+      <p class="cms-delta" data-cms-delta>▲ ${total(last) - total(0)}k since January</p>
+    </div>
+    <div class="cms-month">
+      <label for="cms-range" class="t-label">Scrub the year</label>
+      <input id="cms-range" type="range" min="0" max={last} value={last} step="1" data-cms-range />
+      <div class="cms-ticks" aria-hidden="true">{spatialMonths.map((m) => <span>{m.slice(0, 1)}</span>)}</div>
+      <button type="button" class="cms-play" data-cms-play aria-pressed="false"><span data-cms-play-l>▶ Play the year</span></button>
+    </div>
+    <div class="cms-accts">
+      <p class="t-label">Accounts · tap to focus</p>
+      <ul role="list">
+        {
+          spatialAccounts.map((a) => (
+            <li>
+              <button type="button" data-cms-acct={a.id} aria-pressed="false" style={`--c:${a.color}`}>
+                <i aria-hidden="true" />
+                <span>{a.name}</span>
+                <b class="t-num" data-cms-val={a.id}>{a.k[last] < 0 ? '−' : ''}${Math.abs(a.k[last])}k</b>
+              </button>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { whenNear } from '../../../scripts/motion';
+  import { hasHardwareGL } from '../../../scripts/gl-support';
+
+  type Acct = { id: string; name: string; color: string; k: number[] };
+  type Payload = { accounts: Acct[]; months: string[]; coin: number };
+
+  document.querySelectorAll<HTMLElement>('[data-cms]').forEach((root) => {
+    const data: Payload = JSON.parse(root.dataset.payload!);
+    const range = root.querySelector<HTMLInputElement>('[data-cms-range]')!;
+    const play = root.querySelector<HTMLButtonElement>('[data-cms-play]')!;
+    const playL = root.querySelector<HTMLElement>('[data-cms-play-l]')!;
+    const fb = root.querySelector<HTMLElement>('[data-cms-fallback]')!;
+    const acctBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-cms-acct]')];
+    let month = data.months.length - 1;
+    let focus: string | null = null;
+    let scene: { setMonth: (m: number) => void; setFocus: (id: string | null) => void } | null = null;
+    const money = (k: number) => `${k < 0 ? '−' : ''}$${Math.abs(k)}k`;
+
+    // Drawn fallback: the same stacks as flat SVG coins.
+    const drawFallback = () => {
+      const W = 640, H = 400, base = 270;
+      const step = W / (data.accounts.length + 1);
+      let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="${base - 6}" width="${W - 40}" height="14" rx="7" fill="#0a2147" opacity=".9"/>`;
+      data.accounts.forEach((a, i) => {
+        const cx = step * (i + 1);
+        const n = Math.round(Math.abs(a.k[month]) / data.coin);
+        const neg = a.k[month] < 0;
+        const dim = focus && focus !== a.id ? 0.25 : 1;
+        for (let j = 0; j < n; j++) {
+          const y = neg ? base + 18 + j * 9 : base - 10 - j * 9;
+          s += `<ellipse cx="${cx}" cy="${y + 4}" rx="26" ry="8" fill="#000814" opacity="${0.6 * dim}"/><ellipse cx="${cx}" cy="${y}" rx="26" ry="8" fill="${a.color}" opacity="${dim}" stroke="#000814" stroke-opacity=".35"/>`;
+        }
+        const ly = neg ? base + 26 + n * 9 + 14 : base - 22 - n * 9;
+        s += `<text x="${cx}" y="${ly}" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="700" fill="#F2F6FF" opacity="${dim}">${money(a.k[month])}</text>`;
+        s += `<text x="${cx}" y="${H - 14}" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="12" fill="#a9b7d3">${a.name}</text>`;
+      });
+      fb.innerHTML = s + '</svg>';
+    };
+
+    const set = (m: number) => {
+      month = m;
+      range.value = String(m);
+      const tot = data.accounts.reduce((s, a) => s + a.k[m], 0);
+      const t0 = data.accounts.reduce((s, a) => s + a.k[0], 0);
+      root.querySelector('[data-cms-month]')!.textContent = data.months[m];
+      root.querySelector('[data-cms-total]')!.textContent = '$' + tot;
+      root.querySelector('[data-cms-delta]')!.textContent = m === 0 ? 'Starting point' : `${tot >= t0 ? '▲' : '▼'} $${Math.abs(tot - t0)}k since January`;
+      data.accounts.forEach((a) => (root.querySelector(`[data-cms-val="${a.id}"]`)!.textContent = money(a.k[m])));
+      scene?.setMonth(m);
+      if (!scene) drawFallback();
+    };
+    range.addEventListener('input', () => set(Number(range.value)));
+
+    let timer = 0;
+    const stop = () => {
+      clearInterval(timer);
+      timer = 0;
+      play.setAttribute('aria-pressed', 'false');
+      playL.textContent = '▶ Play the year';
+    };
+    play.addEventListener('click', () => {
+      if (timer) return stop();
+      play.setAttribute('aria-pressed', 'true');
+      playL.textContent = '❚❚ Pause';
+      if (month >= data.months.length - 1) set(0);
+      timer = window.setInterval(() => (month >= data.months.length - 1 ? stop() : set(month + 1)), 700);
+    });
+
+    acctBtns.forEach((b) =>
+      b.addEventListener('click', () => {
+        focus = focus === b.dataset.cmsAcct ? null : b.dataset.cmsAcct!;
+        acctBtns.forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.cmsAcct === focus)));
+        scene?.setFocus(focus);
+        if (!scene) drawFallback();
+      }),
+    );
+
+    drawFallback();
+    const force = new URLSearchParams(location.search).has('forcegl');
+    if (!hasHardwareGL() && !force) {
+      root.classList.add('is-fallback');
+      return;
+    }
+    whenNear(root, () =>
+      import('../../../scripts/three/copilot')
+        .then((m) => {
+          scene = m.init(root, data, month);
+          scene.setFocus(focus);
+          root.classList.add('is-live');
+        })
+        .catch(() => root.classList.add('is-fallback')),
+    );
+  });
+</script>
+
+<style>
+  .cms { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.8fr); gap: var(--s-6); align-items: stretch; padding: var(--s-5); border-radius: calc(var(--r-lg) + 8px); border: 1px solid var(--line); background: var(--bg-2); }
+  .cms-stage { position: relative; min-height: 520px; border-radius: var(--r-lg); overflow: hidden; background: radial-gradient(70% 60% at 50% 40%, #0b2552, #000814 70%); isolation: isolate; }
+  .cms-canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: pan-y; cursor: grab; opacity: 0; transition: opacity 0.8s var(--ease-out); }
+  .cms-canvas:active { cursor: grabbing; }
+  .cms-canvas:focus-visible { outline-offset: -4px; }
+  .is-live .cms-canvas { opacity: 1; }
+  .cms-fallback { position: absolute; inset: 6% 4% 10%; display: grid; place-items: center; transition: opacity 0.6s; }
+  .cms-fallback :global(svg) { width: 100%; height: 100%; }
+  .is-live .cms-fallback { opacity: 0; }
+  .cms-tags { position: absolute; inset: 0; pointer-events: none; }
+  .cms-tags :global(.cms-tag) { position: absolute; left: 0; top: 0; padding: 3px 9px; border-radius: 99px; background: rgb(0 21 51 / 0.9); border: 1px solid #1b3157; color: #f2f6ff; font: 700 12px/1.3 var(--font-ui); white-space: nowrap; will-change: transform; transition: opacity 0.3s; }
+  .cms-tags :global(.cms-tag i) { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
+  .cms-hint { position: absolute; left: 16px; bottom: 14px; font: 600 var(--fs-label) / 1.2 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: #a9b7d3; }
+  .is-fallback .cms-hint { display: none; }
+
+  .cms-side { display: grid; gap: var(--s-5); align-content: start; padding: var(--s-3); }
+  .cms-read { display: grid; gap: 4px; }
+  .cms-sample { text-transform: none; letter-spacing: 0; color: var(--muted); }
+  .cms-total { font-family: var(--font-display); font-weight: 900; font-size: var(--fs-3xl); line-height: 1; letter-spacing: -0.04em; }
+  .cms-delta { color: #00cc4b; font: 700 var(--fs-sm) / 1.3 var(--font-ui); }
+  .cms-month { display: grid; gap: var(--s-2); }
+  .cms-month input { width: 100%; accent-color: #1c6cff; }
+  .cms-ticks { display: grid; grid-template-columns: repeat(12, 1fr); font: 500 11px/1 var(--font-ui); color: var(--muted); text-align: center; }
+  .cms-play { justify-self: start; margin-top: var(--s-2); padding: 0.6rem 1rem; border-radius: var(--r-pill); background: #1c6cff; color: #fff; font: 700 var(--fs-sm) / 1 var(--font-ui); }
+  .cms-play[aria-pressed='true'] { background: #f2f6ff; color: #000814; }
+  .cms-accts ul { list-style: none; padding: 0; margin-top: var(--s-2); display: grid; gap: 4px; }
+  .cms-accts button { width: 100%; display: grid; grid-template-columns: auto 1fr auto; gap: var(--s-3); align-items: center; padding: 0.55rem 0.7rem; border-radius: var(--r-md); border: 1px solid var(--line); color: var(--ink-2); font-size: var(--fs-sm); text-align: left; transition: border-color var(--dur-1), background var(--dur-1), color var(--dur-1); }
+  .cms-accts button:hover { color: var(--ink); border-color: var(--line-strong); }
+  .cms-accts button[aria-pressed='true'] { color: var(--ink); border-color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); }
+  .cms-accts i { width: 12px; height: 12px; border-radius: 50%; background: var(--c); }
+  .cms-accts b { color: var(--ink); font-weight: 700; }
+
+  @media (max-width: 960px) {
+    .cms { grid-template-columns: 1fr; padding: var(--s-3); }
+    .cms-stage { min-height: 380px; }
+    .cms-accts ul { grid-template-columns: 1fr 1fr; }
+  }
+</style>

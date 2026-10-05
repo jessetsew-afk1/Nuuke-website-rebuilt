@@ -1,0 +1,342 @@
+---
+// Signature module (b): the accessibility pass, live. One real screen and five switches:
+// Dynamic Type, high contrast, reduce motion, deuteranopia simulation and the VoiceOver
+// reading order. The readouts are measured from the screen as it renders, not hard-coded.
+import PathChart from './PathChart.astro';
+import { tenDays } from '../../../data/cases/gentler-streak';
+const sizes = [
+  { id: 'xs', label: 'xSmall', pt: 14 },
+  { id: 'l', label: 'Default', pt: 17 },
+  { id: 'xxxl', label: 'xxxLarge', pt: 23 },
+  { id: 'ax2', label: 'AX2', pt: 33 },
+];
+const vo = [
+  'Today. Heading. Tuesday, 6 October.',
+  'Readiness: steady. Short sleep, so keep it easy.',
+  'Activity Path. Chart. Last 10 days: 8 inside your path, 1 above, 1 below. Today is inside.',
+  'Go Gentler: a 20-minute walk is perfect today. Button. Double-tap for other ideas.',
+  'Yesterday: easy walk, 32 minutes, inside your path. Button.',
+  'Your heart says: a gentle day still counts.',
+  'Today. Tab. Selected. 1 of 4.',
+];
+---
+
+<div class="gs-ax" data-gs-ax>
+  <div class="gs-ax-controls">
+    <fieldset class="gs-ax-group">
+      <legend class="t-label">Dynamic Type</legend>
+      <div class="gs-ax-seg" role="radiogroup" aria-label="Text size">
+        {sizes.map((s) => <button type="button" role="radio" aria-checked={s.id === 'l' ? 'true' : 'false'} data-size={s.id} data-pt={s.pt}>{s.label}</button>)}
+      </div>
+      <p class="t-small" data-ax-size-note>Body text at 17pt, the iOS default.</p>
+    </fieldset>
+
+    <div class="gs-ax-switches">
+      {
+        [
+          ['hc', 'Increase contrast', 'Solid surfaces, darker secondary text, outlined cards.'],
+          ['rm', 'Reduce motion', 'The breathing orb and today’s pulse stop; nothing slides.'],
+          ['cb', 'Deuteranopia simulation', 'Shows the screen as someone with red-green colour blindness may see it.'],
+          ['vo', 'VoiceOver reading order', 'Numbers each element in the order VoiceOver reads it.'],
+        ].map(([k, t, d]) => (
+          <button type="button" role="switch" aria-checked="false" class="gs-ax-sw" data-sw={k}>
+            <span class="gs-ax-sw-track" aria-hidden="true"><i /></span>
+            <span class="gs-ax-sw-t">{t}</span>
+            <span class="gs-ax-sw-d">{d}</span>
+          </button>
+        ))
+      }
+    </div>
+
+    <div class="gs-ax-read" aria-live="polite">
+      <p class="t-label">Measured on the screen right now</p>
+      <dl>
+        <div><dt>Secondary text contrast</dt><dd data-ax-contrast>—</dd></div>
+        <div><dt>Button label contrast</dt><dd data-ax-btn>—</dd></div>
+        <div><dt>Smallest tap target</dt><dd data-ax-target>—</dd></div>
+        <div><dt>Animations running</dt><dd data-ax-anim>—</dd></div>
+        <div><dt>Meaning by colour alone</dt><dd>None. Days above or below the path are ▲ and ▼, not just red or purple.</dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <div class="gs-ax-stage">
+    <div class="gs-ax-phone">
+      <div class="gs-ax-screen" data-ax-screen>
+        <div class="gs-ax-content" data-ax-content>
+          <header class="gs-ax-head" data-vo="0">
+            <p class="gs-ax-kicker">Tuesday · 6 Oct</p>
+            <p class="gs-ax-h1">Today</p>
+          </header>
+          <div class="gs-ax-card gs-ax-ready" data-vo="1">
+            <span class="gs-ax-orb" aria-hidden="true"></span>
+            <div>
+              <p class="gs-ax-kicker">Readiness</p>
+              <p class="gs-ax-h2">You’re steady.</p>
+              <p class="gs-ax-sub" data-ax-sub>Short sleep, so keep it easy.</p>
+            </div>
+          </div>
+          <div class="gs-ax-card gs-ax-pathcard" data-vo="2">
+            <p class="gs-ax-kicker">Activity Path · 10 days</p>
+            <PathChart values={tenDays} w={280} h={110} label="Activity Path chart, last 10 days" />
+            <p class="gs-ax-legend"><span><i class="gs-ax-l-in"></i>inside</span><span>▲ above</span><span>▼ below</span></p>
+          </div>
+          <button type="button" class="gs-ax-cta" data-vo="3" data-ax-btn-el>
+            <span class="gs-ax-kicker">Go Gentler</span>
+            <span class="gs-ax-cta-t">A 20-min walk is perfect today</span>
+          </button>
+          <button type="button" class="gs-ax-card gs-ax-row" data-vo="4">
+            <span class="gs-ax-ico" aria-hidden="true"></span>
+            <span><span class="gs-ax-row-t">Easy walk · 32 min</span><span class="gs-ax-sub">Yesterday · inside your path</span></span>
+          </button>
+          <p class="gs-ax-heart" data-vo="5"><span aria-hidden="true">♥</span> Your heart says: a gentle day still counts.</p>
+          <div class="gs-ax-spacer"></div>
+        </div>
+        <nav class="gs-ax-tabs" data-vo="6" aria-label="Mock tab bar">
+          {['Today', 'Workouts', 'Trends', 'You'].map((t, i) => <span class:list={['gs-ax-tab', { 'is-on': i === 0 }]}><i aria-hidden="true"></i>{t}</span>)}
+        </nav>
+        <div class="gs-ax-badges" data-ax-badges aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="gs-ax-vo" data-ax-vo hidden>
+      <div class="gs-ax-vo-cap">
+        <span class="gs-ax-vo-n" data-ax-vo-n>1</span>
+        <p data-ax-vo-text aria-live="polite">{vo[0]}</p>
+      </div>
+      <div class="gs-ax-vo-nav">
+        <button type="button" data-ax-prev>‹ Previous</button>
+        <span class="t-small">Swipe order, as VoiceOver reads it</span>
+        <button type="button" data-ax-next>Next ›</button>
+      </div>
+    </div>
+  </div>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="gs-deut" color-interpolation-filters="linearRGB">
+      <feColorMatrix type="matrix" values="0.367322 0.860646 -0.227968 0 0  0.280085 0.672501 0.047413 0 0  -0.011820 0.042940 0.968881 0 0  0 0 0 1 0" />
+    </filter>
+  </svg>
+  <script type="application/json" data-ax-vo-data set:html={JSON.stringify(vo)} />
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-gs-ax]').forEach((root) => {
+    const screen = root.querySelector<HTMLElement>('[data-ax-screen]')!;
+    const content = root.querySelector<HTMLElement>('[data-ax-content]')!;
+    const badges = root.querySelector<HTMLElement>('[data-ax-badges]')!;
+    const voBox = root.querySelector<HTMLElement>('[data-ax-vo]')!;
+    const voText = root.querySelector<HTMLElement>('[data-ax-vo-text]')!;
+    const voN = root.querySelector<HTMLElement>('[data-ax-vo-n]')!;
+    const lines: string[] = JSON.parse(root.querySelector('[data-ax-vo-data]')!.textContent || '[]');
+    const els = [...root.querySelectorAll<HTMLElement>('[data-vo]')].sort((a, b) => Number(a.dataset.vo) - Number(b.dataset.vo));
+    const sizeBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-size]')];
+    const sizeNote = root.querySelector<HTMLElement>('[data-ax-size-note]')!;
+    // Wheel-scroll the mock on desktop; on touch, let swipes fall through to the page.
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) screen.setAttribute('data-lenis-prevent', '');
+    const scale: Record<string, number> = { xs: 14 / 17, l: 1, xxxl: 23 / 17, ax2: 33 / 17 };
+    const notes: Record<string, string> = {
+      xs: 'Body text at 14pt. Everything still fits, with more air.',
+      l: 'Body text at 17pt, the iOS default.',
+      xxxl: 'Body text at 23pt. Cards grow taller; nothing is truncated.',
+      ax2: 'Body text at 33pt. Rows stack vertically, the chart keeps full width and the screen scrolls.',
+    };
+    let voIndex = 0;
+
+    // --- Contrast maths (WCAG 2.x relative luminance).
+    const rgb = (s: string) => (s.match(/[\d.]+/g) || ['0', '0', '0']).slice(0, 3).map(Number);
+    const L = (c: number[]) => {
+      const f = (v: number) => {
+        const x = v / 255;
+        return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+      };
+      return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]);
+    };
+    const bgOf = (el: HTMLElement): number[] => {
+      let n: HTMLElement | null = el;
+      while (n) {
+        const c = getComputedStyle(n).backgroundColor;
+        const v = c.match(/[\d.]+/g);
+        if (v && (v.length < 4 || Number(v[3]) > 0.5)) return rgb(c);
+        n = n.parentElement;
+      }
+      return [255, 255, 255];
+    };
+    const ratio = (el: HTMLElement) => {
+      const a = L(rgb(getComputedStyle(el).color));
+      const b = L(bgOf(el));
+      return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    };
+    const grade = (r: number) => `${r.toFixed(1)} : 1 · ${r >= 7 ? 'AAA' : r >= 4.5 ? 'AA' : 'fails'}`;
+
+    const measure = () => {
+      root.querySelector<HTMLElement>('[data-ax-contrast]')!.textContent = grade(ratio(root.querySelector<HTMLElement>('[data-ax-sub]')!));
+      root.querySelector<HTMLElement>('[data-ax-btn]')!.textContent = grade(ratio(root.querySelector<HTMLElement>('.gs-ax-cta-t')!));
+      // The mock is drawn at 1 CSS px = 1 pt.
+      const min = Math.min(...[...screen.querySelectorAll<HTMLElement>('button, .gs-ax-tab')].map((b) => Math.min(b.offsetWidth, b.offsetHeight)));
+      root.querySelector<HTMLElement>('[data-ax-target]')!.textContent = `${Math.round(min)} pt · guideline ≥ 44 pt`;
+      const running = root.classList.contains('is-rm') ? 0 : 2;
+      root.querySelector<HTMLElement>('[data-ax-anim]')!.textContent = running ? `${running} (breathing orb, today’s pulse)` : '0 — all paused';
+      placeBadges();
+    };
+
+    const placeBadges = () => {
+      badges.innerHTML = '';
+      if (!root.classList.contains('is-vo')) return;
+      const sr = screen.getBoundingClientRect();
+      els.forEach((el, i) => {
+        const r = el.getBoundingClientRect();
+        const b = document.createElement('span');
+        b.className = 'gs-ax-badge' + (i === voIndex ? ' is-cur' : '');
+        b.textContent = String(i + 1);
+        b.style.left = `${r.left - sr.left + 6}px`;
+        b.style.top = `${r.top - sr.top + screen.scrollTop + 4}px`;
+        badges.appendChild(b);
+      });
+    };
+
+    const focusVo = (i: number) => {
+      voIndex = (i + els.length) % els.length;
+      els.forEach((el, j) => el.classList.toggle('gs-ax-vo-cur', j === voIndex));
+      voText.textContent = lines[voIndex];
+      voN.textContent = String(voIndex + 1);
+      const el = els[voIndex];
+      if (!el.classList.contains('gs-ax-tabs')) {
+        const top = el.offsetTop - 40;
+        screen.scrollTo({ top, behavior: root.classList.contains('is-rm') ? 'auto' : 'smooth' });
+      }
+      placeBadges();
+    };
+
+    sizeBtns.forEach((b) =>
+      b.addEventListener('click', () => {
+        sizeBtns.forEach((x) => x.setAttribute('aria-checked', String(x === b)));
+        const id = b.dataset.size!;
+        root.style.setProperty('--gs-t', String(scale[id]));
+        root.classList.toggle('is-ax', id === 'ax2');
+        sizeNote.textContent = notes[id];
+        requestAnimationFrame(measure);
+      }),
+    );
+
+    root.querySelectorAll<HTMLButtonElement>('[data-sw]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const on = b.getAttribute('aria-checked') !== 'true';
+        b.setAttribute('aria-checked', String(on));
+        const k = b.dataset.sw!;
+        root.classList.toggle(`is-${k}`, on);
+        if (k === 'vo') {
+          voBox.hidden = !on;
+          if (on) focusVo(0);
+          else els.forEach((el) => el.classList.remove('gs-ax-vo-cur'));
+        }
+        requestAnimationFrame(measure);
+      }),
+    );
+    root.querySelector('[data-ax-prev]')!.addEventListener('click', () => focusVo(voIndex - 1));
+    root.querySelector('[data-ax-next]')!.addEventListener('click', () => focusVo(voIndex + 1));
+    screen.addEventListener('scroll', () => root.classList.contains('is-vo') && placeBadges(), { passive: true });
+    new ResizeObserver(() => measure()).observe(content);
+    measure();
+  });
+</script>
+
+<style>
+  .gs-ax { --gs-t: 1; display: grid; grid-template-columns: 1fr minmax(300px, 380px); gap: var(--s-7); align-items: start; padding: var(--s-6); border-radius: calc(var(--r-lg) + 8px); border: 1px solid var(--line); background: radial-gradient(50% 60% at 85% 30%, rgb(126 217 87 / 0.1), transparent 70%), var(--bg-2); }
+  .gs-ax-controls { display: grid; gap: var(--s-5); align-content: start; }
+  .gs-ax-group { border: 0; padding: 0; margin: 0; display: grid; gap: var(--s-3); }
+  .gs-ax-seg { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: var(--r-pill); background: var(--surface-2); border: 1px solid var(--line); justify-self: start; }
+  .gs-ax-seg button { padding: 0.5rem 0.95rem; border-radius: var(--r-pill); font: 600 var(--fs-sm) var(--font-ui); color: var(--ink-2); }
+  .gs-ax-seg button[aria-checked='true'] { background: #ff7a45; color: #1d0c04; }
+  .gs-ax-switches { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+  .gs-ax-sw { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: center; text-align: left; padding: var(--s-4); border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface); transition: border-color var(--dur-1), background var(--dur-1); }
+  .gs-ax-sw:hover { border-color: var(--line-strong); }
+  .gs-ax-sw[aria-checked='true'] { border-color: #7ed957; background: color-mix(in srgb, #7ed957 8%, var(--surface)); }
+  .gs-ax-sw-track { grid-row: span 2; width: 44px; height: 26px; border-radius: 13px; background: #3a3a44; position: relative; transition: background var(--dur-1); }
+  .gs-ax-sw-track i { position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform 0.35s var(--ease-out); }
+  .gs-ax-sw[aria-checked='true'] .gs-ax-sw-track { background: #2f9e3a; }
+  .gs-ax-sw[aria-checked='true'] .gs-ax-sw-track i { transform: translateX(18px); }
+  .gs-ax-sw-t { font: 700 var(--fs-sm) / 1.2 var(--font-ui); color: var(--ink); }
+  .gs-ax-sw-d { font-size: 0.78rem; line-height: 1.35; color: var(--muted); }
+  .gs-ax-read { padding: var(--s-4) var(--s-5); border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line); }
+  .gs-ax-read dl { display: grid; gap: 0; margin-top: var(--s-3); }
+  .gs-ax-read dl > div { display: grid; grid-template-columns: 11rem 1fr; gap: var(--s-3); padding-block: 0.55rem; border-top: 1px solid var(--line); font-size: var(--fs-sm); }
+  .gs-ax-read dt { color: var(--muted); }
+  .gs-ax-read dd { color: var(--ink); font-family: var(--font-ui); font-weight: 600; }
+
+  /* ---------- The phone ---------- */
+  .gs-ax-stage { display: grid; gap: var(--s-4); justify-items: center; position: sticky; top: 90px; }
+  .gs-ax-phone { width: min(340px, 100%); padding: 10px; border-radius: 48px; background: linear-gradient(145deg, #3a3a42, #121216 40%, #2a2a30); box-shadow: 0 40px 90px -30px rgb(0 0 0 / 0.9), 0 0 60px -10px rgb(255 122 69 / 0.3); }
+  .gs-ax-screen { position: relative; height: 640px; border-radius: 38px; overflow-y: auto; overflow-x: hidden; background: #fff4ec; color: #2b1208; font-family: Inter, system-ui, sans-serif; scrollbar-width: none; transition: filter 0.5s; }
+  .gs-ax-screen::-webkit-scrollbar { display: none; }
+  .gs-ax.is-cb .gs-ax-screen { filter: url(#gs-deut); }
+  .gs-ax-content { padding: 54px 16px 96px; display: grid; gap: 12px; font-size: calc(17px * var(--gs-t)); }
+  .gs-ax-kicker { font-size: calc(11px * var(--gs-t)); letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; color: #6b4a3a; }
+  .gs-ax-h1 { font: 800 calc(30px * (1 + (var(--gs-t) - 1) * 0.6)) / 1.05 Montserrat, sans-serif; letter-spacing: -0.03em; }
+  .gs-ax-h2 { font: 800 calc(19px * var(--gs-t)) / 1.15 Montserrat, sans-serif; letter-spacing: -0.02em; }
+  .gs-ax-sub { display: block; font-size: calc(14px * var(--gs-t)); line-height: 1.35; color: #6b4a3a; }
+  .gs-ax-card { border-radius: 22px; padding: 14px; background: #fff; text-align: left; color: inherit; width: 100%; }
+  .gs-ax-ready { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; background: #ffe3d3; }
+  .gs-ax-orb { width: 54px; height: 54px; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #ffd2b8, #ff7a45 55%, #e2551f); box-shadow: 0 0 0 6px rgb(255 122 69 / 0.15); animation: gs-ax-breathe 5.5s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+  @keyframes gs-ax-breathe { 50% { transform: scale(1.1); box-shadow: 0 0 0 12px rgb(255 122 69 / 0.08); } }
+  .gs-ax-pathcard { display: grid; gap: 8px; }
+  .gs-ax-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: calc(12px * var(--gs-t)); color: #6b4a3a; }
+  .gs-ax-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .gs-ax-l-in { width: 9px; height: 9px; border-radius: 50%; background: #2f7d32; }
+  .gs-ax-cta { display: grid; gap: 4px; text-align: left; padding: 16px; border-radius: 22px; background: #ff7a45; color: #2b1208; min-height: 44px; }
+  .gs-ax-cta .gs-ax-kicker { color: #2b1208; }
+  .gs-ax-cta-t { font: 800 calc(16px * var(--gs-t)) / 1.2 Montserrat, sans-serif; color: #2b1208; }
+  .gs-ax-row { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; min-height: 44px; }
+  .gs-ax-row-t { display: block; font-weight: 700; font-size: calc(15px * var(--gs-t)); }
+  .gs-ax-ico { width: 36px; height: 36px; border-radius: 12px; background: #f4c430; }
+  .gs-ax-heart { font-size: calc(14px * var(--gs-t)); line-height: 1.4; color: #6b4a3a; padding: 4px 4px 0; }
+  .gs-ax-heart span { color: #e2551f; }
+  .gs-ax-spacer { height: 8px; }
+  .gs-ax-tabs { position: sticky; bottom: 0; margin-top: -86px; height: 86px; display: grid; grid-template-columns: repeat(4, 1fr); padding: 8px 6px 24px; background: rgb(255 255 255 / 0.96); border-top: 1px solid #f0d9c9; z-index: 2; }
+  .gs-ax-tab { display: grid; justify-items: center; align-content: center; gap: 4px; font-size: calc(10.5px * min(var(--gs-t), 1.3)); color: #6b4a3a; min-height: 44px; }
+  .gs-ax-tab i { width: 22px; height: 22px; border-radius: 8px; background: #ead6c8; }
+  .gs-ax-tab.is-on { color: #9a3510; font-weight: 700; }
+  .gs-ax-tab.is-on i { background: #ff7a45; }
+
+  /* Accessibility sizes: rows stack. */
+  .gs-ax.is-ax .gs-ax-ready, .gs-ax.is-ax .gs-ax-row { grid-template-columns: 1fr; }
+  .gs-ax.is-ax .gs-ax-tab { font-size: 0; gap: 0; }
+  .gs-ax.is-ax .gs-ax-tab i { width: 30px; height: 30px; }
+
+  /* Increase contrast. */
+  .gs-ax.is-hc .gs-ax-screen { background: #fff; }
+  .gs-ax.is-hc .gs-ax-kicker, .gs-ax.is-hc .gs-ax-sub, .gs-ax.is-hc .gs-ax-legend, .gs-ax.is-hc .gs-ax-heart, .gs-ax.is-hc .gs-ax-tab { color: #1a0a03; }
+  .gs-ax.is-hc .gs-ax-card { box-shadow: inset 0 0 0 2px #1a0a03; }
+  .gs-ax.is-hc .gs-ax-ready { background: #ffd9c4; }
+  .gs-ax.is-hc .gs-ax-cta { background: #ff6a2e; box-shadow: inset 0 0 0 2px #1a0a03; color: #000; }
+  .gs-ax.is-hc .gs-ax-cta-t, .gs-ax.is-hc .gs-ax-cta .gs-ax-kicker { color: #000; }
+  .gs-ax.is-hc .gs-ax-tab.is-on { color: #7a2a0b; }
+  .gs-ax.is-hc :global(.gs-pc-band) { opacity: 0.75; }
+  .gs-ax.is-hc :global(.gs-pc-edge) { stroke-opacity: 1; stroke-dasharray: none; stroke-width: 2; }
+
+  /* Reduce motion. */
+  .gs-ax.is-rm .gs-ax-orb, .gs-ax.is-rm :global(.gs-pc-today) { animation: none; }
+
+  /* VoiceOver overlay. */
+  .gs-ax-badges { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  :global(.gs-ax-badge) { position: absolute; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #2e1b4e; color: #fff; font: 800 12px/1 Inter, sans-serif; box-shadow: 0 0 0 2px #fff; transition: transform 0.3s; }
+  :global(.gs-ax-badge.is-cur) { background: #e2551f; transform: scale(1.2); }
+  .gs-ax.is-vo [data-vo] { outline: 2px dashed rgb(46 27 78 / 0.45); outline-offset: 2px; border-radius: 14px; }
+  .gs-ax.is-vo .gs-ax-vo-cur { outline: 3px solid #2e1b4e; outline-offset: 3px; }
+  .gs-ax-vo { width: min(340px, 100%); display: grid; gap: var(--s-2); }
+  .gs-ax-vo-cap { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 14px; background: #111; color: #fff; font: 500 0.88rem/1.4 var(--font-ui); border: 1px solid var(--line-strong); }
+  .gs-ax-vo-n { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #e2551f; color: #1d0c04; font-weight: 800; }
+  .gs-ax-vo-nav { display: flex; justify-content: space-between; align-items: center; gap: var(--s-2); }
+  .gs-ax-vo-nav button { padding: 0.5rem 0.8rem; border-radius: var(--r-pill); border: 1px solid var(--line-strong); font: 600 var(--fs-sm) var(--font-ui); color: var(--ink); }
+  .gs-ax-vo-nav .t-small { text-align: center; font-size: 0.75rem; }
+
+  @media (max-width: 1000px) {
+    .gs-ax { grid-template-columns: 1fr; padding: var(--s-4); }
+    .gs-ax-stage { position: relative; top: 0; order: -1; }
+  }
+  @media (max-width: 600px) {
+    .gs-ax-switches { grid-template-columns: 1fr; }
+    .gs-ax-read dl > div { grid-template-columns: 1fr; gap: 2px; }
+    .gs-ax-screen { height: 560px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .gs-ax-orb { animation: none; } }
+</style>

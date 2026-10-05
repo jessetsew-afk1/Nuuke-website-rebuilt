@@ -1,0 +1,398 @@
+---
+// Signature module (a): an information-architecture card sort you can do yourself.
+// Drag cards into tabs (mouse, pen, or a sideways drag on touch), or tap a card and then a tab.
+// Keyboard: Enter/Space picks a card up, 1–4 drops it in a tab, 0 or Esc puts it back.
+import { cards, tabs } from '../../../data/cases/gentler-streak';
+const payload = JSON.stringify({ cards: cards.map(({ id, label, ours, why }) => ({ id, label, ours, why })), tabs: tabs.map(({ id, label }) => ({ id, label })) });
+---
+
+<div class="gs-cs" data-gs-cs>
+  <div class="gs-cs-top">
+    <div>
+      <h3 class="gs-cs-h">Sort Gentler Streak’s features into four tabs.</h3>
+      <p class="t-body">Drag each card into the tab where you’d look for it. On a phone, tap a card, then tap a tab. With a keyboard, pick a card up with <kbd>Enter</kbd> and press <kbd>1</kbd>–<kbd>4</kbd>.</p>
+    </div>
+    <div class="gs-cs-actions">
+      <p class="gs-cs-count t-num" aria-live="polite"><b data-cs-count>0</b> / {cards.length} sorted</p>
+      <button type="button" class="gs-cs-btn gs-cs-btn--main" data-cs-compare>Compare with our IA</button>
+      <button type="button" class="gs-cs-btn" data-cs-ours>Show our sort</button>
+      <button type="button" class="gs-cs-btn" data-cs-reset>Reset</button>
+    </div>
+  </div>
+
+  <div class="gs-cs-board">
+    <div class="gs-cs-pile" data-zone="pile">
+      <p class="t-label">Unsorted <span class="gs-cs-key">0</span></p>
+      <ul class="gs-cs-list" role="list" data-list="pile">
+        {
+          cards.map((c) => (
+            <li class="gs-cs-card" data-card={c.id}>
+              <button type="button" class="gs-cs-cardbtn" aria-pressed="false">
+                <span class="gs-cs-grip" aria-hidden="true" />
+                <span class="gs-cs-cl">{c.label}</span>
+                <span class="gs-cs-verdict" data-verdict />
+              </button>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+    <div class="gs-cs-zones">
+      {
+        tabs.map((t, i) => (
+          <section class="gs-cs-zone" data-zone={t.id} aria-labelledby={`gs-cs-z-${t.id}`}>
+            <header class="gs-cs-zh">
+              <span class={`gs-cs-ico gs-cs-ico--${t.id}`} aria-hidden="true" />
+              <span>
+                <span class="gs-cs-zt" id={`gs-cs-z-${t.id}`}>
+                  {t.label} <span class="gs-cs-key">{i + 1}</span>
+                </span>
+                <span class="gs-cs-zs">{t.hint}</span>
+              </span>
+            </header>
+            <ul class="gs-cs-list" role="list" data-list={t.id} />
+            <button type="button" class="gs-cs-drop" data-drop={t.id} disabled>
+              Place here
+            </button>
+          </section>
+        ))
+      }
+    </div>
+  </div>
+
+  <p class="visually-hidden" aria-live="assertive" data-cs-live></p>
+
+  <div class="gs-cs-result" data-cs-result hidden>
+    <div class="gs-cs-score">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle cx="60" cy="60" r="50" class="gs-cs-sc-bg" />
+        <circle cx="60" cy="60" r="50" class="gs-cs-sc-fg" data-cs-ring transform="rotate(-90 60 60)" />
+      </svg>
+      <p class="gs-cs-pct"><b data-cs-pct>0%</b><span>agreement with our IA</span></p>
+    </div>
+    <div class="gs-cs-why">
+      <h4 class="gs-cs-wh" data-cs-head>Where we differ</h4>
+      <ul role="list" class="gs-cs-diffs" data-cs-diffs></ul>
+      <p class="t-small">How we’d run it for real: an open sort with 15–20 Gentler Streak users, a similarity matrix to see which cards cluster, then a closed sort and a tree test to check the final tabs. Your sort here is one data point, and it’s yours alone: nothing is sent anywhere.</p>
+    </div>
+  </div>
+  <script type="application/json" data-cs-data set:html={payload} />
+</div>
+
+<script>
+  type Card = { id: string; label: string; ours: string; why: string };
+  type Data = { cards: Card[]; tabs: { id: string; label: string }[] };
+
+  document.querySelectorAll<HTMLElement>('[data-gs-cs]').forEach((root) => {
+    const data: Data = JSON.parse(root.querySelector('[data-cs-data]')!.textContent || '{}');
+    const byId = Object.fromEntries(data.cards.map((c) => [c.id, c]));
+    const tabName = Object.fromEntries(data.tabs.map((t) => [t.id, t.label]));
+    const items = [...root.querySelectorAll<HTMLLIElement>('[data-card]')];
+    const lists = Object.fromEntries([...root.querySelectorAll<HTMLUListElement>('[data-list]')].map((l) => [l.dataset.list!, l]));
+    const zones = [...root.querySelectorAll<HTMLElement>('[data-zone]')];
+    const drops = [...root.querySelectorAll<HTMLButtonElement>('[data-drop]')];
+    const live = root.querySelector<HTMLElement>('[data-cs-live]')!;
+    const countEl = root.querySelector<HTMLElement>('[data-cs-count]')!;
+    const result = root.querySelector<HTMLElement>('[data-cs-result]')!;
+    const ring = root.querySelector<SVGCircleElement>('[data-cs-ring]')!;
+    const pctEl = root.querySelector<HTMLElement>('[data-cs-pct]')!;
+    const diffs = root.querySelector<HTMLElement>('[data-cs-diffs]')!;
+    const head = root.querySelector<HTMLElement>('[data-cs-head]')!;
+    const order = data.tabs.map((t) => t.id);
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let selected: HTMLLIElement | null = null;
+    let compared = false;
+
+    const zoneOf = (li: HTMLLIElement) => (li.parentElement as HTMLElement).dataset.list!;
+    const btnOf = (li: HTMLLIElement) => li.querySelector<HTMLButtonElement>('button')!;
+    const label = (li: HTMLLIElement) => byId[li.dataset.card!].label;
+
+    const select = (li: HTMLLIElement | null) => {
+      selected = li;
+      items.forEach((x) => {
+        btnOf(x).setAttribute('aria-pressed', String(x === li));
+        x.classList.toggle('is-picked', x === li);
+      });
+      drops.forEach((d) => {
+        d.disabled = !li;
+        d.textContent = li ? `Place “${label(li)}” here` : 'Place here';
+      });
+      root.classList.toggle('has-pick', !!li);
+      if (li) live.textContent = `${label(li)} picked up. Press 1 to 4 to choose a tab, or 0 to return it.`;
+    };
+
+    // FLIP: animate cards from where they were to where they land.
+    const flip = (move: () => void) => {
+      const before = new Map(items.map((x) => [x, x.getBoundingClientRect()]));
+      move();
+      if (reduce) return;
+      items.forEach((x) => {
+        const a = before.get(x)!;
+        const b = x.getBoundingClientRect();
+        const dx = a.left - b.left;
+        const dy = a.top - b.top;
+        if (Math.abs(dx) + Math.abs(dy) < 1) return;
+        x.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 650, easing: 'cubic-bezier(0.45, 0, 0.25, 1)' });
+      });
+    };
+
+    const update = () => {
+      const n = items.filter((x) => zoneOf(x) !== 'pile').length;
+      countEl.textContent = String(n);
+      if (compared) compare(false);
+    };
+
+    const place = (li: HTMLLIElement, zone: string, announce = true) => {
+      flip(() => lists[zone].appendChild(li));
+      if (announce) live.textContent = zone === 'pile' ? `${label(li)} returned to unsorted.` : `${label(li)} placed in ${tabName[zone]}.`;
+      select(null);
+      update();
+      btnOf(li).focus({ preventScroll: true });
+    };
+
+    const compare = (scroll = true) => {
+      compared = true;
+      let match = 0;
+      diffs.innerHTML = '';
+      items.forEach((x) => {
+        const c = byId[x.dataset.card!];
+        const z = zoneOf(x);
+        const v = x.querySelector<HTMLElement>('[data-verdict]')!;
+        x.classList.remove('is-match', 'is-miss');
+        if (z === 'pile') {
+          v.textContent = '';
+          return;
+        }
+        if (z === c.ours) {
+          match++;
+          x.classList.add('is-match');
+          v.textContent = '✓ same as ours';
+        } else {
+          x.classList.add('is-miss');
+          v.textContent = `ours: ${tabName[c.ours]}`;
+          const li = document.createElement('li');
+          li.innerHTML = `<strong></strong> <span class="gs-cs-arrow">you: ${tabName[z]} → ours: ${tabName[c.ours]}</span><br><span class="gs-cs-reason"></span>`;
+          li.querySelector('strong')!.textContent = c.label;
+          li.querySelector('.gs-cs-reason')!.textContent = c.why;
+          diffs.appendChild(li);
+        }
+      });
+      const pct = Math.round((match / items.length) * 100);
+      pctEl.textContent = `${pct}%`;
+      ring.style.strokeDashoffset = String(314.16 * (1 - pct / 100));
+      const sorted = items.filter((x) => zoneOf(x) !== 'pile').length;
+      if (!diffs.children.length) {
+        const li = document.createElement('li');
+        li.textContent = sorted < items.length ? `No differences so far. ${items.length - sorted} cards are still unsorted, and unsorted cards count as disagreement.` : 'A perfect match. In a real study we’d still look at where people hesitated.';
+        diffs.appendChild(li);
+        head.textContent = 'Where we differ';
+      } else head.textContent = `Where we differ (${diffs.children.length})`;
+      result.hidden = false;
+      live.textContent = `${pct}% agreement with our information architecture.`;
+      if (scroll) result.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+    };
+
+    // Click / tap: pick up a card, or drop the picked card into a tab.
+    let suppress = false;
+    items.forEach((li) => {
+      const b = btnOf(li);
+      b.addEventListener('click', () => {
+        if (suppress) return;
+        select(selected === li ? null : li);
+      });
+      b.addEventListener('keydown', (e) => {
+        const k = e.key;
+        if (selected !== li) return;
+        if (/^[1-4]$/.test(k)) {
+          e.preventDefault();
+          place(li, order[Number(k) - 1]);
+        } else if (k === '0') {
+          e.preventDefault();
+          place(li, 'pile');
+        } else if (k === 'Escape') {
+          select(null);
+          live.textContent = 'Cancelled.';
+        }
+      });
+    });
+    drops.forEach((d) => d.addEventListener('click', () => selected && place(selected, d.dataset.drop!)));
+    zones.forEach((z) =>
+      z.addEventListener('click', (e) => {
+        if (!selected || (e.target as HTMLElement).closest('button')) return;
+        place(selected, z.dataset.zone!);
+      }),
+    );
+
+    // Pointer drag with a floating ghost.
+    items.forEach((li) => {
+      const b = btnOf(li);
+      b.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0) return;
+        const sx = e.clientX;
+        const sy = e.clientY;
+        const r = li.getBoundingClientRect();
+        let ghost: HTMLElement | null = null;
+        let over: HTMLElement | null = null;
+        const move = (ev: PointerEvent) => {
+          const dx = ev.clientX - sx;
+          const dy = ev.clientY - sy;
+          if (!ghost) {
+            if (Math.hypot(dx, dy) < 7) return;
+            // On touch, only a sideways drag starts dragging; vertical moves keep scrolling the page.
+            if (ev.pointerType === 'touch' && Math.abs(dy) > Math.abs(dx)) return cleanup();
+            ghost = li.cloneNode(true) as HTMLElement;
+            ghost.classList.add('gs-cs-ghost');
+            ghost.setAttribute('aria-hidden', 'true');
+            ghost.style.width = `${r.width}px`;
+            ghost.style.left = `${r.left}px`;
+            ghost.style.top = `${r.top}px`;
+            root.appendChild(ghost);
+            li.classList.add('is-dragging');
+            try {
+              b.setPointerCapture(ev.pointerId);
+            } catch {}
+          }
+          ghost.style.transform = `translate(${dx}px, ${dy}px) rotate(${Math.max(-6, Math.min(6, dx / 40))}deg)`;
+          const hit = zones.find((z) => {
+            const zr = z.getBoundingClientRect();
+            return ev.clientX >= zr.left && ev.clientX <= zr.right && ev.clientY >= zr.top && ev.clientY <= zr.bottom;
+          });
+          if (hit !== over) {
+            over?.classList.remove('is-over');
+            hit?.classList.add('is-over');
+            over = hit ?? null;
+          }
+        };
+        const up = () => {
+          if (ghost) {
+            suppress = true;
+            setTimeout(() => (suppress = false), 50);
+            const g = ghost;
+            const target = over?.dataset.zone;
+            li.classList.remove('is-dragging');
+            g.remove();
+            if (target && target !== zoneOf(li)) place(li, target);
+          }
+          cleanup();
+        };
+        const cleanup = () => {
+          over?.classList.remove('is-over');
+          ghost?.remove();
+          li.classList.remove('is-dragging');
+          b.removeEventListener('pointermove', move);
+          b.removeEventListener('pointerup', up);
+          b.removeEventListener('pointercancel', cleanup);
+          window.removeEventListener('pointermove', move);
+          window.removeEventListener('pointerup', up);
+        };
+        window.addEventListener('pointermove', move);
+        window.addEventListener('pointerup', up);
+        b.addEventListener('pointercancel', cleanup);
+      });
+    });
+
+    root.querySelector('[data-cs-compare]')!.addEventListener('click', () => compare());
+    root.querySelector('[data-cs-ours]')!.addEventListener('click', () => {
+      select(null);
+      flip(() => items.forEach((x) => lists[byId[x.dataset.card!].ours].appendChild(x)));
+      live.textContent = 'Cards moved into our proposed tabs.';
+      update();
+      compare(false);
+      result.hidden = false;
+    });
+    root.querySelector('[data-cs-reset]')!.addEventListener('click', () => {
+      select(null);
+      compared = false;
+      result.hidden = true;
+      flip(() => items.forEach((x) => lists.pile.appendChild(x)));
+      items.forEach((x) => {
+        x.classList.remove('is-match', 'is-miss');
+        x.querySelector<HTMLElement>('[data-verdict]')!.textContent = '';
+      });
+      live.textContent = 'All cards returned to unsorted.';
+      update();
+    });
+  });
+</script>
+
+<style>
+  .gs-cs { position: relative; display: grid; gap: var(--s-6); padding: var(--s-6); border-radius: calc(var(--r-lg) + 8px); border: 1px solid var(--line); background: radial-gradient(60% 50% at 0% 0%, rgb(255 122 69 / 0.12), transparent 70%), var(--bg-2); }
+  .gs-cs-top { display: grid; grid-template-columns: 1fr auto; gap: var(--s-5); align-items: end; }
+  .gs-cs-h { font: 800 var(--fs-xl) / 1.15 var(--font-display); letter-spacing: -0.02em; margin-bottom: var(--s-2); }
+  .gs-cs kbd { font: 600 0.8em var(--font-ui); padding: 1px 6px; border-radius: 6px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); }
+  .gs-cs-actions { display: flex; flex-wrap: wrap; gap: var(--s-2); align-items: center; justify-content: flex-end; }
+  .gs-cs-count { font-size: var(--fs-sm); color: var(--ink-2); margin-right: var(--s-2); }
+  .gs-cs-count b { color: var(--ink); font-size: 1.3em; }
+  .gs-cs-btn { padding: 0.65rem 1.05rem; border-radius: var(--r-pill); border: 1px solid var(--line-strong); font: 600 var(--fs-sm) var(--font-ui); color: var(--ink); transition: background var(--dur-1), transform var(--dur-1); }
+  .gs-cs-btn:hover { background: var(--surface-2); }
+  .gs-cs-btn--main { background: #ff7a45; border-color: #ff7a45; color: #1d0c04; }
+  .gs-cs-btn--main:hover { background: #ff9466; }
+  .gs-cs-board { display: grid; grid-template-columns: minmax(220px, 0.8fr) 2fr; gap: var(--s-5); align-items: start; }
+  .gs-cs-pile { padding: var(--s-4); border-radius: var(--r-lg); border: 1.5px dashed var(--line-strong); min-height: 120px; display: grid; gap: var(--s-3); align-content: start; }
+  .gs-cs-key { display: inline-grid; place-items: center; min-width: 1.4em; height: 1.4em; margin-left: 4px; border-radius: 5px; border: 1px solid var(--line-strong); font: 600 0.7rem var(--font-ui); color: var(--ink-2); letter-spacing: 0; vertical-align: 1px; }
+  .gs-cs-list { list-style: none; padding: 0; display: grid; gap: 8px; min-height: 44px; }
+  .gs-cs-zones { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-3); }
+  .gs-cs-zone { display: grid; grid-template-rows: auto 1fr auto; gap: var(--s-3); padding: var(--s-3); border-radius: var(--r-lg); background: var(--surface); border: 1.5px solid var(--line); min-height: 320px; transition: border-color var(--dur-1), background var(--dur-1), transform var(--dur-2) var(--ease-out); }
+  .gs-cs-zone.is-over { border-color: #ff7a45; background: color-mix(in srgb, #ff7a45 10%, var(--surface)); transform: translateY(-3px); }
+  .gs-cs.has-pick .gs-cs-zone { border-style: dashed; border-color: color-mix(in srgb, #ff7a45 55%, transparent); cursor: copy; }
+  .gs-cs-zh { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }
+  .gs-cs-zt { display: block; font: 800 var(--fs-base) / 1.2 var(--font-display); }
+  .gs-cs-zs { display: block; font-size: 0.78rem; line-height: 1.35; color: var(--muted); margin-top: 2px; }
+  .gs-cs-ico { width: 30px; height: 30px; border-radius: 10px; background: #ff7a45; position: relative; }
+  .gs-cs-ico--today { background: radial-gradient(circle at 50% 50%, #fff4ec 0 28%, #ff7a45 30%); }
+  .gs-cs-ico--workouts { background: linear-gradient(90deg, transparent 20%, #f4c430 20% 34%, transparent 34% 44%, #f4c430 44% 58%, transparent 58% 68%, #f4c430 68% 82%, transparent 82%), #3a2a1a; }
+  .gs-cs-ico--trends { background: linear-gradient(160deg, transparent 45%, #7ed957 46% 58%, transparent 59%), #1d3a17; }
+  .gs-cs-ico--you { background: radial-gradient(circle at 50% 38%, #b9a6e8 0 20%, transparent 22%), radial-gradient(ellipse at 50% 100%, #b9a6e8 0 40%, transparent 42%), #2e1b4e; }
+  .gs-cs-drop { padding: 0.6rem; border-radius: 12px; border: 1px dashed var(--line-strong); font: 600 0.78rem/1.3 var(--font-ui); color: var(--ink-2); overflow-wrap: anywhere; }
+  .gs-cs-drop:not(:disabled) { border-style: solid; border-color: #ff7a45; color: var(--ink); background: color-mix(in srgb, #ff7a45 14%, transparent); }
+  .gs-cs-drop:disabled { cursor: default; color: var(--muted); }
+
+  .gs-cs-card { position: relative; }
+  .gs-cs-cardbtn { width: 100%; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: center; text-align: left; padding: 0.7rem 0.8rem; border-radius: 12px; background: #fff4ec; color: #2b1208; font: 600 0.86rem/1.25 var(--font-ui); box-shadow: 0 1px 0 rgb(0 0 0 / 0.2), 0 8px 18px -12px rgb(0 0 0 / 0.6); cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; transition: transform var(--dur-1), box-shadow var(--dur-1), outline-color var(--dur-1); outline: 2px solid transparent; outline-offset: 2px; }
+  .gs-cs-cardbtn:hover { transform: translateY(-2px); }
+  .gs-cs-cardbtn:focus-visible { outline-color: #ff7a45; }
+  .gs-cs-card.is-picked .gs-cs-cardbtn { outline-color: #ff7a45; transform: translateY(-3px) rotate(-1deg); box-shadow: 0 16px 30px -12px rgb(255 122 69 / 0.8); }
+  .gs-cs-card.is-dragging { opacity: 0.35; }
+  .gs-cs-grip { width: 8px; height: 16px; background: radial-gradient(circle, #b08a76 1.4px, transparent 1.6px) 0 0 / 4px 4px; }
+  .gs-cs-verdict { grid-column: 2; font-size: 0.72rem; font-weight: 700; }
+  .gs-cs-verdict:empty { display: none; }
+  .gs-cs-card.is-match .gs-cs-cardbtn { background: #e3f7da; box-shadow: inset 0 0 0 2px #2f7d32; }
+  .gs-cs-card.is-match .gs-cs-verdict { color: #1f5a22; }
+  .gs-cs-card.is-miss .gs-cs-cardbtn { background: #fff0e6; box-shadow: inset 0 0 0 2px #e2551f; }
+  .gs-cs-card.is-miss .gs-cs-verdict { color: #9a3510; }
+  .gs-cs-ghost { position: fixed; z-index: 100; list-style: none; pointer-events: none; }
+  .gs-cs-ghost .gs-cs-cardbtn { box-shadow: 0 24px 40px -14px rgb(0 0 0 / 0.8); outline: 2px solid #ff7a45; }
+
+  .gs-cs-result { display: grid; grid-template-columns: auto 1fr; gap: var(--s-6); align-items: start; padding-top: var(--s-5); border-top: 1px solid var(--line); scroll-margin: 120px; }
+  .gs-cs-score { position: relative; width: 170px; }
+  .gs-cs-score svg { width: 100%; }
+  .gs-cs-sc-bg { fill: none; stroke: var(--surface-2); stroke-width: 10; }
+  .gs-cs-sc-fg { fill: none; stroke: #7ed957; stroke-width: 10; stroke-linecap: round; stroke-dasharray: 314.16; stroke-dashoffset: 314.16; transition: stroke-dashoffset 1.2s cubic-bezier(0.45, 0, 0.55, 1); }
+  .gs-cs-pct { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+  .gs-cs-pct b { font: 900 2.4rem/1 var(--font-display); letter-spacing: -0.04em; }
+  .gs-cs-pct span { font-size: 0.72rem; color: var(--ink-2); max-width: 11ch; margin-inline: auto; }
+  .gs-cs-why { display: grid; gap: var(--s-3); }
+  .gs-cs-wh { font: 800 var(--fs-lg) / 1.2 var(--font-display); }
+  .gs-cs-diffs { list-style: none; padding: 0; display: grid; gap: var(--s-3); }
+  .gs-cs-diffs li { padding: var(--s-3) var(--s-4); border-radius: var(--r-md); background: var(--surface); color: var(--ink-2); font-size: var(--fs-sm); }
+  .gs-cs-diffs strong { color: var(--ink); }
+  :global(.gs-cs-arrow) { color: #ffb089; font-weight: 600; }
+
+  @media (max-width: 1100px) {
+    .gs-cs-board { grid-template-columns: 1fr; }
+    .gs-cs-zones { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .gs-cs-zone { min-height: 220px; }
+    .gs-cs-pile .gs-cs-list { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+  }
+  @media (max-width: 700px) {
+    .gs-cs { padding: var(--s-4); }
+    .gs-cs-top { grid-template-columns: 1fr; }
+    .gs-cs-actions { justify-content: flex-start; }
+    .gs-cs-result { grid-template-columns: 1fr; justify-items: center; }
+    .gs-cs-why { justify-self: stretch; }
+    .gs-cs-zone { min-height: 170px; padding: 10px; }
+    .gs-cs-zs { display: none; }
+    .gs-cs-cardbtn { font-size: 0.8rem; padding: 0.6rem; }
+    .gs-cs-pile .gs-cs-list { grid-template-columns: 1fr 1fr; }
+  }
+</style>

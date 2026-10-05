@@ -1,0 +1,320 @@
+---
+// Live Activity & Dynamic Island design bench. Switch the flight state and watch the lock-screen
+// Live Activity plus the compact, minimal and expanded island update together. Each state carries
+// the signage rule it follows. A one-second glance test checks whether the layout really reads.
+import { LIVE_STATES } from '../../../data/cases/flighty';
+const quiz: Record<string, { q: string; opts: string[]; a: number }> = {
+  boarding: { q: 'Which gate?', opts: ['B12', 'C4', '54B'], a: 1 },
+  taxi: { q: 'When do you take off?', opts: ['In about 12 min', 'At 17:31', 'Already flying'], a: 0 },
+  air: { q: 'How long until you land?', opts: ['42%', '2h 01m', '17:26 tomorrow'], a: 1 },
+  landed: { q: 'Where is your bag?', opts: ['Gate 54B', 'Belt 3', 'Not out yet'], a: 1 },
+  delayed: { q: 'When do you leave now?', opts: ['14:05', '14:53', '16:38'], a: 1 },
+  cancelled: { q: 'What should you do next?', opts: ['Wait at the gate', 'Rebook', 'Call the airline'], a: 1 },
+};
+const payload = JSON.stringify({ states: LIVE_STATES, quiz });
+const s0 = LIVE_STATES[0];
+---
+
+<div class="fl-lb" data-fl-lb data-state={s0.id} data-tone={s0.tone} style={`--ring:${s0.ring}`}>
+  <div class="fl-lb-bar" role="group" aria-label="Flight state">
+    {
+      LIVE_STATES.map((s, i) => (
+        <button type="button" class="fl-lb-state" data-set={s.id} aria-pressed={i === 0 ? 'true' : 'false'}>
+          <span class={`fl-lb-dot fl-lb-dot--${s.tone}`} aria-hidden="true" />
+          {s.label}
+        </button>
+      ))
+    }
+  </div>
+
+  <div class="fl-lb-grid">
+    <!-- Lock screen -->
+    <div class="fl-lb-phone-wrap">
+      <div class="fl-lb-phone" data-fl-phone>
+        <div class="fl-lb-wall" aria-hidden="true"></div>
+        <div class="fl-isl fl-isl--compact fl-isl--top" aria-hidden="true">
+          <span class="fl-isl-lead" data-k="lead">{s0.lead}</span>
+          <span class="fl-isl-cam"></span>
+          <span class="fl-isl-trail" data-k="trail">{s0.trail}</span>
+          <span class="fl-isl-ring"></span>
+        </div>
+        <p class="fl-lb-time">13:31</p>
+        <p class="fl-lb-date">Wednesday 8 October</p>
+
+        <div class="fl-la" data-fl-la>
+          <div class="fl-la-head">
+            <span>FL 214 · ORD → SFO</span>
+            <span class="fl-la-chip" data-k="label">{s0.label}</span>
+          </div>
+          <div class="fl-la-route">
+            <div class="fl-la-end">
+              <span class="fl-la-code">ORD</span>
+              <span class="fl-la-t"><s data-k="depOld"></s> <b data-k="dep">{s0.dep}</b></span>
+            </div>
+            <div class="fl-la-track" aria-hidden="true">
+              <span class="fl-la-fill"></span>
+              <span class="fl-la-plane">✈</span>
+            </div>
+            <div class="fl-la-end fl-la-end--r">
+              <span class="fl-la-code">SFO</span>
+              <span class="fl-la-t"><s data-k="arrOld"></s> <b data-k="arr">{s0.arr}</b></span>
+            </div>
+          </div>
+          <div class="fl-la-foot">
+            <div>
+              <p class="fl-la-hl" data-k="headline">{s0.headline}</p>
+              <p class="fl-la-sub" data-k="sub">{s0.sub}</p>
+            </div>
+            <div class="fl-la-gate">
+              <span>Gate</span>
+              <b><s data-k="gateOld"></s> <span data-k="gate">{s0.gate}</span></b>
+            </div>
+          </div>
+          <p class="fl-la-action" data-k="action"></p>
+        </div>
+
+        <div class="fl-glance" data-fl-glance hidden>
+          <p class="fl-glance-q" data-fl-q></p>
+          <div class="fl-glance-opts" data-fl-opts></div>
+          <p class="fl-glance-res" data-fl-res aria-live="polite"></p>
+        </div>
+      </div>
+      <button type="button" class="fl-lb-test" data-fl-test>Take the 1-second glance test</button>
+    </div>
+
+    <!-- Island presentations -->
+    <div class="fl-lb-islands">
+      <p class="t-label">Dynamic Island</p>
+      <figure class="fl-lb-fig">
+        <div class="fl-isl fl-isl--compact" aria-hidden="true">
+          <span class="fl-isl-lead" data-k="lead">{s0.lead}</span>
+          <span class="fl-isl-cam"></span>
+          <span class="fl-isl-trail" data-k="trail">{s0.trail}</span>
+          <span class="fl-isl-ring"></span>
+        </div>
+        <figcaption>Compact: two facts, one each side of the camera.</figcaption>
+      </figure>
+      <figure class="fl-lb-fig">
+        <div class="fl-isl fl-isl--min" aria-hidden="true"><span class="fl-isl-ring fl-isl-ring--big"></span></div>
+        <figcaption>Minimal: when another app shares the island, only the ring stays.</figcaption>
+      </figure>
+      <figure class="fl-lb-fig">
+        <div class="fl-isl fl-isl--exp" aria-hidden="true">
+          <div class="fl-isl-row">
+            <span><small>ORD</small><b data-k="dep">{s0.dep}</b></span>
+            <span class="fl-isl-ring fl-isl-ring--big"></span>
+            <span class="fl-isl-r"><small>SFO</small><b data-k="arr">{s0.arr}</b></span>
+          </div>
+          <div class="fl-la-track fl-la-track--isl"><span class="fl-la-fill"></span><span class="fl-la-plane">✈</span></div>
+          <p class="fl-isl-hl" data-k="headline">{s0.headline}</p>
+        </div>
+        <figcaption>Expanded: a long-press opens the full departure-board line.</figcaption>
+      </figure>
+    </div>
+
+    <!-- Notes -->
+    <div class="fl-lb-notes">
+      <p class="t-label">Signage rule for this state</p>
+      <h3 class="fl-lb-rule" data-k="rule" aria-live="polite">{s0.rule}</h3>
+      <p class="t-body" data-k="why">{s0.why}</p>
+      <blockquote class="fl-lb-quote">
+        Apple describes Flighty’s Live Activities and Dynamic Island as <q>designed to recall airport signage conventions that have been in place for decades.</q>
+        <cite>Apple, Behind the Design</cite>
+      </blockquote>
+      <p class="t-label">Our bench rules</p>
+      <ul class="fl-lb-rules" role="list">
+        <li><b>One line per flight.</b> If it doesn’t fit a board row, it doesn’t go in the island.</li>
+        <li><b>Fixed positions.</b> The gate is always bottom right; times never swap sides.</li>
+        <li><b>Colour plus a word.</b> Amber always says “Delayed”, for colour-blind eyes and bright sun.</li>
+        <li><b>Tabular numbers.</b> Times update in place without jiggling.</li>
+      </ul>
+    </div>
+  </div>
+  <script type="application/json" data-fl-lb-data set:html={payload} />
+</div>
+
+<script>
+  import type { LiveState } from '../../../data/cases/flighty';
+  type Quiz = Record<string, { q: string; opts: string[]; a: number }>;
+
+  document.querySelectorAll<HTMLElement>('[data-fl-lb]').forEach((root) => {
+    const { states, quiz } = JSON.parse(root.querySelector('[data-fl-lb-data]')!.textContent || '{}') as { states: LiveState[]; quiz: Quiz };
+    const btns = [...root.querySelectorAll<HTMLButtonElement>('[data-set]')];
+    const glance = root.querySelector<HTMLElement>('[data-fl-glance]')!;
+    const qEl = root.querySelector<HTMLElement>('[data-fl-q]')!;
+    const opts = root.querySelector<HTMLElement>('[data-fl-opts]')!;
+    const res = root.querySelector<HTMLElement>('[data-fl-res]')!;
+    const testBtn = root.querySelector<HTMLButtonElement>('[data-fl-test]')!;
+    const phone = root.querySelector<HTMLElement>('[data-fl-phone]')!;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let current = states[0];
+    let timer = 0;
+
+    const apply = (s: LiveState) => {
+      current = s;
+      root.dataset.state = s.id;
+      root.dataset.tone = s.tone;
+      root.style.setProperty('--ring', String(s.ring));
+      btns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.set === s.id)));
+      root.querySelectorAll<HTMLElement>('[data-k]').forEach((el) => {
+        const v = String((s as Record<string, unknown>)[el.dataset.k!] ?? '');
+        if (el.textContent === v) return;
+        el.textContent = v;
+        if (!reduce) el.animate([{ transform: 'rotateX(80deg)', opacity: 0.2 }, { transform: 'none', opacity: 1 }], { duration: 320, easing: 'cubic-bezier(.16,1,.3,1)' });
+      });
+    };
+
+    btns.forEach((b) =>
+      b.addEventListener('click', () => {
+        closeTest();
+        apply(states.find((s) => s.id === b.dataset.set)!);
+      }),
+    );
+
+    const closeTest = () => {
+      clearTimeout(timer);
+      glance.hidden = true;
+      phone.classList.remove('is-hiding', 'is-peek');
+    };
+
+    testBtn.addEventListener('click', () => {
+      closeTest();
+      const q = quiz[current.id];
+      phone.classList.add('is-peek');
+      testBtn.textContent = 'Look now… 1 second';
+      timer = window.setTimeout(() => {
+        phone.classList.remove('is-peek');
+        phone.classList.add('is-hiding');
+        glance.hidden = false;
+        qEl.textContent = q.q;
+        res.textContent = '';
+        opts.replaceChildren(
+          ...q.opts.map((o, i) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = o;
+            b.addEventListener('click', () => {
+              const ok = i === q.a;
+              opts.querySelectorAll('button').forEach((x, j) => x.classList.toggle('is-right', j === q.a));
+              b.classList.toggle('is-wrong', !ok);
+              res.textContent = ok ? `Right. “${current.rule}” at work.` : `It was ${q.opts[q.a]}. That’s a layout problem, not a you problem. Try another state.`;
+            });
+            return b;
+          }),
+        );
+        (opts.firstElementChild as HTMLButtonElement | null)?.focus();
+        testBtn.textContent = 'Run the glance test again';
+      }, 1000);
+    });
+  });
+</script>
+
+<style>
+  .fl-lb { --tone: #2ee58a; --tone-ink: #03170c; display: grid; gap: var(--s-6); padding: var(--s-6); border-radius: calc(var(--r-lg) + 8px); border: 1px solid var(--line); background: radial-gradient(70% 60% at 30% 40%, color-mix(in srgb, var(--tone) 10%, transparent), transparent 70%), var(--bg-2); transition: background 0.6s; }
+  .fl-lb[data-tone='late'] { --tone: #ffb020; --tone-ink: #1a1200; }
+  .fl-lb[data-tone='cx'] { --tone: #ff6b6b; --tone-ink: #1f0505; }
+  .fl-lb[data-tone='sky'] { --tone: #6cb4ff; --tone-ink: #031424; }
+
+  .fl-lb-bar { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+  .fl-lb-state { display: inline-flex; align-items: center; gap: 8px; padding: 0.6rem 1rem; border-radius: var(--r-pill); border: 1px solid var(--line-strong); font: 600 var(--fs-sm) var(--font-ui); color: var(--ink-2); transition: background var(--dur-1), color var(--dur-1), border-color var(--dur-1); }
+  .fl-lb-state:hover { color: var(--ink); border-color: var(--ink-2); }
+  .fl-lb-state[aria-pressed='true'] { background: var(--ink); color: #0b0b0f; border-color: var(--ink); }
+  .fl-lb-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .fl-lb-dot--ok { background: #2ee58a; }
+  .fl-lb-dot--late { background: #ffb020; }
+  .fl-lb-dot--cx { background: #ff5a5a; }
+  .fl-lb-dot--sky { background: #6cb4ff; }
+
+  .fl-lb-grid { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.1fr); gap: var(--s-7); align-items: start; }
+
+  /* phone */
+  .fl-lb-phone-wrap { display: grid; gap: var(--s-4); justify-items: center; }
+  .fl-lb-phone { position: relative; width: 300px; height: 620px; border-radius: 48px; padding: 14px; overflow: hidden; background: #000; box-shadow: 0 0 0 9px #1c1c22, 0 0 0 10px #34343c, 0 40px 90px -20px #000; font-family: -apple-system, system-ui, var(--font-ui); color: #fff; font-variant-numeric: tabular-nums; perspective: 600px; }
+  .fl-lb-wall { position: absolute; inset: 0; background: radial-gradient(90% 60% at 30% 10%, #2b3a6a, transparent 60%), radial-gradient(80% 50% at 90% 80%, color-mix(in srgb, var(--tone) 30%, #101018), transparent 70%), #0c0c14; transition: background 0.6s; }
+  .fl-lb-time { position: relative; text-align: center; margin-top: 62px; font-weight: 700; font-size: 74px; line-height: 1; letter-spacing: -0.02em; }
+  .fl-lb-date { position: relative; text-align: center; font-size: 16px; font-weight: 600; color: #e6e6ee; margin-top: 6px; }
+
+  .fl-la { position: absolute; left: 12px; right: 12px; bottom: 34px; padding: 14px; border-radius: 24px; background: rgb(18 18 24 / 0.82); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); display: grid; gap: 10px; transition: filter 0.3s; }
+  .fl-la-head { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 600; color: #c8c8d2; }
+  .fl-la-chip { padding: 3px 9px; border-radius: 99px; background: var(--tone); color: var(--tone-ink); font-weight: 800; font-size: 11px; letter-spacing: 0.02em; transition: background 0.4s; }
+  .fl-la-route { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; }
+  .fl-la-end { display: grid; }
+  .fl-la-end--r { text-align: right; }
+  .fl-la-code { font-weight: 800; font-size: 26px; letter-spacing: -0.01em; line-height: 1; }
+  .fl-la-t { font-size: 13px; color: #d8d8e2; }
+  .fl-la-t b { color: #fff; }
+  s:empty { display: none; }
+  .fl-la-t s, .fl-la-gate s { color: #a8a8b4; font-weight: 500; }
+  .fl-lb[data-tone='late'] .fl-la-t b, .fl-lb[data-tone='late'] .fl-la-gate span { color: #ffb020; }
+  .fl-la-track { position: relative; height: 4px; border-radius: 2px; background: #33333f; }
+  .fl-la-fill { position: absolute; inset: 0 auto 0 0; width: calc(var(--ring) * 100%); border-radius: 2px; background: var(--tone); transition: width 0.8s var(--ease-out), background 0.4s; }
+  .fl-la-plane { position: absolute; top: 50%; left: calc(var(--ring) * 100%); transform: translate(-50%, -54%); font-size: 15px; color: #fff; transition: left 0.8s var(--ease-out); }
+  .fl-la-foot { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; }
+  .fl-la-hl { font-weight: 800; font-size: 15px; color: var(--tone); transition: color 0.4s; }
+  .fl-la-sub { font-size: 12px; color: #d0d0da; line-height: 1.35; }
+  .fl-la-gate { display: grid; justify-items: end; font-size: 11px; color: #c8c8d2; text-transform: uppercase; letter-spacing: 0.08em; }
+  .fl-la-gate b { font-size: 22px; color: #fff; letter-spacing: 0; text-transform: none; }
+  .fl-la-action:empty { display: none; }
+  .fl-la-action { padding: 10px; border-radius: 14px; text-align: center; background: #f5f5f0; color: #0b0b0f; font-weight: 800; font-size: 14px; }
+  [data-k] { display: inline-block; transform-origin: 50% 50%; }
+  .fl-la-hl[data-k], .fl-la-sub[data-k], .fl-la-action[data-k] { display: block; }
+  .fl-la-action[data-k]:empty { display: none; }
+
+  .fl-lb-phone.is-peek .fl-la { box-shadow: 0 0 0 3px var(--tone); }
+  .fl-lb-phone.is-hiding .fl-la, .fl-lb-phone.is-hiding .fl-isl--top { filter: blur(14px) brightness(0.5); }
+  .fl-glance { position: absolute; left: 12px; right: 12px; bottom: 34px; padding: 16px; border-radius: 24px; background: #f5f5f0; color: #0b0b0f; display: grid; gap: 10px; }
+  .fl-glance[hidden] { display: none; }
+  .fl-glance-q { font-weight: 800; font-size: 17px; }
+  .fl-glance-opts { display: grid; gap: 6px; }
+  .fl-glance-opts :global(button) { padding: 10px 12px; border-radius: 12px; background: #e3e3dd; color: #0b0b0f; font-weight: 700; font-size: 14px; text-align: left; border: 2px solid transparent; }
+  .fl-glance-opts :global(button:hover) { border-color: #0b0b0f; }
+  .fl-glance-opts :global(button.is-right) { background: #0f7a45; color: #fff; }
+  .fl-glance-opts :global(button.is-wrong) { background: #b3261e; color: #fff; }
+  .fl-glance-res { font-size: 13px; line-height: 1.35; color: #2a2a2a; }
+  .fl-lb-test { padding: 0.75rem 1.2rem; border-radius: var(--r-pill); background: var(--tone); color: var(--tone-ink); font: 700 var(--fs-sm) var(--font-ui); transition: background 0.4s, transform var(--dur-1); }
+  .fl-lb-test:hover { transform: translateY(-2px); }
+
+  /* islands */
+  .fl-isl { position: relative; display: flex; align-items: center; background: #000; color: #fff; font-family: -apple-system, system-ui, var(--font-ui); font-variant-numeric: tabular-nums; transition: width 0.6s var(--ease-out), border-radius 0.6s var(--ease-out); }
+  .fl-isl--compact { height: 36px; width: 210px; padding: 0 10px 0 14px; border-radius: 18px; gap: 6px; font-weight: 700; font-size: 14px; }
+  .fl-isl--top { position: relative; margin: 0 auto; z-index: 2; transform: scale(0.92); transition: filter 0.3s; }
+  .fl-isl-lead { color: var(--tone); transition: color 0.4s; }
+  .fl-isl-cam { flex: 1; height: 100%; }
+  .fl-isl-trail { color: #fff; }
+  .fl-isl-ring { flex: none; width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(closest-side, #000 72%, transparent 74%), conic-gradient(var(--tone) calc(var(--ring) * 360deg), #2e2e38 0); transition: background 0.4s; }
+  .fl-isl-ring--big { width: 30px; height: 30px; }
+  .fl-isl--min { width: 44px; height: 44px; border-radius: 50%; justify-content: center; }
+  .fl-isl--exp { width: 100%; max-width: 340px; flex-direction: column; align-items: stretch; gap: 10px; padding: 16px 18px 14px; border-radius: 34px; }
+  .fl-isl-row { display: flex; justify-content: space-between; align-items: center; }
+  .fl-isl-row > span:not(.fl-isl-ring) { display: grid; }
+  .fl-isl-row small { font-size: 11px; color: #b8b8c4; font-weight: 600; letter-spacing: 0.08em; }
+  .fl-isl-row b { font-size: 24px; font-weight: 800; }
+  .fl-isl-r { text-align: right; }
+  .fl-la-track--isl { margin-inline: 4px; }
+  .fl-isl-hl { font-weight: 700; font-size: 14px; color: var(--tone); display: block; }
+  .fl-lb-islands { display: grid; gap: var(--s-5); align-content: start; padding-top: var(--s-2); }
+  .fl-lb-fig { display: grid; gap: var(--s-3); justify-items: start; padding: var(--s-5); border-radius: var(--r-md); background: #0d0d12; border: 1px solid var(--line); }
+  .fl-lb-fig figcaption { font-size: var(--fs-sm); color: var(--muted); }
+
+  /* notes */
+  .fl-lb-notes { display: grid; gap: var(--s-4); align-content: start; }
+  .fl-lb-rule { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-xl); line-height: 1.15; letter-spacing: -0.02em; color: var(--tone); transition: color 0.4s; }
+  .fl-lb-quote { margin: var(--s-2) 0; padding: var(--s-4) var(--s-5); border-left: 3px solid var(--tone); background: var(--surface); border-radius: 0 var(--r-md) var(--r-md) 0; color: var(--ink-2); font-size: var(--fs-sm); line-height: 1.5; }
+  .fl-lb-quote q { color: var(--ink); }
+  .fl-lb-quote cite { display: block; margin-top: var(--s-2); font-style: normal; color: var(--muted); }
+  .fl-lb-rules { list-style: none; padding: 0; display: grid; gap: var(--s-3); color: var(--ink-2); font-size: var(--fs-sm); }
+  .fl-lb-rules b { color: var(--ink); }
+
+  @media (max-width: 1180px) {
+    .fl-lb-grid { grid-template-columns: auto minmax(0, 1fr); }
+    .fl-lb-notes { grid-column: 1 / -1; }
+  }
+  @media (max-width: 720px) {
+    .fl-lb { padding: var(--s-4); }
+    .fl-lb-grid { grid-template-columns: minmax(0, 1fr); gap: var(--s-6); }
+    .fl-lb-state { padding: 0.5rem 0.8rem; }
+  }
+  @media (max-width: 360px) {
+    .fl-lb-phone { transform: scale(0.9); transform-origin: top center; margin-bottom: -60px; }
+  }
+</style>

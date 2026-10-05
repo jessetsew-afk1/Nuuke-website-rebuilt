@@ -1,0 +1,54 @@
+---
+// The Activity Path chart used inside the mock screens: a soft band (safe zone)
+// with one marker per day. Above the path = ▲, below = ▼, inside = ●, so the
+// meaning never depends on colour alone. Today is ringed.
+import { band, GS } from '../../../data/cases/gentler-streak';
+interface Props {
+  values: number[];
+  w?: number;
+  h?: number;
+  label: string;
+  class?: string;
+  dark?: boolean;
+}
+const { values, w = 300, h = 130, label, class: cls, dark = false } = Astro.props;
+const b = band(14, w - 14, h / 2, h * 0.24, values, h * 0.06, 0.6);
+const r = values.length > 12 ? 3.6 : 5.5;
+const tri = (x: number, y: number, up: boolean) => {
+  const s = r * 1.35;
+  return up ? `M ${x} ${y - s} L ${x + s} ${y + s * 0.8} L ${x - s} ${y + s * 0.8} Z` : `M ${x} ${y + s} L ${x + s} ${y - s * 0.8} L ${x - s} ${y - s * 0.8} Z`;
+};
+const last = b.dots[b.dots.length - 1];
+---
+
+<svg class:list={['gs-pc', cls, { 'gs-pc--dark': dark }]} viewBox={`0 0 ${w} ${h}`} role="img" aria-label={label}>
+  <path d={b.fill} class="gs-pc-band" />
+  <path d={b.top} class="gs-pc-edge" />
+  <path d={b.bottom} class="gs-pc-edge" />
+  {
+    b.dots.map((d) =>
+      d.v > 1 ? (
+        <path d={tri(d.x, d.y, true)} class="gs-pc-up" />
+      ) : d.v < -1 ? (
+        <path d={tri(d.x, d.y, false)} class="gs-pc-down" />
+      ) : (
+        <circle cx={d.x} cy={d.y} r={r} class="gs-pc-in" />
+      ),
+    )
+  }
+  <circle cx={last.x} cy={last.y} r={r + 5} class="gs-pc-today" />
+</svg>
+
+<style define:vars={{ mint: GS.mint, leaf: GS.leaf, coral: GS.coralDeep, plum: GS.plum }}>
+  .gs-pc { display: block; width: 100%; height: auto; overflow: visible; }
+  .gs-pc-band { fill: var(--mint); opacity: 0.42; }
+  .gs-pc-edge { fill: none; stroke: var(--leaf); stroke-opacity: 0.45; stroke-width: 1.2; stroke-dasharray: 3 4; }
+  .gs-pc-in { fill: var(--leaf); }
+  .gs-pc-up { fill: var(--coral); }
+  .gs-pc-down { fill: var(--plum); }
+  .gs-pc-today { fill: none; stroke: var(--coral); stroke-width: 2.4; transform-box: fill-box; transform-origin: center; animation: gs-pc-pulse 2.6s cubic-bezier(0.45, 0, 0.55, 1) 3; }
+  .gs-pc--dark .gs-pc-down { fill: #b9a6e8; }
+  .gs-pc--dark .gs-pc-in { fill: #7ed957; }
+  @keyframes gs-pc-pulse { 50% { transform: scale(1.35); opacity: 0.4; } }
+  @media (prefers-reduced-motion: reduce) { .gs-pc-today { animation: none; } }
+</style>

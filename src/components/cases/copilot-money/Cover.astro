@@ -1,0 +1,60 @@
+---
+// Cover art for the works grid: sample transactions rain down, sort into
+// category columns and give way to a net-worth line. Original SVG, 800×600.
+import type { Project } from '../../../data/projects';
+interface Props {
+  project: Project;
+}
+const { project: p } = Astro.props;
+let s = 11;
+const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+const rain = Array.from({ length: 70 }, () => ({ x: rnd() * 800, y: rnd() * 260 - 20, h: 8 + rnd() * 22, o: 0.25 + rnd() * 0.5 }));
+// Columns of squares: income + six spending categories (sample amounts in squares).
+const cols = [
+  { n: 30, c: p.accent },
+  { n: 13, c: '#FF4433' },
+  { n: 6, c: '#FF684D' },
+  { n: 5, c: '#FF563D' },
+  { n: 4, c: '#FF8066' },
+  { n: 3, c: '#FF9678' },
+  { n: 6, c: '#FF705A' },
+];
+const cell = 9;
+const per = 4;
+const base = 520;
+const line = 'M 70 470 C 160 450, 200 470, 260 420 S 360 400, 420 360 S 520 330, 580 280 S 690 220, 740 170';
+---
+
+<svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="cm-cv-bg" cx="70%" cy="35%" r="85%">
+      <stop offset="0" stop-color="#0b2552" />
+      <stop offset="1" stop-color="#000814" />
+    </radialGradient>
+    <linearGradient id="cm-cv-fill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color={p.accent2} stop-opacity=".35" />
+      <stop offset="1" stop-color={p.accent2} stop-opacity="0" />
+    </linearGradient>
+    <filter id="cm-cv-glow" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="6" /></filter>
+  </defs>
+  <rect width="800" height="600" fill="url(#cm-cv-bg)" />
+  <g fill="#7892c4">{rain.map((r) => <rect x={r.x} y={r.y} width="2.5" height={r.h} rx="1.2" opacity={r.o} />)}</g>
+  <g>
+    {
+      cols.map((c, ci) =>
+        Array.from({ length: c.n * per }, (_, k) => (
+          <rect x={90 + ci * 96 + (k % per) * cell} y={base - (Math.floor(k / per) + 1) * cell} width={cell - 2} height={cell - 2} rx="1.5" fill={c.c} opacity={0.55 + ((k * 7) % 10) / 25} />
+        )),
+      )
+    }
+    <rect x="70" y={base + 4} width="660" height="2" fill="#1b3157" />
+  </g>
+  <path d={`${line} L 740 600 L 70 600 Z`} fill="url(#cm-cv-fill)" />
+  <path d={line} fill="none" stroke={p.accent2} stroke-width="10" opacity=".55" filter="url(#cm-cv-glow)" />
+  <path d={line} fill="none" stroke="#5b93ff" stroke-width="4" stroke-linecap="round" />
+  <circle cx="740" cy="170" r="10" fill="#F2F6FF" stroke="#000814" stroke-width="4" />
+  <g transform="translate(520 92)">
+    <rect width="190" height="46" rx="23" fill={p.accent} />
+    <text x="95" y="30" text-anchor="middle" font-family="Montserrat, sans-serif" font-weight="800" font-size="20" fill="#000814">what changed?</text>
+  </g>
+</svg>

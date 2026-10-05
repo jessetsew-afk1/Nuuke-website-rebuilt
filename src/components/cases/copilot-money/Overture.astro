@@ -1,0 +1,540 @@
+---
+// Cinematic opening. A pinned, scroll-scrubbed overture on the deep-navy canvas:
+// hundreds of sample transactions rain down, sort themselves into categories
+// (green in, red-orange out), the month's balance rolls, then the bars melt into a
+// net-worth line. A short manifesto lights up word by word, the lockup lands and a
+// marquee of categories rolls. Every amount is sample data.
+type Word = { w: string; k?: 'hl' | 'pill' | 'out' | 'new' | 'in' | 'blue' | 'strike' };
+const lines: Word[][] = [
+  [{ w: 'A' }, { w: 'bank' }, { w: 'statement' }, { w: 'tells' }, { w: 'you' }, { w: 'what' }, { w: 'happened.', k: 'strike' }],
+  [{ w: 'Four' }, { w: 'hundred' }, { w: 'lines,' }, { w: 'all' }, { w: 'the' }, { w: 'same' }, { w: 'size.' }],
+  [{ w: 'Nobody' }, { w: 'opens' }, { w: 'a' }, { w: 'money' }, { w: 'app' }, { w: 'to' }, { w: 'reread' }, { w: 'the' }, { w: 'past.' }],
+  [{ w: 'You' }, { w: 'open' }, { w: 'it' }, { w: 'to' }, { w: 'ask' }, { w: 'one' }, { w: 'thing:' }],
+  [{ w: 'what' }, { w: 'changed?', k: 'pill' }],
+  [{ w: 'Dining', k: 'out' }, { w: 'crept', k: 'out' }, { w: 'up.', k: 'out' }, { w: 'A', k: 'new' }, { w: 'subscription', k: 'new' }, { w: 'appeared.', k: 'new' }, { w: 'Savings', k: 'in' }, { w: 'grew.', k: 'in' }],
+  [{ w: 'Let' }, { w: 'the' }, { w: 'app' }, { w: 'do' }, { w: 'the' }, { w: 'sorting.', k: 'blue' }, { w: 'You' }, { w: 'read' }, { w: 'the' }, { w: 'one' }, { w: 'line' }, { w: 'that' }, { w: 'matters.', k: 'hl' }],
+];
+let n = 0;
+const lockWords = ['What', 'changed?'];
+let j = 0;
+const marquee = [
+  ['💼', 'Paycheck', '#00CC4B'],
+  ['🏠', 'Rent', '#FF4433'],
+  ['🛒', 'Groceries', '#FF4433'],
+  ['🍜', 'Dining', '#FF4433'],
+  ['☕', 'Coffee', '#FF4433'],
+  ['🚇', 'Transport', '#FF4433'],
+  ['🎬', 'Streaming', '#FECE4C'],
+  ['💡', 'Utilities', '#FF4433'],
+  ['✈️', 'Travel', '#FF4433'],
+  ['📈', 'Investments', '#1C6CFF'],
+  ['🐶', 'Pets', '#FF4433'],
+  ['🎁', 'Gifts', '#FF4433'],
+  ['💰', 'Savings', '#00CC4B'],
+];
+const odoSlots = ['d3', ',', 'd2', 'd1', 'd0'];
+---
+
+<section id="opening" class="cm-ov" data-cm-ov aria-labelledby="cm-ov-title">
+  <h2 id="cm-ov-title" class="visually-hidden">Manifesto: tell me what changed</h2>
+  <div class="cm-ov-sticky">
+    <canvas class="cm-ov-canvas" data-cm-ov-canvas aria-hidden="true"></canvas>
+    <div class="cm-ov-grid container" data-cm-ov-grid>
+      <div class="cm-ov-copy">
+        <p class="cm-ov-kicker">Copilot Money · a NUUKE concept · sample data</p>
+        <p class="cm-ov-text">
+          <span class="visually-hidden">{lines.map((l) => l.map((x) => x.w).join(' ')).join(' ')}</span>
+          {
+            lines.map((line) => (
+              <span class="cm-ov-line" aria-hidden="true">
+                {line.map((x) => (
+                  <span class:list={['cm-w', x.k && `cm-w--${x.k}`]} style={`--i:${n++}`}>
+                    {x.w}
+                  </span>
+                ))}{' '}
+              </span>
+            ))
+          }
+        </p>
+      </div>
+      <div class="cm-ov-side">
+        <div class="cm-ov-hud" aria-hidden="true">
+          <div class="cm-hud" data-hud="0">
+            <span class="cm-hud-k">Transactions sorted</span>
+            <span class="cm-hud-v t-num" data-cm-count>0</span>
+          </div>
+          <div class="cm-hud" data-hud="1">
+            <span class="cm-hud-k">Net this month</span>
+            <span class="cm-hud-v cm-odo t-num" data-cm-odo>
+              <span class="cm-odo-fix">+$</span>
+              {
+                odoSlots.map((s) =>
+                  s === ',' ? (
+                    <span class="cm-odo-fix cm-odo-comma">,</span>
+                  ) : (
+                    <span class="cm-odo-col">
+                      <span class="cm-odo-strip" data-odo={s}>
+                        {Array.from({ length: 11 }, (_, i) => <span>{i % 10}</span>)}
+                      </span>
+                    </span>
+                  ),
+                )
+              }
+            </span>
+          </div>
+          <div class="cm-hud" data-hud="2">
+            <span class="cm-hud-k">Net worth · 12 months</span>
+            <span class="cm-hud-v t-num"><span class="cm-hud-up">▲</span> <span data-cm-nw>0</span>%</span>
+          </div>
+        </div>
+        <div class="cm-ov-vis" data-cm-ov-vis></div>
+      </div>
+    </div>
+
+    <div class="cm-lockup" data-cm-lockup aria-hidden="true">
+      <span class="cm-lock-pre">Copilot Money, reimagined around one question</span>
+      <span class="cm-lock-main">
+        {
+          lockWords.map((w, wi) => (
+            <span class="cm-lock-word">
+              {w.split('').map((c) => (
+                <span style={`--j:${j++}`} class:list={['cm-lock-ch', { 'cm-lock-g': wi === 1 && c !== '?' }]}>
+                  {c}
+                </span>
+              ))}
+            </span>
+          ))
+        }
+      </span>
+      <span class="cm-lock-sub">All figures in this case study are sample data.</span>
+    </div>
+
+    <div class="cm-marquee" aria-hidden="true">
+      <div class="cm-marquee-track">
+        {
+          Array.from({ length: 2 }, () => (
+            <span class="cm-marquee-set">
+              {marquee.map(([e, t, c]) => (
+                <span class="cm-mq">
+                  <i style={`--c:${c}`} />
+                  {e} {t}
+                </span>
+              ))}
+            </span>
+          ))
+        }
+      </div>
+    </div>
+    <p class="cm-ov-hint" aria-hidden="true">Scroll to sort the month <span>↓</span></p>
+  </div>
+</section>
+
+<script>
+  import { ScrollTrigger, reducedMotion } from '../../../scripts/motion';
+  import { labIncome, labCats, netWorth } from '../../../data/cases/copilot-money';
+
+  type P = { cat: number; slot: number; rx: number; ry: number; sp: number; len: number; d: number; tw: number };
+
+  const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+  const range = (p: number, a: number, b: number) => clamp01((p - a) / (b - a));
+  const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+  const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+  // Seeded random so every visitor sees the same rain.
+  let seed = 7;
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+
+  // Columns: income first, then spending. One square = $25 of sample money.
+  const UNIT = 25;
+  const cols = [
+    { name: 'Income', short: '💼', amount: labIncome, color: [0, 204, 75] },
+    ...labCats.map((c, i) => ({ name: c.name, short: c.emoji, amount: c.amount, color: [[255, 68, 51], [255, 104, 77], [255, 86, 61], [255, 128, 102], [255, 150, 120], [255, 112, 90]][i] })),
+  ];
+  const DINING = cols.findIndex((c) => c.name === 'Dining');
+  const OTHER = cols.findIndex((c) => c.name === 'Other');
+  // Squares per row: income is wider so the month reads as one balanced skyline.
+  const PER = cols.map((_, i) => (i === 0 ? 10 : 6));
+  const SUM_PER = PER.reduce((a, b) => a + b, 0);
+  const parts: P[] = [];
+  cols.forEach((c, ci) => {
+    const count = Math.round(c.amount / UNIT);
+    for (let s = 0; s < count; s++) parts.push({ cat: ci, slot: s, rx: rnd(), ry: rnd(), sp: 0.6 + rnd() * 0.9, len: 6 + rnd() * 12, d: rnd(), tw: rnd() * Math.PI * 2 });
+  });
+  const N = parts.length;
+  const rowsOf = (ci: number) => Math.ceil(Math.round(cols[ci].amount / UNIT) / PER[ci]);
+  const maxRows = Math.max(...cols.map((_, ci) => rowsOf(ci)));
+  // Ambient rain: extra streaks that only exist while it's raining.
+  const AMB = Array.from({ length: 360 }, () => ({ x: rnd(), y: rnd(), sp: 0.5 + rnd(), len: 8 + rnd() * 18, a: 0.15 + rnd() * 0.35 }));
+  // The new-subscription square: the last one in "Other".
+  const NEW_IDX = parts.reduce((k, p, i) => (p.cat === OTHER ? i : k), 0);
+
+  document.querySelectorAll<HTMLElement>('[data-cm-ov]').forEach((root) => {
+    const canvas = root.querySelector<HTMLCanvasElement>('[data-cm-ov-canvas]')!;
+    const ctx = canvas.getContext('2d')!;
+    const vis = root.querySelector<HTMLElement>('[data-cm-ov-vis]')!;
+    const sticky = root.querySelector<HTMLElement>('.cm-ov-sticky')!;
+    const words = [...root.querySelectorAll<HTMLElement>('.cm-w')];
+    const huds = [...root.querySelectorAll<HTMLElement>('[data-hud]')];
+    const count = root.querySelector<HTMLElement>('[data-cm-count]')!;
+    const nw = root.querySelector<HTMLElement>('[data-cm-nw]')!;
+    const odo = [...root.querySelectorAll<HTMLElement>('[data-odo]')];
+    const lock = root.querySelector<HTMLElement>('[data-cm-lockup]')!;
+
+    let W = 0, H = 0, dpr = 1;
+    let box = { x: 0, y: 0, w: 1, h: 1 };
+    let cell = 6;
+    const resize = () => {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = sticky.clientWidth;
+      H = sticky.clientHeight;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      const s = sticky.getBoundingClientRect();
+      const v = vis.getBoundingClientRect();
+      box = { x: v.left - s.left, y: v.top - s.top, w: Math.max(40, v.width), h: Math.max(40, v.height) };
+      const labelH = 34;
+      cell = Math.max(3, Math.min((box.w * 0.9) / SUM_PER, (box.h - labelH) / maxRows));
+      draw(cur);
+    };
+
+    const colX = (ci: number) => {
+      const gap = (box.w - SUM_PER * cell) / cols.length;
+      let x = box.x + gap / 2;
+      for (let j = 0; j < ci; j++) x += PER[j] * cell + gap;
+      return x;
+    };
+    const colMid = (ci: number) => colX(ci) + (PER[ci] * cell) / 2;
+    const baseY = () => box.y + box.h - 34;
+    const slotPos = (p: P) => {
+      const row = Math.floor(p.slot / PER[p.cat]);
+      const col = p.slot % PER[p.cat];
+      return [colX(p.cat) + col * cell, baseY() - (row + 1) * cell] as const;
+    };
+    // Net-worth curve through the vis box (12 sample points, smoothed).
+    const nwMin = Math.min(...netWorth) - 4;
+    const nwMax = Math.max(...netWorth) + 2;
+    const curve = (u: number) => {
+      const f = u * (netWorth.length - 1);
+      const i = Math.min(netWorth.length - 2, Math.floor(f));
+      const t = f - i;
+      const s = t * t * (3 - 2 * t);
+      const v = lerp(netWorth[i], netWorth[i + 1], s);
+      return [box.x + u * box.w, box.y + 20 + (1 - (v - nwMin) / (nwMax - nwMin)) * (box.h - 70)] as const;
+    };
+
+    const draw = (p: number) => {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      const rain = range(p, 0, 0.3);
+      const dim = 1 - range(p, 0.8, 0.9) * 0.78;
+      const lineT = range(p, 0.6, 0.76);
+      const t = performance.now() / 1000;
+      const sz = Math.max(2, cell - (cell > 6 ? 2 : 1));
+
+      const amb = 1 - range(p, 0.16, 0.3);
+      if (amb > 0) {
+        for (const d of AMB) {
+          const y = ((d.y * (H + 80) + rain * d.sp * H * 1.6 + p * 60) % (H + 80)) - 40;
+          ctx.fillStyle = `rgba(143,176,255,${d.a * amb * Math.min(1, 0.4 + rain * 3)})`;
+          ctx.fillRect(d.x * W, y, 2, d.len);
+        }
+      }
+      for (let i = 0; i < N; i++) {
+        const q = parts[i];
+        // 1 · rain: streaks falling through the whole frame (wraps, so scrubbing back works).
+        const fall = (q.ry * (H + 80) + rain * q.sp * H * 1.6 + p * 60) % (H + 80);
+        const rx = q.rx * W;
+        const ry = fall - 40;
+        // 2 · sort into the category column, cascading by row.
+        const row = Math.floor(q.slot / PER[q.cat]);
+        const sortT = ease(range(p, 0.2 + q.cat * 0.012 + (row / maxRows) * 0.06 + q.d * 0.04, 0.36 + q.cat * 0.012 + (row / maxRows) * 0.06 + q.d * 0.04));
+        const [sx, sy] = slotPos(q);
+        // 3 · melt into the net-worth line.
+        const u = (i + 0.5) / N;
+        const [lx, ly0] = curve(u);
+        const ly = ly0 + (q.d - 0.5) * 10 * (1 - lineT);
+        const melt = ease(range(p, 0.55 + u * 0.06, 0.66 + u * 0.06));
+        let x = lerp(rx, sx, sortT);
+        let y = lerp(ry, sy, sortT);
+        x = lerp(x, lx, melt);
+        y = lerp(y, ly, melt);
+
+        const c = cols[q.cat].color;
+        let r = lerp(160, c[0], sortT), g = lerp(190, c[1], sortT), b = lerp(255, c[2], sortT);
+        if (i === NEW_IDX && sortT > 0.9) { r = 254; g = 206; b = 76; }
+        r = lerp(r, 28, melt); g = lerp(g, 108, melt); b = lerp(b, 255, melt);
+        let a = lerp(0.45 + q.sp * 0.35, 0.95, sortT) * (1 - lineT * 0.65) * dim;
+        // Dining pulses while "Dining crept up" is on screen.
+        const crept = range(p, 0.44, 0.5) * (1 - range(p, 0.56, 0.6));
+        if (q.cat === DINING && crept > 0) a = Math.min(1, a + crept * (0.25 + 0.25 * Math.sin(t * 6 + q.slot)));
+        ctx.fillStyle = `rgba(${r | 0},${g | 0},${b | 0},${a})`;
+        if (sortT < 0.6 && melt === 0) {
+          const k = 1 - sortT / 0.6;
+          const w = lerp(sz, 2.5, k);
+          const h = lerp(sz, q.len, k);
+          ctx.fillRect(x, y, w, h);
+        } else {
+          const s2 = lerp(sz, 2.4, melt);
+          ctx.fillRect(x, y, s2, s2);
+        }
+      }
+
+      // Column labels + "what changed" call-outs.
+      const lab = range(p, 0.3, 0.38) * (1 - range(p, 0.54, 0.6)) * dim;
+      if (lab > 0.01) {
+        const narrow = box.w < 420;
+        ctx.textAlign = 'center';
+        cols.forEach((c, ci) => {
+          const cx = colMid(ci);
+          ctx.font = narrow ? '13px system-ui, sans-serif' : '600 12px Inter, system-ui, sans-serif';
+          ctx.fillStyle = `rgba(169,183,211,${lab})`;
+          ctx.fillText(narrow ? c.short : c.name, cx, baseY() + 16);
+          ctx.font = `600 ${narrow ? 10 : 12}px Inter, system-ui, sans-serif`;
+          ctx.fillStyle = `rgba(242,246,255,${lab})`;
+          ctx.fillText('$' + c.amount.toLocaleString('en-US'), cx, baseY() + 30);
+        });
+        ctx.fillStyle = `rgba(42,64,104,${lab})`;
+        ctx.fillRect(box.x, baseY(), box.w, 1);
+        const call = range(p, 0.44, 0.48) * lab;
+        if (call > 0.01) {
+          tag(colMid(DINING), baseY() - rowsOf(DINING) * cell - 14, '▲ $90 vs. Aug', [255, 68, 51], call);
+          tag(colMid(OTHER), baseY() - rowsOf(OTHER) * cell - 14, 'New · $15.99/mo', [254, 206, 76], range(p, 0.47, 0.5) * lab);
+        }
+      }
+
+      // The net-worth line draws over the melted squares.
+      if (lineT > 0) {
+        const steps = 90;
+        const end = Math.max(1, Math.round(steps * lineT));
+        const grad = ctx.createLinearGradient(0, box.y, 0, box.y + box.h);
+        grad.addColorStop(0, `rgba(28,108,255,${0.32 * dim})`);
+        grad.addColorStop(1, 'rgba(28,108,255,0)');
+        ctx.beginPath();
+        for (let s = 0; s <= end; s++) {
+          const [x, y] = curve(s / steps);
+          s === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        const [ex, ey] = curve(end / steps);
+        ctx.lineTo(ex, box.y + box.h);
+        ctx.lineTo(box.x, box.y + box.h);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.beginPath();
+        for (let s = 0; s <= end; s++) {
+          const [x, y] = curve(s / steps);
+          s === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = `rgba(91,147,255,${dim})`;
+        ctx.lineWidth = 3;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.shadowColor = 'rgba(28,108,255,0.8)';
+        ctx.shadowBlur = 16;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.arc(ex, ey, 6 + Math.sin(t * 3) * 1.2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(242,246,255,${dim})`;
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = `rgba(0,8,20,${dim})`;
+        ctx.stroke();
+        if (lineT > 0.92) {
+          ctx.font = `600 ${box.w < 420 ? 10 : 12}px Inter, system-ui, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.fillStyle = `rgba(169,183,211,${range(lineT, 0.92, 1) * dim})`;
+          ['Jan', 'Apr', 'Jul', 'Oct', 'Dec'].forEach((m, k) => {
+            const [x] = curve([0, 3 / 11, 6 / 11, 9 / 11, 1][k]);
+            ctx.fillText(m, Math.min(box.x + box.w - 14, Math.max(box.x + 14, x)), box.y + box.h - 8);
+          });
+        }
+      }
+    };
+
+    const tag = (x: number, y: number, text: string, c: number[], a: number) => {
+      ctx.font = '700 12px Inter, system-ui, sans-serif';
+      const w = ctx.measureText(text).width + 18;
+      const bx = Math.min(box.x + box.w - w, Math.max(box.x, x - w / 2));
+      ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+      ctx.beginPath();
+      ctx.roundRect(bx, y - 22, w, 22, 11);
+      ctx.fill();
+      ctx.fillStyle = `rgba(0,8,20,${a})`;
+      ctx.textAlign = 'center';
+      ctx.fillText(text, bx + w / 2, y - 7);
+    };
+
+    const SAVED = labIncome - labCats.reduce((s, c) => s + c.amount, 0);
+    const setHud = (p: number) => {
+      const lit = Math.round(range(p, 0.02, 0.76) * words.length);
+      words.forEach((w, i) => w.classList.toggle('is-lit', i < lit));
+      count.textContent = Math.round(range(p, 0.02, 0.36) * N).toLocaleString('en-US');
+      const v = ease(range(p, 0.32, 0.46)) * SAVED;
+      root.querySelector('.cm-odo-comma')?.classList.toggle('is-lead', v < 900);
+      odo.forEach((el) => {
+        const k = Number(el.dataset.odo!.slice(1));
+        const unit = 10 ** k;
+        // Odometer carry: a digit only rolls while the one below it passes 9 → 0.
+        const carry = k === 0 ? (v % 10) - Math.floor(v % 10) : Math.max(0, ((v % unit) / unit) * 10 - 9);
+        const pos = (Math.floor(v / unit) % 10) + carry;
+        el.parentElement!.classList.toggle('is-lead', k > 0 && v < unit * 0.9);
+        // Lower digits spin; the strip has a trailing 0 so 9 → 0 rolls forward.
+        el.style.transform = `translateY(${-pos * 10 / 11 * 100 / 10}%)`;
+      });
+      nw.textContent = String(Math.round(ease(range(p, 0.6, 0.76)) * 29));
+      huds[0].classList.toggle('is-on', p > 0.02);
+      huds[1].classList.toggle('is-on', p > 0.3);
+      huds[2].classList.toggle('is-on', p > 0.58);
+      root.classList.toggle('is-done', p > 0.82);
+      root.classList.toggle('is-start', p < 0.03);
+      lock.classList.toggle('is-in', p > 0.84);
+    };
+
+    // Smooth the scrubbed progress so the particles glide rather than step.
+    let target = 0;
+    let cur = 0;
+    let raf = 0;
+    let inView = false;
+    const loop = () => {
+      raf = 0;
+      cur += (target - cur) * 0.14;
+      if (Math.abs(target - cur) < 0.0004) cur = target;
+      draw(cur);
+      if (inView && !reducedMotion) raf = requestAnimationFrame(loop);
+    };
+    const kick = () => {
+      if (!raf) raf = requestAnimationFrame(loop);
+    };
+    new IntersectionObserver((e) => {
+      inView = e[0]?.isIntersecting ?? false;
+      if (inView) kick();
+    }).observe(sticky);
+    new ResizeObserver(resize).observe(sticky);
+
+    if (reducedMotion) {
+      root.classList.add('is-static');
+      target = cur = 0.5;
+      resize();
+      setHud(0.5);
+      words.forEach((w) => w.classList.add('is-lit'));
+      root.classList.remove('is-done');
+      lock.classList.add('is-in');
+      return;
+    }
+    resize();
+    setHud(0);
+    ScrollTrigger.create({
+      trigger: root,
+      start: 'top top',
+      end: 'bottom bottom',
+      onUpdate: (s) => {
+        target = s.progress;
+        setHud(s.progress);
+        kick();
+      },
+    });
+  });
+</script>
+
+<style>
+  .cm-ov { position: relative; height: 520vh; background: #000814; color: #f2f6ff; }
+  .cm-ov-sticky { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; isolation: isolate; }
+  .cm-ov-sticky::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(60% 60% at 75% 45%, rgb(28 108 255 / 0.16), transparent 70%),
+      radial-gradient(40% 40% at 10% 90%, rgb(0 204 75 / 0.08), transparent 70%),
+      #000814;
+  }
+  .cm-ov-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .cm-ov-grid {
+    position: relative;
+    height: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: var(--s-7);
+    align-items: center;
+    padding-top: 88px;
+    padding-bottom: calc(var(--safe-bottom) + 3.5rem);
+    transition: opacity 0.6s var(--ease-out), transform 0.8s var(--ease-out), filter 0.6s;
+  }
+  .cm-ov.is-done .cm-ov-grid { opacity: 0.1; transform: scale(0.97); filter: blur(4px); }
+  .cm-ov-copy { display: grid; gap: var(--s-5); align-content: center; }
+  .cm-ov-kicker { font: 600 var(--fs-label) / 1.3 var(--font-ui); letter-spacing: var(--tracking-label); text-transform: uppercase; color: #a9b7d3; }
+  .cm-ov-text { font-family: var(--font-display); font-weight: 900; font-size: clamp(1.3rem, 0.55rem + 1.55vw, 2.5rem); line-height: 1.12; letter-spacing: -0.035em; max-width: 25ch; }
+  .cm-ov-line { display: block; }
+  .cm-w { display: inline-block; margin-right: 0.22em; color: #23365a; transform: translateY(0.12em); transition: color 0.4s, transform 0.5s var(--ease-out), background-color 0.4s; position: relative; }
+  .cm-w.is-lit { color: #f2f6ff; transform: none; }
+  .cm-w--out.is-lit { color: #ff5a47; }
+  .cm-w--new.is-lit { color: #fece4c; }
+  .cm-w--in.is-lit { color: #00cc4b; }
+  .cm-w--blue.is-lit { color: #6b9dff; }
+  .cm-w--hl.is-lit { color: #f2f6ff; text-decoration: underline; text-decoration-color: #00cc4b; text-decoration-thickness: 0.08em; text-underline-offset: 0.14em; }
+  .cm-w--pill { padding: 0 0.3em; border-radius: 0.4em; }
+  .cm-w--pill.is-lit { background: #00cc4b; color: #000814; }
+  .cm-w--strike::after { content: ''; position: absolute; left: -2%; right: 0; top: 55%; height: 0.08em; background: #ff4433; transform: scaleX(0); transform-origin: left; transition: transform 0.5s var(--ease-out) 0.15s; }
+  .cm-w--strike.is-lit::after { transform: scaleX(1.04); }
+
+  .cm-ov-side { position: relative; height: 100%; display: grid; grid-template-rows: auto 1fr; gap: var(--s-4); min-height: 0; }
+  .cm-ov-vis { min-height: 0; }
+  .cm-ov-hud { display: flex; flex-wrap: wrap; gap: var(--s-3); justify-content: flex-end; }
+  .cm-hud { display: grid; gap: 2px; padding: 10px 14px; border-radius: 14px; background: rgb(0 21 51 / 0.85); border: 1px solid #1b3157; opacity: 0; transform: translateY(10px); transition: opacity 0.5s var(--ease-out), transform 0.6s var(--ease-out); }
+  .cm-hud.is-on { opacity: 1; transform: none; }
+  .cm-hud-k { font: 600 11px/1.2 var(--font-ui); letter-spacing: 0.12em; text-transform: uppercase; color: #a9b7d3; }
+  .cm-hud-v { font: 800 clamp(1.2rem, 0.9rem + 1vw, 1.8rem) / 1.1 var(--font-ui); color: #f2f6ff; }
+  .cm-hud-up { color: #00cc4b; font-size: 0.7em; }
+  .cm-odo { display: inline-flex; align-items: flex-start; color: #00cc4b; }
+  .cm-odo-col, .cm-odo-comma { display: inline-block; height: 1.1em; overflow: hidden; max-width: 0.75em; transition: max-width 0.4s var(--ease-out); }
+  .cm-odo-comma { max-width: 0.35em; }
+  .cm-odo-col.is-lead, .cm-odo-comma.is-lead { max-width: 0; }
+  .cm-odo-strip { display: grid; will-change: transform; }
+  .cm-odo-strip span { height: 1.1em; display: block; }
+
+  .cm-lockup { position: absolute; inset: 0 0 calc(var(--safe-bottom) + 2rem); display: grid; place-content: center; justify-items: center; gap: var(--s-4); text-align: center; pointer-events: none; padding-inline: var(--gutter); }
+  .cm-lock-pre, .cm-lock-sub { font: 600 var(--fs-sm) / 1.3 var(--font-ui); letter-spacing: 0.12em; text-transform: uppercase; color: #a9b7d3; opacity: 0; transform: translateY(16px); transition: opacity 0.5s, transform 0.6s var(--ease-out); }
+  .cm-lock-sub { text-transform: none; letter-spacing: 0; font-weight: 500; transition-delay: 0.5s; }
+  .cm-lock-main { display: flex; flex-wrap: wrap; justify-content: center; column-gap: 0.22em; font-family: var(--font-display); font-weight: 900; font-size: clamp(3rem, 0.5rem + 10vw, 11rem); line-height: 0.92; letter-spacing: -0.055em; color: #f2f6ff; }
+  .cm-lock-word { display: inline-flex; white-space: nowrap; }
+  .cm-lock-ch { display: inline-block; opacity: 0; transform: translateY(0.5em) scale(0.7); filter: blur(8px); transition: opacity 0.4s calc(var(--j) * 0.035s), transform 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) calc(var(--j) * 0.035s), filter 0.5s calc(var(--j) * 0.035s); }
+  .cm-lock-main .cm-lock-g { color: #00cc4b; }
+  .cm-lockup.is-in .cm-lock-pre, .cm-lockup.is-in .cm-lock-sub { opacity: 1; transform: none; }
+  .cm-lockup.is-in .cm-lock-ch { opacity: 1; transform: none; filter: none; }
+
+  .cm-marquee { position: absolute; left: 0; right: 0; bottom: calc(var(--safe-bottom) - 1.5rem); overflow: hidden; background: #001533; border-block: 1px solid #1b3157; padding-block: 0.65rem; }
+  .cm-marquee-track { display: flex; width: max-content; animation: cm-marq 36s linear infinite; }
+  .cm-marquee-set { display: flex; }
+  .cm-mq { display: inline-flex; align-items: center; gap: 0.5em; padding-right: 2.2rem; font: 700 clamp(0.85rem, 0.7rem + 0.5vw, 1.1rem)/1 var(--font-ui); color: #f2f6ff; white-space: nowrap; }
+  .cm-mq i { width: 0.55em; height: 0.55em; border-radius: 50%; background: var(--c); }
+  @keyframes cm-marq { to { transform: translateX(-50%); } }
+
+  .cm-ov-hint { position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + 2rem); transform: translateX(-50%); font: 600 var(--fs-label) / 1 var(--font-ui); letter-spacing: var(--tracking-label); text-transform: uppercase; color: #a9b7d3; opacity: 0; transition: opacity var(--dur-2); pointer-events: none; white-space: nowrap; }
+  .cm-ov-hint span { display: inline-block; animation: cm-bob 1.6s ease-in-out infinite; }
+  .cm-ov.is-start .cm-ov-hint { opacity: 1; }
+  @keyframes cm-bob { 50% { transform: translateY(4px); } }
+
+  /* Reduced motion: no pin, one composed frame. */
+  .cm-ov.is-static { height: auto; }
+  .cm-ov.is-static .cm-ov-sticky { position: relative; height: auto; min-height: 100svh; padding-bottom: 14rem; }
+  .cm-ov.is-static .cm-ov-grid { height: 92svh; }
+  .cm-ov.is-static .cm-hud { opacity: 1; transform: none; }
+  .cm-ov.is-static .cm-lockup { position: relative; inset: auto; margin-top: var(--s-6); }
+  .cm-ov.is-static .cm-ov-hint { display: none; }
+
+  @media (max-width: 900px) {
+    .cm-ov { height: 460vh; }
+    .cm-ov-grid { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); gap: var(--s-4); align-items: stretch; padding-top: 84px; padding-bottom: calc(var(--safe-bottom) + 2.6rem); }
+    .cm-ov-copy { gap: var(--s-3); align-content: start; }
+    .cm-ov-text { font-size: clamp(1.2rem, 0.9rem + 1.6vw, 1.7rem); max-width: 26ch; }
+    .cm-ov-hud { justify-content: flex-start; gap: 6px; flex-wrap: nowrap; }
+    .cm-hud { padding: 6px 9px; border-radius: 10px; }
+    .cm-hud-k { font-size: 9px; letter-spacing: 0.08em; }
+    .cm-hud-v { font-size: 1rem; }
+    .cm-ov-side { gap: var(--s-2); }
+    .cm-lock-main { font-size: clamp(2.8rem, 15vw, 6rem); }
+    .cm-ov.is-static .cm-ov-grid { height: 100svh; }
+  }
+</style>

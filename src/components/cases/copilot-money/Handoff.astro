@@ -1,0 +1,421 @@
+---
+// Design-to-dev handoff: a token table drives a live budget-row component, the same
+// values flow into its SwiftUI source (and tokens.json), and a redline overlay shows
+// the spec. Code is highlighted at build time with a tiny tokenizer; live values are
+// swapped in place.
+const accents = [
+  { id: 'spend', name: 'Spend', hex: '#FF4433' },
+  { id: 'income', name: 'Income', hex: '#00CC4B' },
+  { id: 'networth', name: 'Net worth', hex: '#1C6CFF' },
+  { id: 'pending', name: 'Pending', hex: '#FECE4C' },
+];
+const ranges = [
+  { key: 'r', token: 'radius.card', min: 0, max: 32, val: 18, unit: 'pt' },
+  { key: 'pad', token: 'space.inset', min: 8, max: 32, val: 16, unit: 'pt' },
+  { key: 'gap', token: 'space.gap', min: 4, max: 24, val: 12, unit: 'pt' },
+  { key: 'amt', token: 'type.amount.size', min: 14, max: 30, val: 20, unit: 'pt' },
+];
+const weights = [
+  { id: 'semibold', css: 600 },
+  { id: 'bold', css: 700 },
+  { id: 'heavy', css: 800 },
+];
+const init: Record<string, string> = { hex: '0xFF4433', hexs: '#FF4433', tok: 'spend', r: '18', pad: '16', gap: '12', amt: '20', w: 'bold' };
+
+const swift = `// BudgetRow.swift · generated from design tokens
+import SwiftUI
+
+extension Color {
+    static let cmSurface = Color(hex: 0x001533)
+    static let cmAccent = Color(hex: ⟦hex⟧) // color.⟦tok⟧
+}
+
+enum Token {
+    static let radius: CGFloat = ⟦r⟧
+    static let inset: CGFloat = ⟦pad⟧
+    static let gap: CGFloat = ⟦gap⟧
+    static let amount: CGFloat = ⟦amt⟧
+}
+
+struct BudgetRow: View {
+    let category: Category
+
+    var body: some View {
+        HStack(spacing: Token.gap) {
+            Text(category.emoji)
+                .font(.system(size: 22))
+                .frame(width: 44, height: 44)
+                .background(Color.cmAccent.opacity(0.18),
+                            in: RoundedRectangle(cornerRadius: Token.radius * 0.6))
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(category.name).font(.headline)
+                    Spacer()
+                    Text(category.spent, format: .currency(code: "USD"))
+                        .font(.system(size: Token.amount, weight: .⟦w⟧, design: .rounded))
+                        .monospacedDigit()
+                }
+                ProgressView(value: min(category.progress, 1))
+                    .tint(.cmAccent)
+                Text(category.status)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(Token.inset)
+        .background(Color.cmSurface,
+                    in: RoundedRectangle(cornerRadius: Token.radius, style: .continuous))
+    }
+}`;
+
+const json = `{
+  "color": {
+    "surface": { "value": "#001533" },
+    "accent": { "value": "⟦hexs⟧", "role": "⟦tok⟧" }
+  },
+  "radius": { "card": { "value": ⟦r⟧ } },
+  "space": {
+    "inset": { "value": ⟦pad⟧ },
+    "gap": { "value": ⟦gap⟧ }
+  },
+  "type": {
+    "amount": { "size": ⟦amt⟧, "weight": "⟦w⟧", "design": "rounded" }
+  }
+}`;
+
+const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const KW = new Set(['import', 'extension', 'static', 'let', 'var', 'struct', 'enum', 'some', 'in', 'func', 'return']);
+function hl(src: string, mode: 'swift' | 'json') {
+  const re = mode === 'swift' ? /(\/\/[^\n]*)|("(?:[^"\\\n]|\\.)*")|(\b0x[0-9A-Fa-f]+\b|\b\d+(?:\.\d+)?\b)|(\.[a-z]\w*)|(\b[A-Za-z_]\w*\b)/g : /("(?:[^"\\\n]|\\.)*")(\s*:)?|(\b\d+(?:\.\d+)?\b)/g;
+  let out = '';
+  let last = 0;
+  for (const m of src.matchAll(re)) {
+    out += esc(src.slice(last, m.index));
+    last = m.index! + m[0].length;
+    const t = esc(m[0]);
+    if (mode === 'json') {
+      if (m[1]) out += m[2] ? `<span class="cm-c-k">${esc(m[1])}</span>${esc(m[2])}` : `<span class="cm-c-s">${esc(m[1])}</span>`;
+      else out += `<span class="cm-c-n">${t}</span>`;
+      continue;
+    }
+    if (m[1]) out += `<span class="cm-c-c">${t}</span>`;
+    else if (m[2]) out += `<span class="cm-c-s">${t}</span>`;
+    else if (m[3]) out += `<span class="cm-c-n">${t}</span>`;
+    else if (m[4]) out += `<span class="cm-c-m">${t}</span>`;
+    else if (KW.has(m[0])) out += `<span class="cm-c-k">${t}</span>`;
+    else if (/^[A-Z]/.test(m[0])) out += `<span class="cm-c-t">${t}</span>`;
+    else out += t;
+  }
+  out += esc(src.slice(last));
+  return out.replace(/⟦(\w+)⟧/g, (_, k: string) => `<span class="cm-c-live" data-tok="${k}">${esc(init[k] ?? k)}</span>`);
+}
+const swiftHtml = hl(swift, 'swift');
+const jsonHtml = hl(json, 'json');
+---
+
+<div class="cmd" data-cmd>
+  <div class="cmd-left">
+    <div class="cmd-preview-head">
+      <p class="t-label">Live component · BudgetRow</p>
+      <label class="cmd-switch"><input type="checkbox" data-cmd-red /> Redline / spec overlay</label>
+    </div>
+    <div class="cmd-preview" data-cmd-preview>
+      <div class="cmd-card" data-cmd-card style="--r:18px;--pad:16px;--gap:12px;--amt:20px;--w:700;--acc:#FF4433">
+        <span class="cmd-emoji" aria-hidden="true">🍜</span>
+        <div class="cmd-body">
+          <div class="cmd-row"><b>Dining</b><span class="cmd-amt">$520</span></div>
+          <div class="cmd-track"><i></i></div>
+          <p class="cmd-status">Over by $120 · $35 rolled over</p>
+        </div>
+        <div class="cmd-red" aria-hidden="true">
+          <i class="cmd-band cmd-band--t"></i><i class="cmd-band cmd-band--b"></i><i class="cmd-band cmd-band--l"></i><i class="cmd-band cmd-band--r"></i>
+          <i class="cmd-band cmd-band--gap"></i>
+          <span class="cmd-lbl cmd-lbl--pad" data-lbl="pad">16</span>
+          <span class="cmd-lbl cmd-lbl--gap" data-lbl="gap">12</span>
+          <span class="cmd-lbl cmd-lbl--r">r <b data-lbl="r">18</b></span>
+          <span class="cmd-lbl cmd-lbl--amt"><b data-lbl="amt">20</b>pt · <b data-lbl="w">bold</b> · rounded</span>
+          <span class="cmd-dim"><span data-lbl="h">92</span>pt</span>
+        </div>
+      </div>
+      <p class="cmd-cap">Sample data. The same component in the prototype’s Budgets screen.</p>
+    </div>
+
+    <table class="cmd-tokens">
+      <caption class="t-label">Design tokens · change one and watch the code</caption>
+      <thead>
+        <tr><th scope="col">Token</th><th scope="col">Value</th><th scope="col">Adjust</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row" id="cmd-t-acc"><code>color.accent</code></th>
+          <td class="t-num" data-out="acc">#FF4433</td>
+          <td>
+            <div class="cmd-sw" role="group" aria-labelledby="cmd-t-acc">
+              {
+                accents.map((a, i) => (
+                  <button type="button" data-acc={a.hex} data-acc-id={a.id} aria-pressed={i === 0 ? 'true' : 'false'} aria-label={`${a.name} ${a.hex}`} style={`--c:${a.hex}`}>
+                    <i />
+                  </button>
+                ))
+              }
+            </div>
+          </td>
+        </tr>
+        {
+          ranges.map((r) => (
+            <tr>
+              <th scope="row" id={`cmd-t-${r.key}`}>
+                <code>{r.token}</code>
+              </th>
+              <td class="t-num">
+                <span data-out={r.key}>{r.val}</span>
+                {r.unit}
+              </td>
+              <td>
+                <input type="range" min={r.min} max={r.max} value={r.val} step="1" data-range={r.key} aria-labelledby={`cmd-t-${r.key}`} />
+              </td>
+            </tr>
+          ))
+        }
+        <tr>
+          <th scope="row" id="cmd-t-w"><code>type.amount.weight</code></th>
+          <td class="t-num" data-out="w">bold</td>
+          <td>
+            <div class="cmd-seg" role="group" aria-labelledby="cmd-t-w">
+              {weights.map((w) => <button type="button" data-weight={w.id} data-css={w.css} aria-pressed={w.id === 'bold' ? 'true' : 'false'}>{w.id}</button>)}
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <button type="button" class="cmd-reset" data-cmd-reset>↺ Reset to spec</button>
+  </div>
+
+  <div class="cmd-code">
+    <div class="cmd-code-head">
+      <div class="cmd-tabs" role="tablist" aria-label="Handoff file">
+        <button type="button" role="tab" id="cmd-tab-swift" aria-selected="true" aria-controls="cmd-pane-swift" data-cmd-tab="swift">BudgetRow.swift</button>
+        <button type="button" role="tab" id="cmd-tab-json" aria-selected="false" aria-controls="cmd-pane-json" data-cmd-tab="json" tabindex="-1">tokens.json</button>
+      </div>
+      <button type="button" class="cmd-copy" data-cmd-copy><span data-copy-l>Copy</span></button>
+    </div>
+    <div class="cmd-pane" id="cmd-pane-swift" role="tabpanel" aria-labelledby="cmd-tab-swift" data-cmd-pane="swift">
+      <pre tabindex="0"><code set:html={swiftHtml} /></pre>
+    </div>
+    <div class="cmd-pane" id="cmd-pane-json" role="tabpanel" aria-labelledby="cmd-tab-json" data-cmd-pane="json" hidden>
+      <pre tabindex="0"><code set:html={jsonHtml} /></pre>
+    </div>
+    <p class="cmd-note">Illustrative SwiftUI for the concept. <code>Color(hex:)</code> is a small helper we’d ship with the tokens; Copilot’s real codebase isn’t public.</p>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-cmd]').forEach((root) => {
+    const card = root.querySelector<HTMLElement>('[data-cmd-card]')!;
+    const preview = root.querySelector<HTMLElement>('[data-cmd-preview]')!;
+    const live = (k: string) => [...root.querySelectorAll<HTMLElement>(`[data-tok="${k}"]`)];
+    const outs = (k: string) => [...root.querySelectorAll<HTMLElement>(`[data-out="${k}"], [data-lbl="${k}"]`)];
+    type Num = 'r' | 'pad' | 'gap' | 'amt';
+    const DEF: Record<Num, number> = { r: 18, pad: 16, gap: 12, amt: 20 };
+    const state: Record<Num, number> & { acc: string; accId: string; w: string; wCss: string } = { acc: '#FF4433', accId: 'spend', w: 'bold', wCss: '700', ...DEF };
+
+    const flash = (els: HTMLElement[]) =>
+      els.forEach((e) => {
+        e.classList.remove('is-flash');
+        void e.offsetWidth;
+        e.classList.add('is-flash');
+      });
+    const setText = (els: HTMLElement[], v: string) => els.forEach((e) => (e.textContent = v));
+    const height = () => setText(outs('h'), String(Math.round(card.offsetHeight)));
+
+    const apply = (changed?: string) => {
+      card.style.setProperty('--r', state.r + 'px');
+      card.style.setProperty('--pad', state.pad + 'px');
+      card.style.setProperty('--gap', state.gap + 'px');
+      card.style.setProperty('--amt', state.amt + 'px');
+      card.style.setProperty('--w', state.wCss);
+      card.style.setProperty('--acc', state.acc);
+      (['r', 'pad', 'gap', 'amt'] as const).forEach((k) => {
+        setText(live(k), String(state[k]));
+        setText(outs(k), String(state[k]));
+      });
+      setText(live('hex'), '0x' + state.acc.slice(1).toUpperCase());
+      setText(live('hexs'), state.acc.toUpperCase());
+      setText(live('tok'), state.accId);
+      setText(outs('acc'), state.acc.toUpperCase());
+      setText(live('w'), state.w);
+      setText(outs('w'), state.w);
+      if (changed) flash(changed === 'acc' ? [...live('hex'), ...live('hexs'), ...live('tok')] : live(changed));
+      requestAnimationFrame(height);
+    };
+
+    root.querySelectorAll<HTMLInputElement>('[data-range]').forEach((inp) =>
+      inp.addEventListener('input', () => {
+        const k = inp.dataset.range as Num;
+        state[k] = Number(inp.value);
+        apply(k);
+      }),
+    );
+    const accBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-acc]')];
+    accBtns.forEach((b) =>
+      b.addEventListener('click', () => {
+        state.acc = b.dataset.acc!;
+        state.accId = b.dataset.accId!;
+        accBtns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        apply('acc');
+      }),
+    );
+    const wBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-weight]')];
+    wBtns.forEach((b) =>
+      b.addEventListener('click', () => {
+        state.w = b.dataset.weight!;
+        state.wCss = b.dataset.css!;
+        wBtns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        apply('w');
+      }),
+    );
+    root.querySelector('[data-cmd-reset]')?.addEventListener('click', () => {
+      Object.assign(state, { acc: '#FF4433', accId: 'spend', w: 'bold', wCss: '700', ...DEF });
+      root.querySelectorAll<HTMLInputElement>('[data-range]').forEach((inp) => (inp.value = String(DEF[inp.dataset.range as Num])));
+      accBtns.forEach((x, i) => x.setAttribute('aria-pressed', String(i === 0)));
+      wBtns.forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.weight === 'bold')));
+      apply();
+    });
+    root.querySelector<HTMLInputElement>('[data-cmd-red]')?.addEventListener('change', (e) => preview.classList.toggle('is-red', (e.target as HTMLInputElement).checked));
+
+    // Tabs
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-cmd-tab]')];
+    const panes = [...root.querySelectorAll<HTMLElement>('[data-cmd-pane]')];
+    let tab = 'swift';
+    const setTab = (t: string) => {
+      tab = t;
+      tabs.forEach((b) => {
+        const on = b.dataset.cmdTab === t;
+        b.setAttribute('aria-selected', String(on));
+        b.tabIndex = on ? 0 : -1;
+      });
+      panes.forEach((p) => (p.hidden = p.dataset.cmdPane !== t));
+    };
+    tabs.forEach((b, i) => {
+      b.addEventListener('click', () => setTab(b.dataset.cmdTab!));
+      b.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+        e.preventDefault();
+        const n = tabs[(i + 1) % tabs.length];
+        setTab(n.dataset.cmdTab!);
+        n.focus();
+      });
+    });
+
+    // Copy
+    const copyBtn = root.querySelector<HTMLButtonElement>('[data-cmd-copy]')!;
+    const copyL = copyBtn.querySelector<HTMLElement>('[data-copy-l]')!;
+    copyBtn.addEventListener('click', async () => {
+      const code = root.querySelector<HTMLElement>(`[data-cmd-pane="${tab}"] code`)!.textContent || '';
+      try {
+        await navigator.clipboard.writeText(code);
+        copyL.textContent = 'Copied ✓';
+      } catch {
+        const range = document.createRange();
+        range.selectNodeContents(root.querySelector(`[data-cmd-pane="${tab}"] code`)!);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+        copyL.textContent = 'Selected · press ⌘C';
+      }
+      setTimeout(() => (copyL.textContent = 'Copy'), 1800);
+    });
+
+    apply();
+    new ResizeObserver(height).observe(card);
+  });
+</script>
+
+<style>
+  .cmd { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: var(--s-7); align-items: start; padding: var(--s-7); border-radius: calc(var(--r-lg) + 8px); border: 1px solid var(--line); background: radial-gradient(50% 60% at 30% 20%, rgb(0 204 75 / 0.1), transparent 70%), var(--bg-2); }
+  .cmd-left { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); min-width: 0; }
+  .cmd-preview-head { display: flex; justify-content: space-between; align-items: center; gap: var(--s-3); flex-wrap: wrap; }
+  .cmd-switch { display: inline-flex; gap: var(--s-2); align-items: center; font-size: var(--fs-sm); color: var(--ink-2); cursor: pointer; }
+  .cmd-switch input { accent-color: #ff2e88; width: 16px; height: 16px; }
+
+  .cmd-preview { display: grid; justify-items: center; gap: var(--s-3); padding: var(--s-8) var(--s-5); border-radius: var(--r-lg); background: #000814; background-image: radial-gradient(circle, #10213f 1px, transparent 1.2px); background-size: 16px 16px; border: 1px solid #1b3157; }
+  .cmd-cap { font-size: var(--fs-sm); color: #a9b7d3; }
+  .cmd-card { position: relative; width: min(100%, 360px); display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: var(--gap); align-items: center; padding: var(--pad); border-radius: var(--r); background: #001533; color: #f2f6ff; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, system-ui, sans-serif; box-shadow: 0 20px 50px -20px rgb(0 0 0 / 0.8); transition: padding 0.2s, gap 0.2s, border-radius 0.2s; }
+  .cmd-emoji { display: grid; place-items: center; width: 44px; height: 44px; border-radius: calc(var(--r) * 0.6); background: color-mix(in srgb, var(--acc) 18%, #001533); font-size: 22px; }
+  .cmd-body { display: grid; gap: 6px; min-width: 0; }
+  .cmd-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 17px; }
+  .cmd-amt { font-size: var(--amt); font-weight: var(--w); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .cmd-track { height: 6px; border-radius: 3px; background: #0a2147; overflow: hidden; }
+  .cmd-track i { display: block; height: 100%; background: var(--acc); border-radius: 3px; transition: background 0.3s; }
+  .cmd-status { font-size: 13px; color: #a9b7d3; }
+
+  .cmd-red { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.3s; border-radius: inherit; }
+  .is-red .cmd-red { opacity: 1; }
+  .is-red .cmd-card { outline: 1px solid #ff2e88; }
+  .cmd-band { position: absolute; background: repeating-linear-gradient(45deg, rgb(255 46 136 / 0.35) 0 3px, rgb(255 46 136 / 0.12) 3px 7px); }
+  .cmd-band--t { left: 0; right: 0; top: 0; height: var(--pad); }
+  .cmd-band--b { left: 0; right: 0; bottom: 0; height: var(--pad); }
+  .cmd-band--l { top: var(--pad); bottom: var(--pad); left: 0; width: var(--pad); }
+  .cmd-band--r { top: var(--pad); bottom: var(--pad); right: 0; width: var(--pad); }
+  .cmd-band--gap { top: var(--pad); bottom: var(--pad); left: calc(var(--pad) + 44px); width: var(--gap); background: repeating-linear-gradient(-45deg, rgb(91 147 255 / 0.45) 0 3px, rgb(91 147 255 / 0.15) 3px 7px); }
+  .cmd-lbl, .cmd-dim { position: absolute; padding: 2px 6px; border-radius: 4px; background: #ff2e88; color: #fff; font: 700 11px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: nowrap; }
+  .cmd-lbl--pad { left: 50%; top: 0; transform: translate(-50%, -50%); }
+  .cmd-lbl--gap { left: calc(var(--pad) + 44px + var(--gap) / 2); bottom: -10px; transform: translateX(-50%); background: #1c6cff; }
+  .cmd-lbl--r { left: -8px; top: -24px; }
+  .cmd-lbl--amt { right: 0; top: -24px; background: #f2f6ff; color: #000814; }
+  .cmd-dim { right: -12px; top: 50%; transform: translate(100%, -50%); background: transparent; color: #ff7ab2; border-left: 1px solid #ff2e88; border-radius: 0; padding-left: 8px; }
+
+  .cmd-tokens { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+  .cmd-tokens caption { text-align: left; margin-bottom: var(--s-3); }
+  .cmd-tokens th, .cmd-tokens td { padding: 0.6rem 0.5rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+  .cmd-tokens thead th { font: 600 var(--fs-label) / 1 var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .cmd-tokens code { font: 600 13px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--ink); }
+  .cmd-tokens td.t-num { color: var(--ink-2); white-space: nowrap; width: 6.5rem; }
+  .cmd-tokens input[type='range'] { width: 100%; min-width: 120px; accent-color: #00cc4b; }
+  .cmd-sw { display: flex; gap: 6px; }
+  .cmd-sw button { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; border: 2px solid transparent; transition: border-color var(--dur-1); }
+  .cmd-sw button i { width: 22px; height: 22px; border-radius: 50%; background: var(--c); }
+  .cmd-sw button[aria-pressed='true'] { border-color: #f2f6ff; }
+  .cmd-seg { display: inline-flex; padding: 3px; border-radius: var(--r-pill); background: var(--surface-2); border: 1px solid var(--line); }
+  .cmd-seg button { padding: 0.35rem 0.7rem; border-radius: var(--r-pill); font: 600 12px/1 var(--font-ui); color: var(--ink-2); }
+  .cmd-seg button[aria-pressed='true'] { background: #f2f6ff; color: #000814; }
+  .cmd-reset { justify-self: start; font: 600 var(--fs-sm) / 1 var(--font-ui); color: var(--ink-2); padding: 0.5rem 0; }
+  .cmd-reset:hover { color: var(--ink); }
+
+  .cmd-code { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-3); min-width: 0; }
+  .cmd-pane { min-width: 0; }
+  .cmd-code-head { display: flex; justify-content: space-between; align-items: center; gap: var(--s-3); }
+  .cmd-tabs { display: flex; gap: 4px; }
+  .cmd-tabs button { padding: 0.5rem 0.8rem; border-radius: var(--r-sm) var(--r-sm) 0 0; font: 600 12.5px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--muted); border-bottom: 2px solid transparent; }
+  .cmd-tabs button[aria-selected='true'] { color: var(--ink); border-color: #00cc4b; background: #0b1426; }
+  .cmd-copy { padding: 0.45rem 0.9rem; border-radius: var(--r-pill); border: 1px solid var(--line-strong); font: 600 12px/1 var(--font-ui); color: var(--ink); white-space: nowrap; }
+  .cmd-copy:hover { background: var(--surface-2); }
+  .cmd-pane pre { margin: 0; max-height: 560px; overflow: auto; padding: var(--s-5); border-radius: var(--r-md); background: #0b1426; border: 1px solid #1b3157; font: 500 12.5px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: #e6edf7; tab-size: 4; }
+  .cmd-pane pre:focus-visible { outline-offset: 2px; }
+  .cmd-pane :global(.cm-c-k) { color: #fc5fa3; font-weight: 700; }
+  .cmd-pane :global(.cm-c-t) { color: #5dd8ff; }
+  .cmd-pane :global(.cm-c-m) { color: #b48cf0; }
+  .cmd-pane :global(.cm-c-n) { color: #d9c97c; }
+  .cmd-pane :global(.cm-c-s) { color: #fc8a7d; }
+  .cmd-pane :global(.cm-c-c) { color: #8f9cb0; font-style: italic; }
+  .cmd-pane :global(.cm-c-live) { color: #d9c97c; border-radius: 3px; box-shadow: 0 0 0 1px rgb(0 204 75 / 0.45); padding: 0 2px; }
+  .cmd-pane :global(.cm-c-live.is-flash) { animation: cm-code-flash 0.9s ease-out; }
+  @keyframes cm-code-flash { from { background: rgb(0 204 75 / 0.55); color: #fff; } }
+  .cmd-note { font-size: var(--fs-sm); color: var(--muted); }
+  .cmd-note code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--ink-2); }
+
+  @media (max-width: 1100px) {
+    .cmd { grid-template-columns: 1fr; padding: var(--s-5); }
+  }
+  @media (max-width: 600px) {
+    .cmd { padding: var(--s-4) var(--s-3); }
+    .cmd-preview { padding: var(--s-7) var(--s-6) var(--s-5) var(--s-3); }
+    .cmd-tokens thead { display: none; }
+    .cmd-tokens tr { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; padding: 0.6rem 0; border-bottom: 1px solid var(--line); }
+    .cmd-tokens th, .cmd-tokens td { padding: 0; border: 0; }
+    .cmd-tokens td:last-child { grid-column: 1 / -1; }
+    .cmd-tokens td.t-num { width: auto; text-align: right; }
+    .cmd-pane pre { font-size: 11.5px; padding: var(--s-4); }
+    .cmd-dim { right: 4px; top: auto; bottom: -26px; transform: none; }
+  }
+</style>

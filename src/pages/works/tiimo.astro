@@ -1,0 +1,613 @@
+---
+import Case from '../../layouts/Case.astro';
+import Chapter from '../../components/case/Chapter.astro';
+import Brief from '../../components/case/Brief.astro';
+import Personas from '../../components/case/Personas.astro';
+import JourneyMap from '../../components/case/JourneyMap.astro';
+import FlowMap from '../../components/case/FlowMap.astro';
+import ScreenStack from '../../components/case/ScreenStack.astro';
+import Prototype from '../../components/case/Prototype.astro';
+import DesignSystem from '../../components/case/DesignSystem.astro';
+import Metrics from '../../components/case/Metrics.astro';
+import Hero from '../../components/cases/tiimo/Hero.astro';
+import Opening from '../../components/cases/tiimo/Opening.astro';
+import Wireframes from '../../components/cases/tiimo/Wireframes.astro';
+import SensoryLab from '../../components/cases/tiimo/SensoryLab.astro';
+import RoadToLaunch from '../../components/cases/tiimo/RoadToLaunch.astro';
+import { bySlug } from '../../data/projects';
+import { tiimoLayers, TI } from '../../data/cases/tiimo';
+
+const p = bySlug('tiimo');
+const chapters = [
+  { id: 'brief', label: 'Brief' },
+  { id: 'research', label: 'Research' },
+  { id: 'journey', label: 'Journey' },
+  { id: 'flow', label: 'User flow' },
+  { id: 'wireframes', label: 'Wireframes' },
+  { id: 'layers', label: '3D layers' },
+  { id: 'prototype', label: 'Prototype' },
+  { id: 'sensory', label: 'Sensory lab' },
+  { id: 'launch', label: 'Road to launch' },
+  { id: 'system', label: 'Design system' },
+  { id: 'measure', label: 'Measure' },
+];
+const sources = [
+  { label: 'Tiimo: about', url: 'https://www.tiimoapp.com/about' },
+  { label: 'Tiimo: pricing', url: 'https://www.tiimoapp.com/pricing' },
+  { label: 'Tiimo: winner, 2025 App Store Awards', url: 'https://www.tiimoapp.com/resource-hub/tiimo-winner-2025-app-store-awards' },
+  { label: 'Tiimo: raises $4.8M', url: 'https://www.tiimoapp.com/resource-hub/tiimo-raises-4-8m-neurodivergent-planner' },
+  { label: 'Tiimo × Gentler Streak', url: 'https://www.tiimoapp.com/resource-hub/tiimo-gentler-streak-partnership' },
+  { label: 'Wikipedia: Tiimo', url: 'https://en.wikipedia.org/wiki/Tiimo' },
+  { label: 'Tiimo press kit', url: 'https://tiimo.pressdeck.io/' },
+  { label: 'EU-Startups: €1.4M round (Aug 2024)', url: 'https://www.eu-startups.com/2024/08/copenhagen-based-tiimo-secures-additional-e1-4-million-to-advance-neuro-inclusive-tech/' },
+  { label: 'Apple Design Awards 2024', url: 'https://developer.apple.com/design/awards/2024/' },
+  { label: 'App Store editorial: iPhone App of the Year', url: 'https://apps.apple.com/au/iphone/story/id1847760015' },
+  { label: 'App Store listing', url: 'https://apps.apple.com/us/app/tiimo-daily-to-do-list/id1480220328' },
+  { label: 'Retention.Blog: App of the Year, Tiimo', url: 'https://www.retention.blog/p/app-of-the-year-tiimo' },
+];
+const meta = [
+  { label: 'Brand', value: 'Tiimo, Copenhagen' },
+  { label: 'Discipline', value: 'Mobile app · UX/UI' },
+  { label: 'Our role', value: 'Research, flows, wireframes, prototype, sensory system, launch kit' },
+  { label: 'Timeline (concept)', value: '6 weeks, sketch to App Store' },
+];
+const personas = [
+  { name: 'Time-blind Jess', meta: '27 · designer · ADHD', quote: 'I can’t feel how long things take. I need to see time passing.', goals: ['See the whole day at a glance', 'Know how long is left without doing maths', 'Start the hard task first'], pains: ['Calendars that are just grids of text', 'Alarms that panic her', 'Red “overdue” badges'], color: TI.lilac },
+  { name: 'Routine-anchored Oskar', meta: '19 · student · autistic', quote: 'Tell me what comes next, and warn me before it changes.', goals: ['Predictable visual routines', 'Gentle warnings before transitions', 'The same layout every day'], pains: ['Surprise pop-ups', 'Busy, flashing motion', 'Layouts that move around'], color: TI.mint },
+  { name: 'Overloaded parent Rosa', meta: '42 · recently diagnosed', quote: '“Sort the house” is not a task. It’s a weekend. Break it down for me.', goals: ['AI that splits big jobs into steps', 'Plans she can edit in seconds', 'Room for the day to go wrong'], pains: ['Long setup and forms', 'Guilt-driven streaks', 'Plans that collapse if she runs late'], color: TI.peach },
+];
+const stages = [
+  { label: 'Wake', doing: 'Wakes with a dozen to-dos already in her head.', feeling: 'Overwhelmed before she has started.', score: -1.2, opportunity: 'One brain-dump box on the lock screen: get it out of her head first, sort it later.' },
+  { label: 'Plan', doing: 'Tries to order the list; everything feels urgent.', feeling: 'Stuck, and starting to avoid it.', score: -1.7, opportunity: 'The co-planner proposes an order and soft time estimates, all editable, with undo.' },
+  { label: 'Start', doing: 'Opens the deck file, closes it, opens email.', feeling: 'Can’t get going.', score: -0.6, opportunity: 'Show only the first tiny step and a focus disc. Starting should take one tap.' },
+  { label: 'Focus', doing: 'Gets into flow and loses track of time.', feeling: 'Good, until lunch is late.', score: 0.9, opportunity: 'A haptic tick every 5 minutes and a Live Activity disc on the lock screen.' },
+  { label: 'Running late', doing: 'Lunch overruns by 40 minutes.', feeling: 'Ashamed; tempted to give up on the plan.', score: -1, opportunity: 'The timeline shifts gently. No red, no “overdue”, just “here’s your afternoon now”.' },
+  { label: 'Evening', doing: 'Looks back at the day.', feeling: 'Calm; it was a day she could see.', score: 1.6, opportunity: 'An optional mood check-in that celebrates what got done, never a broken streak.' },
+];
+const nodes = [
+  { id: 'welcome', label: 'Welcome', x: 90, y: 90, kind: 'start' as const },
+  { id: 'personalise', label: 'Personalise', x: 270, y: 90 },
+  { id: 'braindump', label: 'Brain dump', x: 450, y: 90 },
+  { id: 'coplanner', label: 'AI co-planner', x: 630, y: 90 },
+  { id: 'today', label: 'Today timeline', x: 630, y: 230, kind: 'key' as const },
+  { id: 'todo', label: 'To-dos', x: 450, y: 330 },
+  { id: 'task', label: 'Task detail', x: 820, y: 230 },
+  { id: 'focus', label: 'Focus timer', x: 1000, y: 230 },
+  { id: 'live', label: 'Live Activity', x: 1000, y: 90 },
+  { id: 'mood', label: 'Mood check-in', x: 1000, y: 350, kind: 'end' as const },
+];
+const edges = [
+  { from: 'welcome', to: 'personalise' }, { from: 'personalise', to: 'braindump' }, { from: 'braindump', to: 'coplanner' },
+  { from: 'coplanner', to: 'today', label: 'add' }, { from: 'today', to: 'task' }, { from: 'task', to: 'focus' },
+  { from: 'focus', to: 'live', label: 'lock' }, { from: 'focus', to: 'mood' }, { from: 'todo', to: 'today' }, { from: 'today', to: 'braindump', label: '+' },
+];
+const tasks = [
+  { label: 'Set up with the dyslexia-friendly font', screen: 'personalise' },
+  { label: 'Empty your head into brain dump', screen: 'braindump' },
+  { label: 'Let the co-planner break a task down', screen: 'coplanner' },
+  { label: 'See your day as a timeline', screen: 'today' },
+  { label: 'Open a task and its small steps', screen: 'task' },
+  { label: 'Start a visual focus timer', screen: 'focus' },
+  { label: 'Glance at the lock screen', screen: 'live' },
+  { label: 'Check in on how it went', screen: 'mood' },
+];
+const process = [
+  { n: '01', t: 'Research', d: 'Personas & journey', href: '#research', w: 'Week 1' },
+  { n: '02', t: 'Flows', d: 'Ten screens, one loop', href: '#flow', w: 'Week 1' },
+  { n: '03', t: 'Wireframes', d: 'Sketch → grey → colour', href: '#wireframes', w: 'Week 2' },
+  { n: '04', t: 'Prototype', d: 'Tap it, test it', href: '#prototype', w: 'Week 3' },
+  { n: '05', t: 'Sensory system', d: 'Settings that adapt', href: '#sensory', w: 'Week 3' },
+  { n: '06', t: 'Launch', d: 'Store page, roadmap, notes', href: '#launch', w: 'Weeks 4–6' },
+];
+const timeline = [
+  { e: '🥣', t: 'Breakfast & meds', s: '08:30 · 30 min', c: TI.peach, h: 64 },
+  { e: '✉️', t: 'Reply to Sam', s: '09:15 · 30 min', c: TI.sky, h: 64 },
+  { e: '💻', t: 'Focus: Friday deck', s: '10:00 · 1 h 30', c: TI.lilac, h: 118, go: 'task' },
+  { e: '🌿', t: 'Walk in the sun', s: '12:00 · 30 min', c: TI.mint, h: 64 },
+  { e: '📞', t: 'Call the dentist', s: '13:00 · 15 min', c: TI.pink, h: 56 },
+  { e: '🧺', t: 'Laundry, one load', s: '14:00 · 45 min', c: TI.butter, h: 74 },
+];
+---
+
+<Case project={p} chapters={chapters} sources={sources} meta={meta}>
+  <Hero slot="hero" />
+
+  <Opening />
+
+  <Chapter id="brief" n="01" label="The brief" title="A planner for brains that work differently.">
+    <Brief
+      story="Tiimo is a visual planner from <strong>Copenhagen</strong>, founded in <strong>2015</strong> by Helene Lassen Nørlem and Melissa Würtz Azari. It began as a research project interviewing neurodivergent teenagers about how technology could support them at school. Today it turns to-dos into <em>colour-coded timeline blocks</em>, with an AI co-planner, a visual focus timer and mood check-ins. Its own line: <em>“Designed for brains that work differently.”</em>"
+      facts={[
+        { v: '2015', k: 'Founded in Copenhagen by Helene Lassen Nørlem and Melissa Würtz Azari' },
+        { v: 'App of the Year', k: 'App Store Awards 2025, iPhone' },
+        { v: 'ADA ’24', k: 'Apple Design Awards finalist, Inclusivity' },
+        { v: '1M+', k: 'Users, as reported by Tiimo' },
+        { v: '~20', k: 'People, 30% of whom identify as neurodivergent (press kit)' },
+        { v: '$4.8M', k: 'Raised pre-Series A (EU-Startups; Tiimo)' },
+      ]}
+      problems={[
+        { title: 'Make time visible, without panic', text: 'For people with time blindness, the passing of time has to be seen. But a ticking countdown can feel like an alarm. The shape of time must calm, not chase.' },
+        { title: 'AI that doesn’t overwhelm', text: 'A co-planner that turns one task into twelve has made things worse. Its output needs pacing, sensible defaults and an undo that’s always in reach.' },
+        { title: 'Sensory settings as a system', text: 'Theme colours, fonts and motion are personal. Whatever someone picks, contrast, layout and reduced motion must still hold.' },
+      ]}
+      goal="A day you can see is a day you can start. Make the plan visible in one glance, and gentle enough to come back to tomorrow."
+    />
+    <div class="ti-proc" data-reveal>
+      <p class="t-label">How this app gets made: the path this page follows</p>
+      <ol role="list" class="ti-proc-list" data-stagger="0.07">
+        {
+          process.map((s) => (
+            <li>
+              <a href={s.href} class="ti-proc-step">
+                <span class="ti-proc-n t-num">{s.n}</span>
+                <span class="ti-proc-t">{s.t}</span>
+                <span class="ti-proc-d">{s.d}</span>
+                <span class="ti-proc-w">{s.w}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </Chapter>
+
+  <Chapter id="research" n="02" label="Research" title="Three people. Three ways a day falls apart." intro="We built personas from Tiimo’s public audience: ADHD, autistic and dyslexic adults, plus anyone overwhelmed by planning. Then we checked every screen against all three.">
+    <Personas personas={personas} />
+  </Chapter>
+
+  <Chapter id="journey" n="03" label="Journey map" title="Jess’s Tuesday, and where the app can help." intro="Tap each moment to see what Jess is doing, how she feels, and the design opportunity we found. The low points shaped the whole product.">
+    <JourneyMap stages={stages} />
+  </Chapter>
+
+  <Chapter id="flow" n="04" label="User flow" title="Ten screens. Dump, plan, do, reflect." intro="Onboarding happens once. The daily loop is <strong>brain dump → co-planner → timeline → focus → check-in</strong>. Tap any screen to open it in the live prototype below.">
+    <FlowMap nodes={nodes} edges={edges} width={1100} height={420} />
+  </Chapter>
+
+  <Chapter id="wireframes" n="05" label="Wireframes" title="Watch the screens draw themselves." intro="Every screen starts as pencil, becomes grey boxes, then gets colour and content. <strong>Scroll</strong> to replay that process on three key screens; the design notes pin on as they were made.">
+    <Wireframes />
+  </Chapter>
+
+  <Chapter id="layers" n="06" label="3D layers" title="The Today screen, taken apart." intro="Five layers make one calm screen. Scroll and the exploded view assembles into the final UI; drag to look around it.">
+    <ScreenStack layers={tiimoLayers} accent={p.accent} />
+  </Chapter>
+
+  <Chapter id="prototype" n="07" label="Prototype" title="Tap through a whole day." intro="This is the prototype we’d put in front of testers. Follow the journey on the left, and flip between <strong>Sketch</strong>, <strong>Wireframe</strong> and <strong>Hi-fi</strong> to see how each screen evolved. Try the font switch on the second screen.">
+    <Prototype title="Tiimo, one gentle day" start="welcome" tasks={tasks} device="light" note="Eight tasks, ten screens. Everything glowing is tappable.">
+      <!-- Welcome -->
+      <section class="scr ti-p ti-p-welcome" data-screen="welcome" data-title="Welcome">
+        <div class="ti-p-blocks img" aria-hidden="true">
+          <i style={`background:${TI.lilac}`}></i><i style={`background:${TI.pink}`}></i><i style={`background:${TI.mint}`}></i><i style={`background:${TI.butter}`}></i><i style={`background:${TI.sky}`}></i>
+        </div>
+        <div class="ti-p-pad ti-p-bottom">
+          <p class="t ti-p-kicker">Tiimo · concept</p>
+          <h4 class="t ti-p-h1">Designed for brains that work differently.</h4>
+          <p class="t ti-p-p">Plan your day in colour. Go at your own pace.</p>
+          <button class="btn ti-p-cta" data-go="personalise"><span class="t">Let’s start</span></button>
+        </div>
+      </section>
+
+      <!-- Personalise -->
+      <section class="scr ti-p" data-screen="personalise" data-title="Personalise">
+        <div class="ti-p-scroll" data-scroll>
+          <div class="ti-p-pad ti-p-top">
+            <div class="ti-p-progress ui"><span style="width:40%"></span></div>
+            <h4 class="t ti-p-h2">Make it yours</h4>
+            <p class="t ti-p-p">All optional. You can change any of this later.</p>
+            <p class="t ti-p-label">Do any of these fit you? <span class="ti-p-opt">optional</span></p>
+            <div class="ti-p-chips">
+              {['ADHD', 'Autistic', 'Dyslexic', 'Not sure', 'Rather not say'].map((o, i) => <button class:list={['ui', 'ti-p-chip', { 'is-on': i === 0 || i === 2 }]} data-toggle><span class="t">{o}</span></button>)}
+            </div>
+            <p class="t ti-p-label">Reading style</p>
+            <div class="ti-p-fonts">
+              <button class="ui ti-p-font is-on" data-ti-pfont="std" aria-pressed="true"><span class="t ti-p-font-a">Aa</span><span class="t">Rounded</span></button>
+              <button class="ui ti-p-font ti-p-font--dys" data-ti-pfont="dys" aria-pressed="false"><span class="t ti-p-font-a">Aa</span><span class="t">Dyslexia-friendly</span></button>
+            </div>
+            <p class="t ti-p-label">Theme colour</p>
+            <div class="ti-p-swatches">
+              {[TI.purple, '#FF9DB8', '#86E0B4', '#93C6FF', '#FFB27D'].map((c, i) => <button class:list={['ui', 'ti-p-sw', { 'is-on': i === 0 }]} style={`--sw:${c}`} data-ti-ptheme={c} aria-label={`Theme colour ${i + 1}`} aria-pressed={i === 0 ? 'true' : 'false'}><span class="ico"></span></button>)}
+            </div>
+            <button class="btn ti-p-cta ti-p-mt" data-go="braindump"><span class="t">Continue</span></button>
+            <button class="ti-p-ghost t" data-go="braindump">Skip for now</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Brain dump -->
+      <section class="scr ti-p" data-screen="braindump" data-title="Brain dump">
+        <div class="ti-p-pad ti-p-top">
+          <button class="ti-p-back t" data-back>‹ Back</button>
+          <h4 class="t ti-p-h2">Brain dump</h4>
+          <p class="t ti-p-p">Type or talk. We’ll sort it out together.</p>
+          <div class="ui ti-p-dump">
+            {['clean kitchen', 'email Sam', 'dentist?!', 'deck for Friday', 'call mum'].map((t) => <p class="t ti-p-dump-l">{t}</p>)}
+            <span class="ti-p-caret" aria-hidden="true"></span>
+          </div>
+          <div class="ti-p-row2">
+            <button class="ui ti-p-mic" data-toggle aria-label="Dictate"><span class="ico ti-p-mic-i"></span></button>
+            <p class="t ti-p-hint">5 things, nothing scheduled yet</p>
+          </div>
+        </div>
+        <div class="ti-p-pad ti-p-bottom">
+          <button class="btn ti-p-cta" data-go="coplanner"><span class="t">✨ Plan it with me</span></button>
+        </div>
+      </section>
+
+      <!-- AI co-planner -->
+      <section class="scr ti-p" data-screen="coplanner" data-title="AI co-planner">
+        <div class="ti-p-scroll" data-scroll>
+          <div class="ti-p-pad ti-p-top">
+            <button class="ti-p-back t" data-back>‹ Back</button>
+            <p class="t ti-p-kicker">Co-planner suggestion</p>
+            <h4 class="t ti-p-h2">🍽️ Clean kitchen</h4>
+            <p class="t ti-p-p">Here’s a gentle way in: four small steps, about 22 minutes. Tap a time to change it.</p>
+            <div class="ui ti-p-steps">
+              {[['Clear the counter', '5 min'], ['Dishes in the dishwasher', '10 min'], ['Wipe the surfaces', '5 min'], ['Take the bin out', '2 min']].map(([s, m], i) => (
+                <div class="ui ti-p-step">
+                  <span class="t ti-p-step-n">{i + 1}</span>
+                  <span class="t ti-p-step-t">{s}</span>
+                  <button class="ui ti-p-time" data-toggle aria-label={`Edit time for ${s}`}><span class="t">{m}</span></button>
+                </div>
+              ))}
+            </div>
+            <button class="ti-p-undo t" data-back>↺ Undo, keep it as one task</button>
+            <button class="btn ti-p-cta ti-p-mt" data-go="today"><span class="t">Add to today</span></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Today timeline -->
+      <section class="scr ti-p" data-screen="today" data-title="Today timeline">
+        <div class="ti-p-scroll ti-p-scroll--tabs" data-scroll>
+          <div class="ti-p-pad ti-p-top ti-p-top--tight">
+            <p class="t ti-p-kicker">Tuesday 14</p>
+            <h4 class="t ti-p-h1 ti-p-h1--today">Today</h4>
+            <div class="ti-p-week ui">
+              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <span class:list={['t', { 'is-on': i === 1 }]}>{d}<b>{13 + i}</b></span>)}
+            </div>
+            <div class="ti-p-tl">
+              {
+                timeline.map((b) =>
+                  b.go ? (
+                    <button class="ui ti-p-blk ti-p-blk--now" style={`--c:${b.c};min-height:${b.h}px`} data-go={b.go}>
+                      <span class="ico ti-p-blk-e">{b.e}</span>
+                      <span class="ti-p-blk-txt"><span class="t ti-p-blk-t">{b.t}</span><span class="t ti-p-blk-s">{b.s}</span></span>
+                      <span class="ti-p-blk-disc img" aria-hidden="true"></span>
+                    </button>
+                  ) : (
+                    <div class="ui ti-p-blk" style={`--c:${b.c};min-height:${b.h}px`}>
+                      <span class="ico ti-p-blk-e">{b.e}</span>
+                      <span class="ti-p-blk-txt"><span class="t ti-p-blk-t">{b.t}</span><span class="t ti-p-blk-s">{b.s}</span></span>
+                    </div>
+                  ),
+                )
+              }
+              <span class="ti-p-now" aria-hidden="true"><span>10:14</span></span>
+            </div>
+          </div>
+        </div>
+        <button class="btn ti-p-fab" data-go="braindump" aria-label="Add to brain dump"><span class="t">+</span></button>
+        <nav class="ti-p-tabs ui" aria-label="App tabs">
+          <button class="is-on" data-go="today"><span class="ico"></span><span class="t">Today</span></button>
+          <button data-go="todo"><span class="ico"></span><span class="t">To-dos</span></button>
+          <button data-go="mood"><span class="ico"></span><span class="t">Check-in</span></button>
+        </nav>
+      </section>
+
+      <!-- Task detail -->
+      <section class="scr ti-p" data-screen="task" data-title="Task detail">
+        <div class="ti-p-taskhead img" style={`background:${TI.lilac}`}><span>💻</span></div>
+        <div class="ti-p-pad ti-p-taskbody">
+          <button class="ti-p-back t" data-back>‹ Today</button>
+          <h4 class="t ti-p-h2">Focus: Friday deck</h4>
+          <p class="t ti-p-p">10:00 – 11:30 · 3 small steps</p>
+          <div class="ti-p-checks">
+            {['Outline five slides', 'Find the usage chart', 'Write the ask'].map((s, i) => (
+              <button class:list={['ui', 'ti-p-check', { 'is-on': i === 0 }]} data-toggle>
+                <span class="ico ti-p-box"></span><span class="t">{s}</span>
+              </button>
+            ))}
+          </div>
+          <div class="ui ti-p-timerpick">
+            <span class="t ti-p-label">Timer</span>
+            <span class="t ti-p-timerpick-v">25 min · disc</span>
+          </div>
+        </div>
+        <div class="ti-p-pad ti-p-bottom">
+          <button class="btn ti-p-cta" data-go="focus"><span class="t">Start focus</span></button>
+        </div>
+      </section>
+
+      <!-- Focus timer -->
+      <section class="scr ti-p ti-p-focus" data-screen="focus" data-title="Focus timer">
+        <div class="ti-p-pad ti-p-top ti-p-center">
+          <p class="t ti-p-kicker">Now · step 2 of 3</p>
+          <h4 class="t ti-p-h2">Find the usage chart</h4>
+          <div class="ti-p-disc img" aria-hidden="true"><i></i></div>
+          <p class="t ti-p-giant">15:30</p>
+          <p class="t ti-p-p">left of 25 minutes</p>
+          <div class="ti-p-grid2">
+            <button class="ui ti-p-soft" data-toggle><span class="t">+5 min</span></button>
+            <button class="ui ti-p-soft" data-go="live"><span class="t">Lock screen</span></button>
+          </div>
+        </div>
+        <div class="ti-p-pad ti-p-bottom">
+          <button class="btn ti-p-cta" data-go="mood" data-sheet><span class="t">Done, check in</span></button>
+        </div>
+      </section>
+
+      <!-- Lock screen Live Activity -->
+      <section class="scr ti-p ti-p-lock" data-screen="live" data-title="Lock screen Live Activity">
+        <div class="ti-p-pad ti-p-center ti-p-lock-top">
+          <p class="t ti-p-lock-date">Tuesday 14 October</p>
+          <p class="t ti-p-lock-time">10:14</p>
+        </div>
+        <div class="ti-p-pad ti-p-lock-bottom">
+          <button class="ui ti-p-live" data-back>
+            <span class="ti-p-live-disc img" aria-hidden="true"></span>
+            <span class="ti-p-live-txt"><span class="t ti-p-live-t">Find the usage chart</span><span class="t ti-p-live-s">15 min left · then “Write the ask”</span></span>
+            <span class="t ti-p-live-n">+5</span>
+          </button>
+          <p class="t ti-p-lock-hint">Tap the Live Activity to go back</p>
+        </div>
+      </section>
+
+      <!-- To-dos -->
+      <section class="scr ti-p" data-screen="todo" data-title="To-dos">
+        <div class="ti-p-scroll ti-p-scroll--tabs" data-scroll>
+          <div class="ti-p-pad ti-p-top">
+            <h4 class="t ti-p-h2">To-dos</h4>
+            <p class="t ti-p-p">Sorted by the co-planner. Drag anything to today.</p>
+            {[
+              ['Now', [['📞', 'Call the dentist'], ['✉️', 'Reply to Sam']]],
+              ['Soon', [['🛒', 'Groceries'], ['🧺', 'Laundry, one load']]],
+              ['Someday', [['🪴', 'Repot the plants'], ['📚', 'Return library books']]],
+            ].map(([g, items]) => (
+              <div class="ti-p-group">
+                <p class="t ti-p-label">{g as string}</p>
+                {(items as string[][]).map(([e, t]) => (
+                  <button class="ui ti-p-todo" data-toggle>
+                    <span class="ico ti-p-box"></span><span class="ti-p-todo-e">{e}</span><span class="t">{t}</span>
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+        <nav class="ti-p-tabs ui" aria-label="App tabs">
+          <button data-go="today"><span class="ico"></span><span class="t">Today</span></button>
+          <button class="is-on" data-go="todo"><span class="ico"></span><span class="t">To-dos</span></button>
+          <button data-go="mood"><span class="ico"></span><span class="t">Check-in</span></button>
+        </nav>
+      </section>
+
+      <!-- Mood check-in (sheet) -->
+      <section class="scr ti-p ti-p-sheet-scr" data-screen="mood" data-title="Mood check-in (sheet)">
+        <div class="ti-p-sheet ui">
+          <div class="ti-p-grabber"></div>
+          <p class="t ti-p-kicker">Optional check-in</p>
+          <h4 class="t ti-p-h2">How did that feel?</h4>
+          <div class="ti-p-moods">
+            {['😣', '😕', '😐', '🙂', '😄'].map((e, i) => <button class:list={['ui', 'ti-p-mood', { 'is-on': i === 3 }]} data-toggle aria-label={`Mood ${i + 1} of 5`}>{e}</button>)}
+          </div>
+          <div class="ti-p-chips">
+            {['Got started', 'Needed +5', 'Calm', 'Tired'].map((o, i) => <button class:list={['ui', 'ti-p-chip', { 'is-on': i === 0 }]} data-toggle><span class="t">{o}</span></button>)}
+          </div>
+          <p class="t ti-p-p">You finished 2 of 3 steps. That counts.</p>
+          <button class="btn ti-p-cta" data-go="today"><span class="t">Save, back to today</span></button>
+          <button class="ti-p-ghost t" data-go="today">Skip</button>
+        </div>
+      </section>
+    </Prototype>
+  </Chapter>
+
+  <Chapter id="sensory" n="08" label="Sensory lab" title="Every setting, felt on a live phone." intro="Sensory needs differ, so the UI is a system, not a skin. Change <strong>colour intensity, motion, font, timer style and cues</strong>, and watch the same screen adapt while contrast stays readable.">
+    <SensoryLab />
+  </Chapter>
+
+  <Chapter id="launch" n="09" label="Road to launch" title="From TestFlight to the App Store, and beyond." intro="A mobile app isn’t done when the design is. We plan the store page, a staged roadmap and the voice of every release note. <strong>Scrub the roadmap</strong> and the store page follows.">
+    <RoadToLaunch />
+  </Chapter>
+
+  <Chapter id="system" n="10" label="Design system" title="Pastel blocks, dark ink, one calm purple.">
+    <DesignSystem
+      colors={[
+        { name: 'Canvas', hex: TI.canvas, use: 'App background' },
+        { name: 'Ink', hex: TI.ink, use: 'All text, on every block' },
+        { name: 'Now', hex: TI.deep, use: 'Now line, timers, links' },
+        { name: 'Purple', hex: TI.purple, use: 'Primary buttons (ink text)' },
+        { name: 'Lilac', hex: TI.lilac, use: 'Task block' },
+        { name: 'Pink', hex: TI.pink, use: 'Task block' },
+        { name: 'Peach', hex: TI.peach, use: 'Task block' },
+        { name: 'Butter', hex: TI.butter, use: 'Task block' },
+        { name: 'Mint', hex: TI.mint, use: 'Task block, done states' },
+        { name: 'Sky', hex: TI.sky, use: 'Task block' },
+      ]}
+      type={[
+        { role: 'Display', sample: 'Today', spec: 'Montserrat 800 · 34/38', style: 'font-family:Montserrat;font-weight:800;font-size:2.4rem;letter-spacing:-0.03em' },
+        { role: 'Task label', sample: '💻 Focus: Friday deck', spec: 'Inter 700 · 16/22', style: 'font-family:Inter;font-weight:700;font-size:1.05rem' },
+        { role: 'Body', sample: 'Type or talk. We’ll sort it out together.', spec: 'Inter 400 · 16/24', style: 'font-family:Inter;font-size:1rem' },
+        { role: 'Dyslexia-friendly', sample: 'One small step at a time.', spec: 'Wide spacing · 1.55 line height (stand-in)', style: 'font-family:Verdana,Tahoma,sans-serif;font-size:1rem;letter-spacing:0.04em;word-spacing:0.14em;line-height:1.55' },
+      ]}
+      note="Tiimo publishes no official colour values; these hex codes are our working approximation of a soft, user-chosen pastel palette on a calm light canvas. Ink text stays above 9:1 on every block colour."
+    />
+  </Chapter>
+
+  <Chapter id="measure" n="11" label="Measure" title="How we’d know it’s working.">
+    <Metrics
+      metrics={[
+        { name: 'Time to first plan', hypothesis: 'New users place a first day on the timeline within 3 minutes of install.', how: 'Onboarding funnel timing, install → first timeline with 3+ blocks.' },
+        { name: 'Co-planner trust', hypothesis: 'Most suggested steps are kept or lightly edited; undo is used without people leaving.', how: 'Accept / edit / undo rate per suggestion, and next-day return after an undo.' },
+        { name: 'Timers finished', hypothesis: 'Gentler late states and +5 min reduce abandoned focus sessions.', how: 'Focus completion rate before and after v1.1, A/B on late-state copy.' },
+        { name: 'Settings that stick', hypothesis: 'People who tune a sensory setting in week 1 keep planning in week 4.', how: 'Week-4 retention by settings cohort; survey on comfort.' },
+      ]}
+    />
+  </Chapter>
+</Case>
+
+<script>
+  // Prototype extras: the reading-style and theme choices restyle the whole prototype.
+  document.querySelectorAll<HTMLButtonElement>('[data-ti-pfont]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const screen = b.closest<HTMLElement>('.device-screen');
+      if (!screen) return;
+      screen.classList.toggle('ti-dys', b.dataset.tiPfont === 'dys');
+      b.parentElement?.querySelectorAll<HTMLButtonElement>('[data-ti-pfont]').forEach((x) => {
+        x.classList.toggle('is-on', x === b);
+        x.setAttribute('aria-pressed', String(x === b));
+      });
+    }),
+  );
+  document.querySelectorAll<HTMLButtonElement>('[data-ti-ptheme]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const screen = b.closest<HTMLElement>('.device-screen');
+      if (!screen) return;
+      screen.style.setProperty('--ti-acc', b.dataset.tiPtheme!);
+      b.parentElement?.querySelectorAll<HTMLButtonElement>('[data-ti-ptheme]').forEach((x) => {
+        x.classList.toggle('is-on', x === b);
+        x.setAttribute('aria-pressed', String(x === b));
+      });
+    }),
+  );
+</script>
+
+<style>
+  /* ---------- Process path ---------- */
+  .ti-proc { margin-top: var(--s-9); display: grid; gap: var(--s-4); }
+  .ti-proc-list { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--s-3); counter-reset: s; }
+  .ti-proc-step { position: relative; display: grid; gap: 0.25rem; height: 100%; padding: var(--s-4); border-radius: var(--r-md); border: 1px solid var(--line); background: linear-gradient(180deg, color-mix(in srgb, var(--a) 7%, transparent), transparent); transition: border-color var(--dur-2), transform var(--dur-2) var(--ease-out); }
+  .ti-proc-step:hover { border-color: var(--a); transform: translateY(-3px); }
+  .ti-proc-step::after { content: '→'; position: absolute; right: var(--s-3); top: var(--s-3); color: var(--a); }
+  .ti-proc-n { color: var(--a); font-weight: 700; font-size: var(--fs-sm); }
+  .ti-proc-t { font: 800 var(--fs-lg)/1.15 var(--font-display); letter-spacing: -0.02em; color: var(--ink); }
+  .ti-proc-d { font-size: var(--fs-sm); color: var(--ink-2); }
+  .ti-proc-w { margin-top: var(--s-2); font: 600 var(--fs-label)/1 var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  @media (max-width: 1100px) { .ti-proc-list { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 560px) { .ti-proc-list { grid-template-columns: 1fr 1fr; } }
+
+  /* ---------- Tiimo prototype screens ---------- */
+  .ti-p { --ti-acc: #a98bff; --ti-ff: Inter, system-ui, sans-serif; background: #f7f3ff; color: #1f1a33; font-family: var(--ti-ff); }
+  :global(.device-screen.ti-dys) .ti-p { --ti-ff: Verdana, Tahoma, 'Segoe UI', sans-serif; letter-spacing: 0.03em; word-spacing: 0.12em; }
+  :global(.device-screen.ti-dys) .ti-p .ti-p-p { line-height: 1.65; }
+  .ti-p-scroll { position: absolute; inset: 0; }
+  .ti-p-scroll--tabs { bottom: 86px; }
+  .ti-p-pad { padding: 0 24px; }
+  .ti-p-top { padding-top: 64px; padding-bottom: 32px; display: grid; gap: 14px; }
+  .ti-p-top--tight { gap: 10px; }
+  .ti-p-bottom { position: absolute; left: 0; right: 0; bottom: 40px; display: grid; gap: 12px; }
+  .ti-p-center { text-align: center; justify-items: center; }
+  .ti-p-kicker { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #625a7c; }
+  .ti-p-h1 { font-family: Montserrat, sans-serif; font-size: 34px; line-height: 1.08; font-weight: 800; letter-spacing: -0.03em; }
+  .ti-p-h1--today { font-size: 38px; }
+  .ti-p-h2 { font-family: Montserrat, sans-serif; font-size: 27px; line-height: 1.12; font-weight: 800; letter-spacing: -0.02em; }
+  :global(.device-screen.ti-dys) .ti-p .ti-p-h1, :global(.device-screen.ti-dys) .ti-p .ti-p-h2 { font-family: var(--ti-ff); letter-spacing: 0; }
+  .ti-p-p { font-size: 15px; line-height: 1.5; color: #4d4566; }
+  .ti-p-label { font-size: 13px; font-weight: 700; color: #1f1a33; margin-top: 6px; }
+  .ti-p-opt { font-weight: 500; color: #625a7c; }
+  .ti-p-mt { margin-top: 8px; }
+  .ti-p-cta { width: 100%; height: 56px; border-radius: 20px; background: var(--ti-acc); color: #1f1a33; font-weight: 800; font-size: 16px; display: grid; place-items: center; box-shadow: 0 10px 24px -12px rgb(91 63 209 / 0.6); }
+  .ti-p-ghost { justify-self: center; font-size: 14px; font-weight: 700; color: #5b3fd1; padding: 6px; }
+  .ti-p-back { justify-self: start; font-size: 15px; font-weight: 600; color: #5b3fd1; }
+  .ti-p-welcome { background: radial-gradient(90% 60% at 50% 20%, #fff, #f7f3ff 70%); }
+  .ti-p-blocks { position: absolute; left: 50%; top: 120px; width: 260px; height: 300px; margin-left: -130px; display: grid; gap: 12px; align-content: center; }
+  .ti-p-blocks i { display: block; height: 42px; border-radius: 16px; animation: ti-p-in 0.9s var(--ease-out) both; }
+  .ti-p-blocks i:nth-child(1) { width: 70%; animation-delay: 0.1s; }
+  .ti-p-blocks i:nth-child(2) { width: 100%; height: 72px; animation-delay: 0.2s; }
+  .ti-p-blocks i:nth-child(3) { width: 55%; margin-left: 20%; animation-delay: 0.3s; }
+  .ti-p-blocks i:nth-child(4) { width: 85%; animation-delay: 0.4s; }
+  .ti-p-blocks i:nth-child(5) { width: 40%; margin-left: 45%; animation-delay: 0.5s; }
+  @keyframes ti-p-in { from { opacity: 0; transform: translateY(-30px) rotate(-6deg); } }
+  .ti-p-progress { height: 6px; border-radius: 3px; background: #e2daf3; overflow: hidden; }
+  .ti-p-progress span { display: block; height: 100%; border-radius: 3px; background: #5b3fd1; }
+  .ti-p-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ti-p-chip { padding: 10px 14px; border-radius: 999px; background: #fff; border: 1.5px solid #e2daf3; font-size: 14px; font-weight: 600; color: #1f1a33; }
+  .ti-p-chip.is-on { background: #dccfff; border-color: #5b3fd1; }
+  .ti-p-fonts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ti-p-font { display: grid; gap: 4px; justify-items: start; padding: 14px; border-radius: 18px; background: #fff; border: 1.5px solid #e2daf3; font-size: 13px; font-weight: 600; color: #1f1a33; text-align: left; }
+  .ti-p-font.is-on { border-color: #5b3fd1; background: #f0eaff; }
+  .ti-p-font-a { font-family: Montserrat, sans-serif; font-weight: 800; font-size: 26px; line-height: 1; }
+  .ti-p-font--dys .ti-p-font-a { font-family: Verdana, Tahoma, sans-serif; letter-spacing: 0.04em; }
+  .ti-p-swatches { display: flex; gap: 12px; }
+  .ti-p-sw { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: #fff; border: 2px solid transparent; }
+  .ti-p-sw .ico { width: 28px; height: 28px; border-radius: 50%; background: var(--sw); }
+  .ti-p-sw.is-on { border-color: #1f1a33; }
+  .ti-p-dump { position: relative; padding: 18px; border-radius: 22px; background: #fff; border: 1.5px solid #e2daf3; display: grid; gap: 8px; min-height: 230px; align-content: start; }
+  .ti-p-dump-l { font-size: 17px; font-weight: 500; color: #1f1a33; }
+  .ti-p-caret { width: 2px; height: 20px; background: #5b3fd1; animation: ti-p-blink 1.1s steps(2) infinite; }
+  @keyframes ti-p-blink { 50% { opacity: 0; } }
+  .ti-p-row2 { display: flex; align-items: center; gap: 12px; }
+  .ti-p-mic { width: 52px; height: 52px; border-radius: 50%; background: #dccfff; display: grid; place-items: center; }
+  .ti-p-mic.is-on { background: #5b3fd1; }
+  .ti-p-mic-i { width: 14px; height: 22px; border-radius: 8px; background: #1f1a33; }
+  .ti-p-mic.is-on .ti-p-mic-i { background: #fff; }
+  .ti-p-hint { font-size: 13px; color: #625a7c; }
+  .ti-p-steps { display: grid; gap: 8px; padding: 12px; border-radius: 22px; background: #dccfff; }
+  .ti-p-step { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 12px; border-radius: 16px; background: #fff; }
+  .ti-p-step-n { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: #f0eaff; font-size: 12px; font-weight: 800; color: #5b3fd1; }
+  .ti-p-step-t { font-size: 14px; font-weight: 600; }
+  .ti-p-time { padding: 5px 10px; border-radius: 999px; background: #fff0b0; font-size: 12px; font-weight: 800; color: #1f1a33; }
+  .ti-p-time.is-on { background: #1f1a33; color: #fff0b0; }
+  .ti-p-undo { justify-self: start; font-size: 14px; font-weight: 700; color: #5b3fd1; }
+  .ti-p-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; background: transparent; }
+  .ti-p-week span { display: grid; justify-items: center; padding: 6px 0; border-radius: 14px; background: #fff; font-size: 11px; color: #625a7c; }
+  .ti-p-week b { font-size: 15px; color: #1f1a33; }
+  .ti-p-week .is-on { background: #1f1a33; color: #dccfff; }
+  .ti-p-week .is-on b { color: #fff; }
+  .ti-p-tl { position: relative; display: grid; gap: 8px; margin-top: 6px; }
+  .ti-p-blk { position: relative; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 10px 14px; border-radius: 18px; background: var(--c); text-align: left; color: #1f1a33; width: 100%; }
+  .ti-p-blk--now { box-shadow: 0 0 0 2.5px #5b3fd1; }
+  .ti-p-blk-e { font-size: 20px; width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; background: rgb(255 255 255 / 0.6); }
+  .ti-p-blk-txt { display: grid; gap: 2px; }
+  .ti-p-blk-t { font-size: 15px; font-weight: 700; }
+  .ti-p-blk-s { font-size: 12px; font-weight: 600; color: #4d4566; }
+  .ti-p-blk-disc { width: 38px; height: 38px; border-radius: 50%; background: radial-gradient(circle, var(--c) 0 30%, transparent 31%), conic-gradient(#5b3fd1 0 62%, #fff 0); }
+  .ti-p-now { position: absolute; left: -12px; right: -12px; top: 188px; height: 2.5px; background: #5b3fd1; border-radius: 2px; pointer-events: none; }
+  .ti-p-now::before { content: ''; position: absolute; left: 0; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: #5b3fd1; }
+  .ti-p-now span { position: absolute; right: 12px; top: -20px; padding: 1px 6px; border-radius: 6px; background: #5b3fd1; color: #fff; font-size: 10px; font-weight: 800; }
+  .ti-p-fab { position: absolute; right: 22px; bottom: 104px; width: 60px; height: 60px; border-radius: 50%; background: var(--ti-acc); color: #1f1a33; font-size: 30px; font-weight: 500; display: grid; place-items: center; box-shadow: 0 12px 26px -10px rgb(91 63 209 / 0.7); z-index: 3; }
+  .ti-p-tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 86px; padding: 10px 12px 26px; display: grid; grid-template-columns: repeat(3, 1fr); background: rgb(255 255 255 / 0.92); border-top: 1px solid #e2daf3; }
+  .ti-p-tabs button { display: grid; justify-items: center; gap: 4px; color: #625a7c; font-size: 11px; font-weight: 600; }
+  .ti-p-tabs .ico { width: 22px; height: 22px; border-radius: 7px; background: #e2daf3; }
+  .ti-p-tabs .is-on { color: #4a2fc0; }
+  .ti-p-tabs .is-on .ico { background: #a98bff; }
+  .ti-p-taskhead { height: 230px; display: grid; place-items: center; font-size: 72px; border-radius: 0 0 36px 36px; }
+  .ti-p-taskbody { padding-top: 16px; display: grid; gap: 12px; }
+  .ti-p-checks { display: grid; gap: 8px; margin-top: 4px; }
+  .ti-p-check, .ti-p-todo { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 16px; background: #fff; border: 1.5px solid #e2daf3; font-size: 15px; font-weight: 600; color: #1f1a33; text-align: left; width: 100%; }
+  .ti-p-box { flex: none; width: 22px; height: 22px; border-radius: 7px; border: 2px solid #b9a2ff; display: grid; place-items: center; }
+  .ti-p-check.is-on .ti-p-box, .ti-p-todo.is-on .ti-p-box { background: #5b3fd1; border-color: #5b3fd1; }
+  .ti-p-check.is-on .ti-p-box::after, .ti-p-todo.is-on .ti-p-box::after { content: '✓'; color: #fff; font-size: 13px; font-weight: 800; }
+  .ti-p-check.is-on .t { text-decoration: line-through; color: #625a7c; }
+  .ti-p-timerpick { display: flex; justify-content: space-between; align-items: center; padding: 14px; border-radius: 16px; background: #f0eaff; }
+  .ti-p-timerpick .ti-p-label { margin: 0; }
+  .ti-p-timerpick-v { font-size: 14px; font-weight: 700; color: #4a2fc0; }
+  .ti-p-focus { background: radial-gradient(90% 50% at 50% 30%, #efe8ff, #f7f3ff 70%); }
+  @property --ti-pf { syntax: '<percentage>'; inherits: false; initial-value: 62%; }
+  .ti-p-disc { position: relative; width: 230px; height: 230px; margin-top: 12px; border-radius: 50%; background: #fff; box-shadow: 0 30px 60px -30px rgb(91 63 209 / 0.6); display: grid; place-items: center; }
+  .ti-p-disc i { width: 196px; height: 196px; border-radius: 50%; background: radial-gradient(circle, #fff 0 30%, transparent 31%), conic-gradient(var(--ti-acc) 0 var(--ti-pf), #eee7fc 0); }
+  .scr.is-active .ti-p-disc i { animation: ti-p-drain 30s linear forwards; }
+  @keyframes ti-p-drain { from { --ti-pf: 62%; } to { --ti-pf: 40%; } }
+  .ti-p-giant { font-family: Montserrat, sans-serif; font-weight: 800; font-size: 48px; letter-spacing: -0.03em; line-height: 1; margin-top: 4px; }
+  .ti-p-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-top: 6px; }
+  .ti-p-soft { height: 50px; border-radius: 16px; background: #fff; border: 1.5px solid #e2daf3; font-size: 15px; font-weight: 700; color: #1f1a33; }
+  .ti-p-soft.is-on { background: #fff0b0; border-color: #e0c84a; }
+  .ti-p-lock { background: radial-gradient(120% 70% at 30% 10%, #c8b5ff, #7c64d6 45%, #2a2052); color: #fff; }
+  .ti-p-lock-top { padding-top: 96px; display: grid; gap: 2px; }
+  .ti-p-lock-date { font-size: 18px; font-weight: 600; }
+  .ti-p-lock-time { font-family: Montserrat, sans-serif; font-weight: 700; font-size: 92px; line-height: 1; letter-spacing: -0.04em; }
+  .ti-p-lock-bottom { position: absolute; left: 0; right: 0; bottom: 60px; display: grid; gap: 14px; }
+  .ti-p-live { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; padding: 16px; border-radius: 26px; background: rgb(20 15 36 / 0.82); color: #fff; text-align: left; width: 100%; }
+  .ti-p-live-disc { width: 52px; height: 52px; border-radius: 50%; background: radial-gradient(circle, #241c40 0 30%, transparent 31%), conic-gradient(#a98bff 0 62%, #3a3060 0); }
+  .ti-p-live-txt { display: grid; gap: 3px; }
+  .ti-p-live-t { font-weight: 800; font-size: 15px; }
+  .ti-p-live-s { font-size: 12px; color: #d8d0f5; }
+  .ti-p-live-n { padding: 6px 10px; border-radius: 999px; background: #a98bff; color: #1f1a33; font-size: 13px; font-weight: 800; }
+  .ti-p-lock-hint { text-align: center; font-size: 12px; color: #efeaff; }
+  .ti-p-group { display: grid; gap: 8px; }
+  .ti-p-todo-e { font-size: 18px; }
+  .ti-p-sheet-scr { background: rgb(20 15 36 / 0.45); }
+  .ti-p-sheet { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 24px 34px; border-radius: 32px 32px 0 0; background: #fff; display: grid; gap: 14px; }
+  .ti-p-grabber { width: 40px; height: 5px; border-radius: 3px; background: #d8d0ea; justify-self: center; }
+  .ti-p-moods { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .ti-p-mood { height: 58px; border-radius: 18px; background: #f7f3ff; font-size: 26px; border: 2px solid transparent; }
+  .ti-p-mood.is-on { border-color: #5b3fd1; background: #dccfff; }
+</style>

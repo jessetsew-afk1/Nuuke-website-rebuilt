@@ -1,0 +1,141 @@
+---
+// Hero art: a tilted phone showing our "what changed" dashboard, with a freshly
+// auto-categorised transaction, a net-worth card and category chips floating around it.
+// Original NUUKE composition in HTML/CSS/SVG. All amounts are sample data.
+const pace = 'M 4 92 C 30 88, 46 80, 70 70 S 120 50, 150 40 S 196 26, 216 18';
+const last = 'M 4 92 C 40 88, 70 78, 100 70 S 160 56, 190 50 S 210 46, 216 44';
+const chips = [
+  { e: '🛒', c: '#d95926', x: 6, y: 66, d: 0 },
+  { e: '🏠', c: '#3987e5', x: 86, y: 14, d: 0.8 },
+  { e: '✈️', c: '#9085e9', x: 90, y: 50, d: 1.6 },
+  { e: '☕', c: '#c98500', x: 2, y: 30, d: 2.2 },
+];
+---
+
+<div class="cmh" role="img" aria-label="Illustration: a phone showing a Copilot Money concept dashboard — October spending so far, a pace line against last month and three 'what changed' cards — with a newly categorised coffee purchase and a net-worth card floating beside it. Sample data.">
+  <div class="cmh-glow" aria-hidden="true"></div>
+  <div class="cmh-rings" aria-hidden="true"><i></i><i></i><i></i></div>
+
+  <div class="cmh-phone" aria-hidden="true">
+    <div class="cmh-screen">
+      <div class="cmh-island"></div>
+      <p class="cmh-k">October · spent so far</p>
+      <p class="cmh-big">$3,182<span>.40</span></p>
+      <p class="cmh-sub">of $4,600 budget · 13 days left</p>
+      <div class="cmh-chart">
+        <svg viewBox="0 0 220 100" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="cmh-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1C6CFF" stop-opacity=".35" /><stop offset="1" stop-color="#1C6CFF" stop-opacity="0" /></linearGradient>
+          </defs>
+          <path d={last} fill="none" stroke="#3b5079" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+          <path d={`${pace} L 216 100 L 4 100 Z`} fill="url(#cmh-fill)" class="cmh-area" />
+          <path d={pace} fill="none" stroke="#1C6CFF" stroke-width="3" stroke-linecap="round" class="cmh-line" pathLength="1" vector-effect="non-scaling-stroke" />
+        </svg>
+        <span class="cmh-dot"></span>
+        <span class="cmh-legend"><i></i>This month <i class="cmh-l2"></i>Last month</span>
+      </div>
+      <p class="cmh-k cmh-mt">What changed</p>
+      <ul class="cmh-changes" role="list">
+        <li><span class="cmh-e" style="--c:#FF4433">🍜</span><span><b>Dining is up $90</b><br /><small>vs. September, same day</small></span><em class="cmh-out">+$90</em></li>
+        <li><span class="cmh-e" style="--c:#FECE4C">🎬</span><span><b>New subscription</b><br /><small>StreamBox · monthly</small></span><em class="cmh-new">$15.99</em></li>
+        <li><span class="cmh-e" style="--c:#00CC4B">💰</span><span><b>Savings grew</b><br /><small>3 months in a row</small></span><em class="cmh-in">+$410</em></li>
+      </ul>
+      <div class="cmh-tabs"><i class="is-on"></i><i></i><i></i><i></i><i></i></div>
+    </div>
+  </div>
+
+  <div class="cmh-toast" aria-hidden="true">
+    <span class="cmh-e" style="--c:#c98500">☕</span>
+    <span><b>Corner Café</b> · $6.50<br /><small><span class="cmh-check">✓</span> Sorted into Coffee</small></span>
+  </div>
+
+  <div class="cmh-nw" aria-hidden="true">
+    <p class="cmh-k">Net worth</p>
+    <p class="cmh-nw-v">$148,600 <span>▲ 2.4%</span></p>
+    <svg viewBox="0 0 120 34"><path d="M2 30 L14 27 L26 29 L38 22 L50 20 L62 22 L74 15 L86 11 L98 13 L110 6 L118 4" fill="none" stroke="#5b93ff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+  </div>
+
+  {chips.map((c) => <span class="cmh-chip" aria-hidden="true" style={`--x:${c.x}%;--y:${c.y}%;--c:${c.c};--d:${c.d}s`}>{c.e}</span>)}
+  <span class="cmh-stamp" aria-hidden="true">Sample data</span>
+</div>
+
+<style>
+  .cmh { position: relative; width: 100%; max-width: 560px; margin-inline: auto; aspect-ratio: 1 / 1.12; container-type: inline-size; isolation: isolate; }
+  .cmh-glow { position: absolute; inset: 8%; border-radius: 50%; background: radial-gradient(closest-side, rgb(28 108 255 / 0.45), rgb(0 204 75 / 0.12) 60%, transparent); filter: blur(30px); z-index: -1; }
+  .cmh-rings { position: absolute; inset: 0; display: grid; place-items: center; z-index: -1; }
+  .cmh-rings i { grid-area: 1 / 1; width: 92cqw; aspect-ratio: 1; border-radius: 50%; border: 1px solid rgb(91 147 255 / 0.18); animation: cm-ring 9s linear infinite; }
+  .cmh-rings i:nth-child(2) { width: 70cqw; border-style: dashed; animation-duration: 14s; animation-direction: reverse; }
+  .cmh-rings i:nth-child(3) { width: 48cqw; border-color: rgb(0 204 75 / 0.2); }
+  @keyframes cm-ring { to { transform: rotate(360deg); } }
+
+  .cmh-phone {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 50cqw;
+    aspect-ratio: 9 / 19;
+    translate: -50% -50%;
+    padding: 1.6cqw;
+    border-radius: 8.5cqw;
+    background: linear-gradient(145deg, #3a3f4c, #11131a 40%, #2a2e38);
+    box-shadow: 0 0 0 0.3cqw #050506, 0 40px 90px -20px rgb(0 0 0 / 0.85), 0 0 70px -10px rgb(28 108 255 / 0.5);
+    transform: perspective(1200px) rotateY(-14deg) rotateX(4deg) rotateZ(2deg);
+    animation: cm-phone 7s ease-in-out infinite;
+  }
+  @keyframes cm-phone { 50% { transform: perspective(1200px) rotateY(-8deg) rotateX(2deg) rotateZ(1deg) translateY(-1.5cqw); } }
+  .cmh-screen { position: relative; height: 100%; border-radius: 7cqw; overflow: hidden; background: radial-gradient(120% 50% at 50% 0%, #0b2552, #000814 60%); padding: 9cqw 3.6cqw 0; color: #f2f6ff; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, system-ui, sans-serif; display: grid; align-content: start; gap: 0.9cqw; }
+  .cmh-island { position: absolute; top: 1.8cqw; left: 50%; width: 14cqw; height: 4cqw; margin-left: -7cqw; border-radius: 3cqw; background: #000; }
+  .cmh-k { font-size: 2.1cqw; letter-spacing: 0.12em; text-transform: uppercase; color: #a9b7d3; font-weight: 600; }
+  .cmh-big { font-size: 8.4cqw; font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
+  .cmh-big span { font-size: 0.5em; color: #a9b7d3; letter-spacing: 0; }
+  .cmh-sub { font-size: 2.3cqw; color: #a9b7d3; }
+  .cmh-chart { position: relative; margin-top: 1cqw; height: 17cqw; border-radius: 3cqw; background: #001533; padding: 1.4cqw 1.4cqw 3.6cqw; }
+  .cmh-chart svg { width: 100%; height: 100%; }
+  .cmh-line { stroke-dasharray: 1; stroke-dashoffset: 1; animation: cm-draw 2.2s var(--ease-out) 0.5s forwards; }
+  .cmh-area { opacity: 0; animation: cm-fade 1.2s ease 1.6s forwards; }
+  @keyframes cm-draw { to { stroke-dashoffset: 0; } }
+  @keyframes cm-fade { to { opacity: 1; } }
+  .cmh-dot { position: absolute; right: 1.6cqw; top: 2.4cqw; width: 2.2cqw; height: 2.2cqw; border-radius: 50%; background: #f2f6ff; box-shadow: 0 0 0 0.5cqw #001533, 0 0 2cqw #1c6cff; animation: cm-pulse 2.4s ease-in-out infinite; }
+  @keyframes cm-pulse { 50% { transform: scale(1.3); } }
+  .cmh-legend { position: absolute; left: 1.8cqw; bottom: 1cqw; display: flex; align-items: center; gap: 0.8cqw; font-size: 1.8cqw; color: #a9b7d3; }
+  .cmh-legend i { width: 2.6cqw; height: 0.5cqw; border-radius: 1cqw; background: #1c6cff; }
+  .cmh-legend .cmh-l2 { background: #3b5079; margin-left: 1.4cqw; }
+  .cmh-mt { margin-top: 1.4cqw; }
+  .cmh-changes { list-style: none; padding: 0; display: grid; gap: 1cqw; }
+  .cmh-changes li { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1.6cqw; padding: 1.4cqw 1.8cqw; border-radius: 2.6cqw; background: #001533; font-size: 2.3cqw; line-height: 1.25; opacity: 0; transform: translateY(2cqw); animation: cm-up 0.8s var(--ease-out) forwards; }
+  .cmh-changes li:nth-child(1) { animation-delay: 1.1s; }
+  .cmh-changes li:nth-child(2) { animation-delay: 1.35s; }
+  .cmh-changes li:nth-child(3) { animation-delay: 1.6s; }
+  @keyframes cm-up { to { opacity: 1; transform: none; } }
+  .cmh-changes small { color: #a9b7d3; font-size: 1.9cqw; }
+  .cmh-changes em { font-style: normal; font-weight: 700; }
+  .cmh-out { color: #ff6a57; }
+  .cmh-new { color: #fece4c; }
+  .cmh-in { color: #00cc4b; }
+  .cmh-e { display: grid; place-items: center; width: 5.4cqw; height: 5.4cqw; border-radius: 1.6cqw; background: color-mix(in srgb, var(--c) 22%, #001533); box-shadow: inset 0 0 0 0.25cqw color-mix(in srgb, var(--c) 60%, transparent); font-size: 2.8cqw; }
+  .cmh-tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 10cqw; display: flex; justify-content: space-around; align-items: center; padding-bottom: 2cqw; background: #000a1c; border-top: 1px solid #1b3157; }
+  .cmh-tabs i { width: 3.6cqw; height: 3.6cqw; border-radius: 1cqw; background: #1b3157; }
+  .cmh-tabs i.is-on { background: #1c6cff; }
+
+  .cmh-toast, .cmh-nw { position: absolute; padding: 2cqw 2.6cqw; border-radius: 3.6cqw; background: rgb(0 21 51 / 0.92); border: 1px solid #1b3157; box-shadow: 0 24px 50px -20px rgb(0 0 0 / 0.8); color: #f2f6ff; font-family: var(--font-ui); }
+  .cmh-toast { left: 0; top: 16%; display: flex; align-items: center; gap: 2cqw; font-size: 2.7cqw; line-height: 1.3; animation: cm-in-l 0.9s var(--ease-out) 2s both, cm-float 6s ease-in-out 3s infinite; }
+  .cmh-toast .cmh-e { width: 7cqw; height: 7cqw; font-size: 3.6cqw; border-radius: 2cqw; }
+  .cmh-toast small { color: #a9b7d3; font-size: 2.3cqw; }
+  .cmh-check { display: inline-grid; place-items: center; width: 2.8cqw; height: 2.8cqw; border-radius: 50%; background: #00cc4b; color: #000814; font-weight: 800; font-size: 1.8cqw; }
+  .cmh-nw { right: 0; bottom: 12%; width: 34cqw; display: grid; gap: 0.6cqw; animation: cm-in-r 0.9s var(--ease-out) 2.3s both, cm-float 7s ease-in-out 3.2s infinite reverse; }
+  .cmh-nw .cmh-k { font-size: 2cqw; }
+  .cmh-nw-v { font-size: 4.2cqw; font-weight: 800; letter-spacing: -0.03em; }
+  .cmh-nw-v span { font-size: 0.55em; color: #00cc4b; letter-spacing: 0; }
+  .cmh-nw svg { width: 100%; height: auto; }
+  @keyframes cm-in-l { from { opacity: 0; transform: translateX(-4cqw) scale(0.94); } }
+  @keyframes cm-in-r { from { opacity: 0; transform: translateX(4cqw) scale(0.94); } }
+  @keyframes cm-float { 50% { translate: 0 -1.6cqw; } }
+
+  .cmh-chip { position: absolute; left: var(--x); top: var(--y); display: grid; place-items: center; width: 9cqw; height: 9cqw; border-radius: 50%; background: color-mix(in srgb, var(--c) 26%, #000814); box-shadow: inset 0 0 0 0.4cqw var(--c), 0 10px 30px -10px var(--c); font-size: 4.2cqw; animation: cm-float 5s ease-in-out var(--d) infinite; }
+  .cmh-stamp { position: absolute; left: 4%; bottom: 3%; padding: 1cqw 2.2cqw; border-radius: 99px; border: 1px dashed #5b6f94; font: 600 2.2cqw/1 var(--font-ui); letter-spacing: 0.12em; text-transform: uppercase; color: #a9b7d3; rotate: -6deg; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cmh-line { stroke-dashoffset: 0; }
+    .cmh-area, .cmh-changes li { opacity: 1; transform: none; }
+  }
+</style>

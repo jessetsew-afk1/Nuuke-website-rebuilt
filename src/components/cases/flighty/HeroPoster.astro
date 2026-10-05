@@ -1,0 +1,112 @@
+---
+// Hero poster: the flight clock. One ring is the whole flight, gate to gate; the plane rides
+// the ring to "now", the Dynamic Island echoes it in miniature, and a strip of departure rows
+// sits underneath. Original NUUKE artwork in SVG.
+import { FL } from '../../../data/cases/flighty';
+const R = 214;
+const rows = [
+  { t: '13:15', c: 'JFK', s: 'BOARDING', col: FL.ok, blink: true },
+  { t: '14:05', c: 'SFO', s: 'DELAYED', col: FL.late },
+  { t: '14:20', c: 'BOS', s: 'CANCELLED', col: FL.cx },
+];
+---
+
+<div class="fl-hero" aria-hidden="true">
+  <svg viewBox="0 0 600 640" class="fl-hero-svg">
+    <defs>
+      <radialGradient id="flh-bg" cx="50%" cy="40%" r="60%">
+        <stop offset="0" stop-color="#1c1f33" />
+        <stop offset=".7" stop-color="#0b0b11" />
+        <stop offset="1" stop-color="#07070a" />
+      </radialGradient>
+      <linearGradient id="flh-ring" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#2ee58a" />
+        <stop offset="1" stop-color="#6cb4ff" />
+      </linearGradient>
+      <filter id="flh-glow" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="5" result="b" />
+        <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+      </filter>
+    </defs>
+    <rect x="0" y="0" width="600" height="640" rx="44" fill="url(#flh-bg)" />
+    <g fill="#fff">
+      {Array.from({ length: 34 }).map((_, i) => <circle cx={30 + ((i * 167) % 540)} cy={30 + ((i * 89) % 200)} r={i % 5 ? 0.9 : 1.7} opacity={0.25 + (i % 3) * 0.2} />)}
+    </g>
+
+    <!-- Dynamic Island (compact, in-air) -->
+    <g transform="translate(190 34)">
+      <rect width="220" height="46" rx="23" fill="#000" stroke="#22222c" />
+      <path d="M22 23 l12 -3 l5 -8 l3 0 l-2 8 l8 -1 l2 -3 l2 0 l-1 4 l1 4 l-2 0 l-2 -3 l-8 -1 l2 8 l-3 0 l-5 -8 z" fill="#6cb4ff" />
+      <text x="56" y="29" class="fl-hero-ui" fill="#f5f5f0">SFO</text>
+      <text x="176" y="29" class="fl-hero-ui" fill="#6cb4ff" text-anchor="end">2h 01m</text>
+      <circle cx="194" cy="23" r="11" fill="none" stroke="#2a2a35" stroke-width="4" />
+      <circle cx="194" cy="23" r="11" fill="none" stroke="#6cb4ff" stroke-width="4" pathLength="1" stroke-dasharray="1 1" class="fl-hero-mini" transform="rotate(-90 194 23)" stroke-linecap="round" />
+    </g>
+
+    <!-- flight clock -->
+    <g transform="translate(300 318)">
+      {Array.from({ length: 60 }).map((_, i) => <line y1={-R - 22} y2={i % 5 ? -R - 16 : -R - 30} stroke={i % 5 ? '#2c2c38' : '#4a4a58'} stroke-width={i % 5 ? 1.5 : 2.5} transform={`rotate(${i * 6})`} />)}
+      <circle r={R} fill="none" stroke="#1d1d27" stroke-width="12" />
+      <circle r={R} fill="none" stroke="url(#flh-ring)" stroke-width="12" stroke-linecap="round" pathLength="1" stroke-dasharray="1 1" class="fl-hero-ring" transform="rotate(-90)" filter="url(#flh-glow)" />
+      <g class="fl-hero-plane">
+        <g transform={`translate(0 ${-R}) rotate(0)`}>
+          <circle r="20" fill="#0b0b11" stroke="#6cb4ff" stroke-width="2" />
+          <path d="M-12 0 L-3 -2 L2 -10 L5 -10 L3 -2 L9 -2 L11 -5 L13 -5 L12 0 L13 5 L11 5 L9 2 L3 2 L5 10 L2 10 L-3 2 Z" fill="#f5f5f0" />
+        </g>
+      </g>
+      <text y="-92" text-anchor="middle" class="fl-hero-k">FL 214 · IN THE AIR</text>
+      <text x="-80" y="-18" text-anchor="middle" class="fl-hero-code">ORD</text>
+      <text x="80" y="-18" text-anchor="middle" class="fl-hero-code">SFO</text>
+      <path d="M-44 -34 Q 0 -66 44 -34" fill="none" stroke="#6cb4ff" stroke-width="2" stroke-dasharray="3 5" />
+      <text x="-80" y="14" text-anchor="middle" class="fl-hero-t">15:09</text>
+      <text x="80" y="14" text-anchor="middle" class="fl-hero-t">17:26</text>
+      <text y="70" text-anchor="middle" class="fl-hero-big">2h 01m</text>
+      <text y="98" text-anchor="middle" class="fl-hero-k">LEFT · LANDS ON TIME</text>
+    </g>
+
+    <!-- departure strip -->
+    <g transform="translate(60 556)">
+      {
+        rows.map((r, i) => (
+          <g transform={`translate(${i * 166} 0)`}>
+            <rect width="148" height="52" rx="10" fill="#14141b" stroke="#23232d" />
+            <circle cx="16" cy="18" r="4.5" fill={r.col} class={r.blink ? 'fl-hero-blink' : undefined} />
+            <text x="28" y="23" class="fl-hero-row" fill="#f5f5f0">{r.t} {r.c}</text>
+            <text x="16" y="42" class="fl-hero-st" fill={r.col}>{r.s}</text>
+          </g>
+        ))
+      }
+    </g>
+
+    <!-- stamp -->
+    <g transform="translate(500 120) rotate(12)">
+      <rect x="-56" y="-26" width="112" height="52" rx="8" fill="none" stroke="#ffb020" stroke-width="2.5" stroke-dasharray="6 4" />
+      <text text-anchor="middle" y="-3" class="fl-hero-stamp">CONCEPT</text>
+      <text text-anchor="middle" y="14" class="fl-hero-stamp fl-hero-stamp--s">BY NUUKE</text>
+    </g>
+  </svg>
+</div>
+
+<style>
+  .fl-hero { position: relative; width: 100%; max-width: 600px; margin-inline: auto; }
+  .fl-hero-svg { display: block; width: 100%; height: auto; filter: drop-shadow(0 40px 70px rgb(0 0 0 / 0.55)); }
+  .fl-hero-ui { font: 700 15px var(--font-ui); font-variant-numeric: tabular-nums; }
+  .fl-hero-k { font: 600 12px var(--font-ui); letter-spacing: 0.18em; fill: #a3a3ad; }
+  .fl-hero-code { font: 900 54px var(--font-display); letter-spacing: -0.02em; fill: #f5f5f0; }
+  .fl-hero-t { font: 700 20px var(--font-ui); font-variant-numeric: tabular-nums; fill: #c9c9cf; }
+  .fl-hero-big { font: 900 52px var(--font-display); font-variant-numeric: tabular-nums; fill: #6cb4ff; letter-spacing: -0.03em; }
+  .fl-hero-row { font: 700 16px var(--font-ui); font-variant-numeric: tabular-nums; }
+  .fl-hero-st { font: 800 12px var(--font-ui); letter-spacing: 0.12em; }
+  .fl-hero-stamp { font: 800 13px var(--font-ui); letter-spacing: 0.2em; fill: #ffb020; }
+  .fl-hero-stamp--s { font-size: 10px; font-weight: 600; }
+  .fl-hero-ring { stroke-dashoffset: 0.58; animation: fl-hero-sweep 2.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both; }
+  .fl-hero-mini { stroke-dashoffset: 0.58; animation: fl-hero-sweep 2.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both; }
+  .fl-hero-plane { rotate: 151.2deg; transform-origin: 0 0; animation: fl-hero-fly 2.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both; }
+  .fl-hero-blink { animation: fl-hero-blink 1.2s steps(2, jump-none) infinite; }
+  @keyframes fl-hero-sweep { from { stroke-dashoffset: 1; } }
+  @keyframes fl-hero-fly { from { rotate: 0deg; } }
+  @keyframes fl-hero-blink { 50% { opacity: 0.2; } }
+  @media (prefers-reduced-motion: reduce) {
+    .fl-hero-ring, .fl-hero-mini, .fl-hero-plane, .fl-hero-blink { animation: none; }
+  }
+</style>

@@ -1,0 +1,55 @@
+---
+// The making-of at a glance: the six weeks of a mobile-app design sprint,
+// each phase linking to the chapter where you can see (and use) its output.
+const phases = [
+  { w: 'Week 1', k: 'Discover', t: 'Personas, a month-long journey map and the questions people really ask a money app.', href: '#research', out: 'Personas · journey' },
+  { w: 'Week 2', k: 'Define', t: 'Eleven screens and one daily loop. The flow decides what the dashboard must answer first.', href: '#flow', out: 'User flow' },
+  { w: 'Week 2–3', k: 'Trust', t: 'The scariest step, linking a bank, designed moment by moment with annotated copy.', href: '#trust', out: 'Onboarding' },
+  { w: 'Week 3', k: 'Visualise', t: 'One sample dataset, five chart types, and a written reason why each question gets its chart.', href: '#dataviz', out: 'Data-viz lab' },
+  { w: 'Week 4–5', k: 'Prototype', t: 'Layers, wireframes and a tappable prototype we would put in front of ten users.', href: '#prototype', out: 'Prototype' },
+  { w: 'Week 6', k: 'Hand off', t: 'Tokens, specs and SwiftUI, so what ships matches what was designed.', href: '#handoff', out: 'Tokens · code' },
+];
+---
+
+<div class="cm-road">
+  <p class="t-label">How the app gets made · our six-week sprint</p>
+  <ol class="cm-road-list" role="list" data-stagger="0.07">
+    {
+      phases.map((p, i) => (
+        <li>
+          <a class="cm-road-card" href={p.href}>
+            <span class="cm-road-top">
+              <span class="t-num cm-road-n">{String(i + 1).padStart(2, '0')}</span>
+              <span class="cm-road-w">{p.w}</span>
+            </span>
+            <strong class="cm-road-k">{p.k}</strong>
+            <span class="cm-road-t">{p.t}</span>
+            <span class="cm-road-out">{p.out} <span aria-hidden="true">↘</span></span>
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+</div>
+
+<style>
+  .cm-road { margin-top: var(--s-8); display: grid; gap: var(--s-4); }
+  .cm-road-list { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--s-3); counter-reset: r; position: relative; }
+  .cm-road-list::before { content: ''; position: absolute; left: 0; right: 0; top: 26px; height: 2px; background: linear-gradient(90deg, #00cc4b, #1c6cff 60%, #fece4c); opacity: 0.6; }
+  .cm-road-card { position: relative; height: 100%; display: grid; align-content: start; gap: var(--s-2); padding: var(--s-4); border-radius: var(--r-md); background: var(--bg-2); border: 1px solid var(--line); transition: border-color var(--dur-1), transform var(--dur-2) var(--ease-out), background var(--dur-1); }
+  .cm-road-card:hover { border-color: #1c6cff; transform: translateY(-4px); background: #071229; }
+  .cm-road-top { display: flex; align-items: center; gap: var(--s-2); }
+  .cm-road-n { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #00cc4b; color: #000814; font-size: 11px; font-weight: 800; }
+  .cm-road-w { font: 600 var(--fs-label) / 1 var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .cm-road-k { font-family: var(--font-display); font-size: var(--fs-lg); letter-spacing: -0.02em; }
+  .cm-road-t { font-size: var(--fs-sm); color: var(--ink-2); line-height: 1.45; }
+  .cm-road-out { margin-top: auto; padding-top: var(--s-2); font: 600 var(--fs-label) / 1.2 var(--font-ui); letter-spacing: 0.06em; text-transform: uppercase; color: #6b9dff; }
+  @media (max-width: 1100px) {
+    .cm-road-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .cm-road-list::before { display: none; }
+  }
+  @media (max-width: 640px) {
+    .cm-road-list { grid-template-columns: 1fr 1fr; }
+    .cm-road-card { padding: var(--s-3); }
+  }
+</style>

@@ -1,0 +1,409 @@
+---
+// The eleven tappable screens for the Gentler Streak prototype (slotted into <Prototype>).
+// Fidelity classes: .ui container · .t text · .img illustration · .btn button · .ico icon.
+// Encouragement is written as plain copy ("Your heart says…"); we don't draw the brand's mascot.
+import PathChart from './PathChart.astro';
+import { tenDays, thirtyDays } from '../../../data/cases/gentler-streak';
+const feel = ['Run-down', 'A bit tired', 'Okay', 'Good', 'Full of energy'];
+const week = [
+  { d: 'M', a: 'Run', h: 70, c: '#FF7A45' },
+  { d: 'T', a: 'Walk', h: 40, c: '#F4C430' },
+  { d: 'W', a: 'Rest', h: 14, c: '#B9A6E8' },
+  { d: 'T', a: 'Yoga', h: 32, c: '#7ED957' },
+  { d: 'F', a: 'Ride', h: 58, c: '#FF7A45' },
+  { d: 'S', a: 'Rest', h: 14, c: '#B9A6E8' },
+  { d: 'S', a: 'Walk', h: 44, c: '#F4C430' },
+];
+const tabsBar = (on: string) => [
+  { id: 'today', l: 'Today' },
+  { id: 'workout', l: 'Workouts' },
+  { id: 'week', l: 'Trends' },
+  { id: 'settings', l: 'You' },
+].map((t) => ({ ...t, on: t.id === on }));
+---
+
+<!-- 1 · Welcome -->
+<section class="scr gss gss-welcome" data-screen="welcome" data-title="Welcome">
+  <div class="gss-hero img" aria-hidden="true">
+    <span class="gss-sun"></span>
+    <svg viewBox="0 0 390 200" class="gss-hero-band"><path d="M -10 120 C 80 80, 150 150, 240 110 S 360 70, 400 100 L 400 160 C 360 130, 300 170, 240 160 S 80 130, -10 170 Z" fill="#7ED957" opacity=".55" /></svg>
+  </div>
+  <div class="gss-pad gss-bottom">
+    <p class="t gss-kicker">Gentler Streak · concept</p>
+    <h4 class="t gss-h1">Move consistently, not constantly.</h4>
+    <p class="t gss-p">Every morning we’ll suggest how much to move, based on how you slept, how you’ve trained and how you feel.</p>
+    <button class="btn gss-cta" data-go="permissions"><span class="t">Get started</span></button>
+  </div>
+</section>
+
+<!-- 2 · Health permissions -->
+<section class="scr gss" data-screen="permissions" data-title="Health permissions">
+  <div class="gss-scroll" data-scroll>
+    <div class="gss-pad gss-top">
+      <p class="t gss-kicker">Step 1 of 2</p>
+      <h4 class="t gss-h2">Here’s why each kind of data helps.</h4>
+      <p class="t gss-p">You choose. Everything stays in Apple Health on your phone.</p>
+      {
+        [
+          ['Workouts & heart rate', 'So we know how hard each session really was.', true, '#FF7A45'],
+          ['Sleep', 'A short night gently lowers today’s suggestion.', true, '#4A2F78'],
+          ['Resting heart rate & HRV', 'Early signs that your body wants rest.', true, '#E2551F'],
+          ['Cycle tracking (optional)', 'Adjusts guidance to the phase you’re in.', false, '#B9A6E8'],
+        ].map(([t, s, on, c]) => (
+          <div class="ui gss-row gss-perm">
+            <span class="ico gss-dot" style={`background:${c}`} />
+            <span>
+              <span class="t gss-row-t">{t}</span>
+              <span class="t gss-row-s">{s}</span>
+            </span>
+            <button class:list={['ui', 'gss-switch', { 'is-on': on }]} data-toggle aria-label={`Allow ${t}`}><i /></button>
+          </div>
+        ))
+      }
+      <button class="btn gss-cta gss-mt" data-go="checkin"><span class="t">Allow and continue</span></button>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · How do you feel -->
+<section class="scr gss gss-soft" data-screen="checkin" data-title="How do you feel?">
+  <div class="gss-pad gss-top">
+    <p class="t gss-kicker">Morning check-in · 7:12</p>
+    <h4 class="t gss-h2">How do you feel this morning?</h4>
+    <p class="t gss-p">There’s no wrong answer. It tunes today’s suggestion alongside your sleep and heart data.</p>
+    <div class="gss-feel">
+      {
+        feel.map((f, i) => (
+          <button class:list={['ui', 'gss-feel-o', { 'is-on': i === 1 }]} data-toggle>
+            <span class="ico gss-face" style={`--m:${(i - 2) * 3}px`} />
+            <span class="t">{f}</span>
+          </button>
+        ))
+      }
+    </div>
+  </div>
+  <div class="gss-pad gss-bottom">
+    <button class="btn gss-cta" data-go="today"><span class="t">See my day</span></button>
+  </div>
+</section>
+
+<!-- 4 · Today -->
+<section class="scr gss" data-screen="today" data-title="Today">
+  <div class="gss-scroll" data-scroll>
+    <div class="gss-pad gss-top">
+      <div class="gss-headrow">
+        <span>
+          <span class="t gss-kicker">Tuesday · 6 Oct</span>
+          <h4 class="t gss-h1 gss-h1--sm">Today</h4>
+        </span>
+        <span class="ui gss-streak"><span class="t">12-day streak</span></span>
+      </div>
+      <div class="ui gss-card gss-ready">
+        <span class="img gss-orb" aria-hidden="true"></span>
+        <span>
+          <span class="t gss-kicker">Readiness</span>
+          <span class="t gss-h3">You’re steady.</span>
+          <span class="t gss-row-s">Short sleep and a big Sunday, so keep it easy.</span>
+        </span>
+      </div>
+      <button class="ui gss-card gss-pathcard" data-go="path">
+        <span class="gss-cardhead"><span class="t gss-kicker">Activity Path · 10 days</span><span class="t gss-link">30 days ›</span></span>
+        <span class="img gss-chart"><PathChart values={tenDays} w={320} h={120} label="Activity Path, last 10 days. Today is inside your path." /></span>
+        <span class="t gss-row-s">Today you’re <b>inside your path</b>. Anything from a walk to light yoga keeps you there.</span>
+      </button>
+      <button class="ui gss-go" data-go="suggest" data-sheet>
+        <span class="t gss-kicker gss-kicker--ink">Go Gentler</span>
+        <span class="t gss-go-t">A 20-min walk is perfect today</span>
+        <span class="t gss-go-s">3 other ideas ›</span>
+      </button>
+      <button class="ui gss-row" data-go="workout">
+        <span class="ico gss-tile" style="background:#F4C430"></span>
+        <span><span class="t gss-row-t">Easy walk · 32 min</span><span class="t gss-row-s">Yesterday · inside your path</span></span>
+        <span class="t gss-chev">›</span>
+      </button>
+      <button class="ui gss-note" data-go="note" data-sheet>
+        <span class="t"><span class="gss-heart" aria-hidden="true">♥</span> Your heart says: a gentle day still counts.</span>
+      </button>
+    </div>
+  </div>
+  <nav class="ui gss-tabs">
+    {tabsBar('today').map((t) => <button class:list={{ 'is-on': t.on }} data-go={t.id}><span class="ico" /><span class="t">{t.l}</span></button>)}
+  </nav>
+</section>
+
+<!-- 5 · Go Gentler suggestion (sheet) -->
+<section class="scr gss gss-sheet-scr" data-screen="suggest" data-title="Go Gentler (sheet)">
+  <div class="ui gss-sheet">
+    <div class="gss-grabber"></div>
+    <p class="t gss-kicker">Go Gentler · for today</p>
+    <h4 class="t gss-h2">A 20-min walk is perfect today.</h4>
+    <p class="t gss-p">It keeps you inside your path without adding load after Sunday’s long run.</p>
+    {
+      [
+        ['Outdoor walk', '20 min · suggested', true],
+        ['Gentle yoga', '15 min', false],
+        ['Easy ride', '25 min · zone 2', false],
+      ].map(([a, s, on]) => (
+        <button class:list={['ui', 'gss-opt', { 'is-on': on }]} data-toggle>
+          <span><span class="t gss-row-t">{a}</span><span class="t gss-row-s">{s}</span></span>
+          <span class="ico gss-radio" />
+        </button>
+      ))
+    }
+    <button class="btn gss-cta" data-back><span class="t">Sounds good</span></button>
+    <button class="ui gss-ghost" data-go="rest"><span class="t">Take a rest day instead</span></button>
+  </div>
+</section>
+
+<!-- 6 · Activity Path, 30 days -->
+<section class="scr gss" data-screen="path" data-title="Activity Path · 30 days">
+  <div class="gss-scroll" data-scroll>
+    <div class="gss-pad gss-top">
+      <button class="gss-back t" data-back>‹ Today</button>
+      <p class="t gss-kicker">Activity Path</p>
+      <h4 class="t gss-h2">27 of 30 days inside your path.</h4>
+      <div class="ui gss-card">
+        <span class="img gss-chart"><PathChart values={thirtyDays} w={320} h={150} label="Activity Path, last 30 days: 27 inside, 2 above, 1 below." /></span>
+        <span class="gss-legend t"><span><i class="gss-l-in"></i>inside</span><span>▲ above</span><span>▼ below</span></span>
+      </div>
+      <div class="ui gss-card">
+        <p class="t gss-row-t">What is the path?</p>
+        <p class="t gss-row-s">The green band is the range of activity that suits you right now, based on your recent weeks. Above it, you’re piling on load. Below it, you’re easing off. Both are fine for a day or two.</p>
+      </div>
+      <div class="ui gss-card">
+        <p class="t gss-row-t">Sample data</p>
+        <p class="t gss-row-s">The days shown are illustrative, made for this concept.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 · Workout detail -->
+<section class="scr gss" data-screen="workout" data-title="Workout detail">
+  <div class="gss-scroll" data-scroll>
+    <div class="gss-pad gss-top">
+      <button class="gss-back t" data-back>‹ Back</button>
+      <p class="t gss-kicker">Yesterday · 17:40</p>
+      <h4 class="t gss-h2">Easy walk · 32 min</h4>
+      <div class="gss-stats">
+        <div class="ui gss-stat"><span class="t gss-row-s">Avg heart rate</span><span class="t gss-num">104</span></div>
+        <div class="ui gss-stat"><span class="t gss-row-s">Distance</span><span class="t gss-num">2.6 km</span></div>
+      </div>
+      <div class="ui gss-card">
+        <p class="t gss-row-t">Time in heart-rate zones</p>
+        {
+          [
+            ['Zone 1', 22, '7 min'],
+            ['Zone 2', 70, '22 min'],
+            ['Zone 3', 10, '3 min'],
+            ['Zone 4', 0, '0 min'],
+          ].map(([z, w, m]) => (
+            <div class="gss-zone">
+              <span class="t gss-row-s">{z}</span>
+              <span class="img gss-zbar"><i style={`width:${w}%`} /></span>
+              <span class="t gss-row-s">{m}</span>
+            </div>
+          ))
+        }
+      </div>
+      <div class="ui gss-card gss-effect">
+        <span class="ico gss-dot" style="background:#2F7D32"></span>
+        <span><span class="t gss-row-t">Effect on your path</span><span class="t gss-row-s">Kept you inside. A good, easy day.</span></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 · Rest day -->
+<section class="scr gss gss-night" data-screen="rest" data-title="Rest day">
+  <div class="gss-pad gss-top gss-center">
+    <span class="img gss-moon" aria-hidden="true"></span>
+    <p class="t gss-kicker gss-kicker--night">Rest day</p>
+    <h4 class="t gss-h1">Rest counts.</h4>
+    <p class="t gss-p gss-p--night">Your heart says: today, the best training is recovery. Your streak stays alive.</p>
+    <div class="ui gss-badge"><span class="t">12 → 13-day streak</span></div>
+  </div>
+  <div class="gss-pad gss-bottom">
+    <button class="btn gss-cta gss-cta--night" data-go="today"><span class="t">Enjoy the rest</span></button>
+  </div>
+</section>
+
+<!-- 9 · Weekly trend -->
+<section class="scr gss" data-screen="week" data-title="Weekly trend">
+  <div class="gss-scroll" data-scroll>
+    <div class="gss-pad gss-top">
+      <p class="t gss-kicker">Trends · this week</p>
+      <h4 class="t gss-h2">Consistent, not constant.</h4>
+      <div class="ui gss-card">
+        <div class="img gss-week">
+          {
+            week.map((d) => (
+              <span>
+                <i style={`height:${d.h}%;background:${d.c}`} />
+                <b>{d.d}</b>
+              </span>
+            ))
+          }
+        </div>
+        <p class="t gss-row-s">5 active days, 2 rest days. Every one of them counted toward your streak.</p>
+      </div>
+      <div class="gss-stats">
+        <div class="ui gss-stat"><span class="t gss-row-s">Inside your path</span><span class="t gss-num">6 / 7</span></div>
+        <div class="ui gss-stat"><span class="t gss-row-s">Streak</span><span class="t gss-num">12 days</span></div>
+      </div>
+      <div class="ui gss-card">
+        <p class="t gss-row-t">Progress, not comparison</p>
+        <p class="t gss-row-s">No leaderboards. Just you, this week and last week.</p>
+      </div>
+    </div>
+  </div>
+  <nav class="ui gss-tabs">
+    {tabsBar('week').map((t) => <button class:list={{ 'is-on': t.on }} data-go={t.id}><span class="ico" /><span class="t">{t.l}</span></button>)}
+  </nav>
+</section>
+
+<!-- 10 · A note from your heart (sheet) -->
+<section class="scr gss gss-sheet-scr" data-screen="note" data-title="A note from your heart (sheet)">
+  <div class="ui gss-sheet gss-sheet--warm">
+    <div class="gss-grabber"></div>
+    <p class="t gss-kicker"><span class="gss-heart" aria-hidden="true">♥</span> Your heart says</p>
+    <h4 class="t gss-h2">“You don’t have to earn today.”</h4>
+    <p class="t gss-p">Short sleep happens. A slow walk will feel good, and if it doesn’t, stopping is allowed too. I’ll still be here tomorrow.</p>
+    <p class="t gss-row-s">Plain-language copy in the brand’s supportive voice. In the app, this is where its heart character would speak.</p>
+    <button class="btn gss-cta" data-back><span class="t">Thanks, heart</span></button>
+  </div>
+</section>
+
+<!-- 11 · Settings -->
+<section class="scr gss" data-screen="settings" data-title="Settings · You">
+  <div class="gss-scroll" data-scroll>
+    <div class="gss-pad gss-top">
+      <p class="t gss-kicker">You</p>
+      <h4 class="t gss-h2">Settings</h4>
+      <p class="t gss-sec">Gentle nudges</p>
+      {
+        [
+          ['Morning check-in', '7:00 · one nudge, no streak warnings', false],
+          ['Rest-day reminder', 'When your path suggests recovery', false],
+          ['Weekly recap', 'Sunday evening', true],
+        ].map(([t, s, on]) => (
+          <div class="ui gss-row">
+            <span><span class="t gss-row-t">{t}</span><span class="t gss-row-s">{s}</span></span>
+            <button class:list={['ui', 'gss-switch', { 'is-on': on }]} data-toggle aria-label={`Toggle ${t}`}><i /></button>
+          </div>
+        ))
+      }
+      <p class="t gss-sec">Guidance</p>
+      <div class="ui gss-row">
+        <span><span class="t gss-row-t">Cycle-aware guidance</span><span class="t gss-row-s">Adapts suggestions by phase</span></span>
+        <button class="ui gss-switch" data-toggle aria-label="Toggle cycle-aware guidance"><i></i></button>
+      </div>
+      <button class="ui gss-row" data-go="permissions">
+        <span><span class="t gss-row-t">Health permissions</span><span class="t gss-row-s">4 data types</span></span>
+        <span class="t gss-chev">›</span>
+      </button>
+      <div class="ui gss-row"><span><span class="t gss-row-t">Units & language</span><span class="t gss-row-s">Metric · English</span></span><span class="t gss-chev">›</span></div>
+    </div>
+  </div>
+  <nav class="ui gss-tabs">
+    {tabsBar('settings').map((t) => <button class:list={{ 'is-on': t.on }} data-go={t.id}><span class="ico" /><span class="t">{t.l}</span></button>)}
+  </nav>
+</section>
+
+<style>
+  .gss { background: #fff4ec; color: #2b1208; font-family: Inter, system-ui, sans-serif; --sb: #2b1208; }
+  .gss-scroll { position: absolute; inset: 0 0 0; padding-bottom: 96px; }
+  .gss-pad { padding: 0 22px; }
+  .gss-top { padding-top: 64px; display: grid; gap: 12px; }
+  .gss-bottom { position: absolute; left: 0; right: 0; bottom: 44px; display: grid; gap: 12px; }
+  .gss-center { justify-items: center; text-align: center; }
+  .gss-kicker { display: block; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6b4a3a; font-weight: 600; }
+  .gss-kicker--ink { color: #2b1208; }
+  .gss-h1 { font: 800 36px/1.04 Montserrat, sans-serif; letter-spacing: -0.035em; }
+  .gss-h1--sm { font-size: 32px; }
+  .gss-h2 { font: 800 26px/1.12 Montserrat, sans-serif; letter-spacing: -0.025em; }
+  .gss-h3 { display: block; font: 800 20px/1.15 Montserrat, sans-serif; letter-spacing: -0.02em; margin: 2px 0; }
+  .gss-p { font-size: 15px; line-height: 1.5; color: #5a3b2c; }
+  .gss-mt { margin-top: 8px; }
+  .gss-cta { width: 100%; height: 56px; border-radius: 20px; background: #ff7a45; color: #2b1208; font-weight: 800; font-size: 16px; display: grid; place-items: center; }
+  .gss-ghost { width: 100%; height: 48px; border-radius: 18px; color: #4a2f78; font-weight: 700; font-size: 15px; }
+  .gss-card { display: grid; gap: 8px; padding: 16px; border-radius: 24px; background: #fff; text-align: left; width: 100%; color: inherit; }
+  .gss-row { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 20px; background: #fff; text-align: left; color: inherit; width: 100%; }
+  .gss-row > span:first-child:last-child, .gss-row > span:first-child:nth-last-child(2) { grid-column: 1 / 3; }
+  .gss-row-t { display: block; font-weight: 700; font-size: 15px; }
+  .gss-row-s { display: block; font-size: 13px; line-height: 1.4; color: #6b4a3a; }
+  .gss-row-s b { color: #1f5a22; }
+  .gss-chev { font-size: 20px; color: #9a6a54; }
+  .gss-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .gss-tile { width: 38px; height: 38px; border-radius: 12px; }
+  .gss-switch { width: 52px; height: 32px; border-radius: 16px; background: #e5d2c4; position: relative; transition: background 0.25s; flex: none; }
+  .gss-switch i { position: absolute; left: 3px; top: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / 0.25); transition: transform 0.35s cubic-bezier(0.45, 0, 0.25, 1); }
+  .gss-switch.is-on { background: #2f9e3a; }
+  .gss-switch.is-on i { transform: translateX(20px); }
+  .gss-perm { grid-template-columns: auto 1fr auto; }
+
+  .gss-welcome { background: linear-gradient(180deg, #ffd9c4, #fff4ec 60%); }
+  .gss-hero { position: absolute; left: 0; right: 0; top: 70px; height: 360px; }
+  .gss-sun { position: absolute; left: 50%; top: 40px; width: 210px; height: 210px; margin-left: -105px; border-radius: 50%; background: radial-gradient(circle at 40% 36%, #ffe3c2, #ff9a66 50%, #ff7a45 72%, transparent 74%); box-shadow: 0 0 90px 20px rgb(255 122 69 / 0.35); animation: gss-breathe 5.5s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+  .gss-hero-band { position: absolute; left: 0; bottom: 0; width: 100%; }
+  @keyframes gss-breathe { 50% { transform: scale(1.06); } }
+
+  .gss-soft { background: linear-gradient(180deg, #ffe9d9, #fff4ec 50%); }
+  .gss-feel { display: grid; gap: 8px; margin-top: 6px; }
+  .gss-feel-o { display: flex; gap: 14px; align-items: center; height: 56px; padding: 0 16px; border-radius: 18px; background: #fff; border: 2px solid transparent; color: #2b1208; font-size: 16px; font-weight: 600; }
+  .gss-feel-o.is-on { border-color: #ff7a45; background: #fff0e6; }
+  .gss-face { width: 28px; height: 28px; border-radius: 50%; background: #ffd2b8; position: relative; }
+  .gss-face::after { content: ''; position: absolute; left: 7px; right: 7px; top: 16px; height: 6px; border-bottom: 2.5px solid #2b1208; border-radius: 0 0 50% 50%; transform: translateY(var(--m)) scaleY(calc(1 + var(--m) / 4px)); }
+
+  .gss-headrow { display: flex; justify-content: space-between; align-items: end; gap: 10px; }
+  .gss-streak { padding: 7px 12px; border-radius: 99px; background: #2e1b4e; color: #fff4ec; font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .gss-ready { grid-template-columns: auto 1fr; gap: 14px; align-items: center; background: #ffe3d3; }
+  .gss-orb { width: 62px; height: 62px; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #ffd2b8, #ff7a45 55%, #e2551f); animation: gss-breathe 5.5s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+  .gss-cardhead { display: flex; justify-content: space-between; align-items: center; }
+  .gss-link { font-size: 13px; font-weight: 700; color: #9a3510; }
+  .gss-chart { display: block; }
+  .gss-go { display: grid; gap: 4px; padding: 18px; border-radius: 24px; background: #ff7a45; color: #2b1208; text-align: left; width: 100%; }
+  .gss-go-t { font: 800 19px/1.2 Montserrat, sans-serif; letter-spacing: -0.02em; }
+  .gss-go-s { font-size: 13px; font-weight: 700; }
+  .gss-note { padding: 14px 16px; border-radius: 20px; background: #fff; border: 1.5px dashed #e8b9a0; text-align: left; font-size: 14px; line-height: 1.4; color: #5a3b2c; width: 100%; }
+  .gss-heart { color: #e2551f; }
+  .gss-tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 86px; padding: 8px 10px 26px; display: grid; grid-template-columns: repeat(4, 1fr); background: rgb(255 255 255 / 0.96); border-top: 1px solid #f0d9c9; }
+  .gss-tabs button { display: grid; justify-items: center; align-content: center; gap: 4px; color: #6b4a3a; font-size: 11px; font-weight: 600; }
+  .gss-tabs .ico { width: 24px; height: 24px; border-radius: 8px; background: #ead6c8; }
+  .gss-tabs .is-on { color: #9a3510; }
+  .gss-tabs .is-on .ico { background: #ff7a45; }
+
+  .gss-sheet-scr { background: rgb(43 18 8 / 0.45); }
+  .gss-sheet { position: absolute; left: 0; right: 0; bottom: 0; display: grid; gap: 12px; padding: 14px 22px 40px; border-radius: 32px 32px 0 0; background: #fff4ec; }
+  .gss-sheet--warm { background: linear-gradient(180deg, #ffe3d3, #fff4ec 50%); }
+  .gss-grabber { width: 40px; height: 5px; border-radius: 3px; background: #d9bba9; justify-self: center; }
+  .gss-opt { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-radius: 18px; background: #fff; border: 2px solid transparent; text-align: left; color: inherit; }
+  .gss-opt.is-on { border-color: #ff7a45; }
+  .gss-radio { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #c9a896; }
+  .gss-opt.is-on .gss-radio { border: 7px solid #ff7a45; }
+  .gss-back { justify-self: start; color: #9a3510; font-size: 15px; font-weight: 600; }
+  .gss-legend { display: flex; gap: 14px; font-size: 12px; color: #6b4a3a; }
+  .gss-legend span { display: inline-flex; gap: 5px; align-items: center; }
+  .gss-l-in { width: 9px; height: 9px; border-radius: 50%; background: #2f7d32; }
+  .gss-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .gss-stat { display: grid; gap: 4px; padding: 14px 16px; border-radius: 20px; background: #fff; }
+  .gss-num { font: 800 24px/1 Montserrat, sans-serif; letter-spacing: -0.02em; }
+  .gss-zone { display: grid; grid-template-columns: 56px 1fr 48px; gap: 10px; align-items: center; }
+  .gss-zbar { height: 10px; border-radius: 5px; background: #f3e4d9; }
+  .gss-zbar i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, #7ed957, #2f7d32); }
+  .gss-effect { grid-template-columns: auto 1fr; align-items: center; gap: 12px; }
+
+  .gss-night { background: radial-gradient(110% 60% at 50% 0%, #4a2f78, #2e1b4e 55%, #1c1033); color: #fff4ec; --sb: #fff; }
+  .gss-moon { width: 120px; height: 120px; margin-top: 50px; border-radius: 50%; background: radial-gradient(circle at 36% 34%, #fff8ee, #e9dcff 70%); -webkit-mask: radial-gradient(circle at 76% 30%, transparent 36%, #000 38%); mask: radial-gradient(circle at 76% 30%, transparent 36%, #000 38%); box-shadow: 0 0 80px rgb(233 220 255 / 0.5); }
+  .gss-kicker--night { color: #d9ccf2; }
+  .gss-p--night { color: #ece4f8; max-width: 30ch; }
+  .gss-badge { padding: 10px 16px; border-radius: 99px; background: #b9a6e8; color: #1c1033; font-weight: 800; font-size: 14px; }
+  .gss-cta--night { background: #b9a6e8; color: #1c1033; }
+
+  .gss-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; height: 150px; align-items: end; }
+  .gss-week span { display: grid; height: 100%; align-content: end; justify-items: center; gap: 6px; }
+  .gss-week i { width: 100%; border-radius: 10px; }
+  .gss-week b { font-size: 12px; color: #6b4a3a; }
+  .gss-sec { margin-top: 8px; font-size: 13px; font-weight: 700; color: #6b4a3a; text-transform: uppercase; letter-spacing: 0.1em; }
+  @media (prefers-reduced-motion: reduce) { .gss-sun, .gss-orb { animation: none; } }
+</style>

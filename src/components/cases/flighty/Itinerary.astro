@@ -1,0 +1,65 @@
+---
+// The making-of route, printed like a boarding pass: eight "airports", one per stage of building
+// a mobile app. Each stop jumps to its chapter; a plane taxis along when the strip enters view.
+const stops = [
+  { code: 'DSC', name: 'Discover', id: 'brief' },
+  { code: 'RES', name: 'Research', id: 'research' },
+  { code: 'MAP', name: 'Journeys & flows', id: 'journey' },
+  { code: 'WIR', name: 'Wireframe', id: 'layers' },
+  { code: 'PRO', name: 'Prototype', id: 'prototype' },
+  { code: 'SRF', name: 'Lock screen & island', id: 'live' },
+  { code: 'TST', name: 'Test & iterate', id: 'test' },
+  { code: 'SHP', name: 'Ship & measure', id: 'measure' },
+];
+---
+
+<nav class="fl-iti" aria-label="How this app gets made" data-reveal>
+  <div class="fl-iti-head">
+    <span class="fl-iti-k">Boarding pass · the making of an app</span>
+    <span class="fl-iti-k">8 stops · 4-week concept sprint</span>
+  </div>
+  <div class="fl-iti-route">
+    <span class="fl-iti-line" aria-hidden="true"><i class="fl-iti-plane">✈</i></span>
+    <ol role="list">
+      {
+        stops.map((s, i) => (
+          <li style={`--i:${i}`}>
+            <a href={`#${s.id}`}>
+              <span class="fl-iti-code">{s.code}</span>
+              <span class="fl-iti-name">{s.name}</span>
+              <span class="fl-iti-n t-num">0{i + 1}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</nav>
+
+<style>
+  .fl-iti { margin-top: var(--s-8); border-radius: var(--r-lg); background: #f4f1e8; color: #0b0b0f; overflow: hidden; position: relative; }
+  .fl-iti::before, .fl-iti::after { content: ''; position: absolute; top: 46px; width: 22px; height: 22px; border-radius: 50%; background: var(--bg); }
+  .fl-iti::before { left: -11px; }
+  .fl-iti::after { right: -11px; }
+  .fl-iti-head { display: flex; justify-content: space-between; gap: var(--s-4); flex-wrap: wrap; padding: var(--s-4) var(--s-6); border-bottom: 2px dashed #cfc9b8; }
+  .fl-iti-k { font: 700 0.72rem var(--font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: #4a463c; }
+  .fl-iti-route { position: relative; padding: var(--s-6) var(--s-6) var(--s-5); }
+  .fl-iti-line { position: absolute; left: calc(var(--s-6) + 2%); right: calc(var(--s-6) + 2%); top: calc(var(--s-6) + 2.1rem); height: 0; border-top: 2px dotted #8f8a7c; }
+  .fl-iti-plane { position: absolute; top: -0.85rem; left: 0; font-style: normal; font-size: 1.2rem; color: #0b0b0f; transform: translateX(-50%); transition: left 2.6s cubic-bezier(0.65, 0, 0.35, 1) 0.3s; }
+  .fl-iti.is-in .fl-iti-plane { left: 100%; }
+  .fl-iti ol { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(8, 1fr); gap: var(--s-2); position: relative; }
+  .fl-iti a { display: grid; gap: 2px; padding: var(--s-2); border-radius: var(--r-sm); color: #0b0b0f; transition: background var(--dur-1); }
+  .fl-iti a:hover, .fl-iti a:focus-visible { background: #e6e1d2; }
+  .fl-iti-code { font: 900 clamp(1.3rem, 0.9rem + 1.2vw, 2.2rem) / 1 var(--font-display); letter-spacing: -0.02em; margin-bottom: var(--s-4); }
+  .fl-iti-name { font: 600 var(--fs-sm) / 1.25 var(--font-ui); }
+  .fl-iti-n { font-size: 0.75rem; color: #5a5649; }
+  @media (max-width: 860px) {
+    .fl-iti ol { grid-template-columns: repeat(4, 1fr); row-gap: var(--s-4); }
+    .fl-iti-line { display: none; }
+    .fl-iti-code { margin-bottom: var(--s-2); }
+    .fl-iti-head, .fl-iti-route { padding-inline: var(--s-4); }
+  }
+  @media (max-width: 420px) {
+    .fl-iti ol { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>

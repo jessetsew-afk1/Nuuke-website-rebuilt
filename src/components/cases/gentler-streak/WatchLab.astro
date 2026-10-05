@@ -1,0 +1,454 @@
+---
+// Signature module (c): watch-first design. A CSS/SVG Apple Watch-style mock in 3D
+// with a tappable complication → readiness → workout → summary flow, a working
+// Digital Crown (press for the face, scroll or arrow keys to scroll) and an
+// Always-On (wrist down) state. Original NUUKE drawing, not Apple artwork.
+import PathChart from './PathChart.astro';
+import { tenDays } from '../../../data/cases/gentler-streak';
+const comps = [
+  { id: 'rect', label: 'Rectangular' },
+  { id: 'circ', label: 'Circular' },
+  { id: 'corner', label: 'Corner gauge' },
+];
+const jumps = [
+  { id: 'face', label: 'Face' },
+  { id: 'today', label: 'Readiness' },
+  { id: 'pick', label: 'Pick' },
+  { id: 'live', label: 'Workout' },
+  { id: 'summary', label: 'Summary' },
+  { id: 'rest', label: 'Rest day' },
+];
+---
+
+<div class="gs-wl" data-gs-wl data-comp="rect">
+  <div class="gs-wl-stage" data-wl-stage>
+    <div class="gs-wl-rig" data-wl-rig>
+      <div class="gs-wl-band gs-wl-band--top" aria-hidden="true"></div>
+      <div class="gs-wl-band gs-wl-band--bot" aria-hidden="true"></div>
+      <div class="gs-wl-case">
+        <button type="button" class="gs-wl-crown" data-wl-crown aria-label="Digital Crown: press to return to the watch face. Use arrow keys to scroll."><i></i></button>
+        <button type="button" class="gs-wl-side" data-wl-side aria-label="Side button: go back"></button>
+        <div class="gs-wl-screen" data-wl-screen>
+          <!-- FACE -->
+          <section class="gs-wl-scr is-on" data-wscr="face" aria-label="Watch face">
+            <div class="gs-wl-face">
+              <p class="gs-wl-date">TUE 6</p>
+              <p class="gs-wl-time">9:41</p>
+              <button type="button" class="gs-wl-comp gs-wl-comp--rect" data-wgo="today" aria-label="Gentler complication: easy walk today, 20 minutes. Open">
+                <span class="gs-wl-c-k">GENTLER</span>
+                <span class="gs-wl-c-t">Easy walk · 20 min</span>
+                <PathChart values={tenDays} w={150} h={34} label="Mini Activity Path" dark />
+              </button>
+              <div class="gs-wl-comp-row">
+                <button type="button" class="gs-wl-comp gs-wl-comp--circ" data-wgo="today" aria-label="Readiness complication: steady. Open">
+                  <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" class="gs-wl-ring-bg" /><circle cx="20" cy="20" r="16" class="gs-wl-ring" style="stroke-dashoffset:30" /></svg>
+                  <span>Steady</span>
+                </button>
+                <span class="gs-wl-mini" aria-hidden="true"><b data-wl-streak>12</b><i>streak</i></span>
+                <span class="gs-wl-mini" aria-hidden="true"><b>62</b><i>bpm</i></span>
+              </div>
+              <button type="button" class="gs-wl-comp gs-wl-comp--corner" data-wgo="today" aria-label="Corner gauge complication: inside your path. Open">
+                <svg viewBox="0 0 60 60" aria-hidden="true"><path d="M 6 54 A 48 48 0 0 1 54 6" class="gs-wl-cg-bg" /><path d="M 6 54 A 48 48 0 0 1 54 6" class="gs-wl-cg" /><circle cx="27" cy="19" r="4.5" class="gs-wl-cg-dot" /></svg>
+                <span>In path</span>
+              </button>
+            </div>
+          </section>
+
+          <!-- TODAY -->
+          <section class="gs-wl-scr" data-wscr="today" aria-label="Readiness">
+            <div class="gs-wl-scroll" data-wl-scroll>
+              <p class="gs-wl-app">Gentler <span>9:41</span></p>
+              <p class="gs-wl-k">Readiness</p>
+              <p class="gs-wl-big">Steady</p>
+              <p class="gs-wl-p">A 20-min walk is perfect today.</p>
+              <PathChart values={tenDays} w={170} h={50} label="Activity Path, 10 days" dark />
+              <button type="button" class="gs-wl-btn gs-wl-btn--go" data-wgo="live" data-act="Outdoor walk">Start walk</button>
+              <button type="button" class="gs-wl-btn" data-wgo="pick">Other ideas</button>
+              <button type="button" class="gs-wl-btn gs-wl-btn--rest" data-wgo="rest">Rest instead</button>
+            </div>
+          </section>
+
+          <!-- PICK -->
+          <section class="gs-wl-scr" data-wscr="pick" aria-label="Pick an activity">
+            <div class="gs-wl-scroll" data-wl-scroll>
+              <p class="gs-wl-app"><button type="button" class="gs-wl-back" data-wback aria-label="Back">‹</button> Ideas <span>9:41</span></p>
+              {
+                [
+                  ['Outdoor walk', '20 min · suggested'],
+                  ['Yoga', '15 min · gentle'],
+                  ['Easy ride', '25 min · zone 2'],
+                ].map(([a, s], i) => (
+                  <button type="button" class:list={['gs-wl-item', { 'is-sug': i === 0 }]} data-wgo="live" data-act={a}>
+                    <b>{a}</b>
+                    <span>{s}</span>
+                  </button>
+                ))
+              }
+            </div>
+          </section>
+
+          <!-- LIVE -->
+          <section class="gs-wl-scr" data-wscr="live" aria-label="Workout in progress">
+            <div class="gs-wl-live">
+              <p class="gs-wl-app"><span data-wl-act>Outdoor walk</span> <span>9:41</span></p>
+              <p class="gs-wl-timer t-num" data-wl-timer>0:00.0</p>
+              <p class="gs-wl-hr"><span class="gs-wl-heart" aria-hidden="true">♥</span> <b data-wl-hr>98</b> bpm</p>
+              <div class="gs-wl-zones" aria-label="Heart-rate zone 2 of 5, easy" role="img">
+                {[1, 2, 3, 4, 5].map((z) => <i class:list={{ 'is-on': z === 2 }} />)}
+              </div>
+              <p class="gs-wl-zl">Zone 2 · easy. Right where today wants you.</p>
+              <button type="button" class="gs-wl-btn gs-wl-btn--end" data-wgo="summary">End</button>
+            </div>
+          </section>
+
+          <!-- SUMMARY -->
+          <section class="gs-wl-scr" data-wscr="summary" aria-label="Workout summary">
+            <div class="gs-wl-scroll" data-wl-scroll>
+              <p class="gs-wl-app">Summary <span>9:41</span></p>
+              <p class="gs-wl-big gs-wl-big--sm">Nice and easy.</p>
+              <p class="gs-wl-p"><b data-wl-dur>21 min</b> · inside your path</p>
+              <div class="gs-wl-bars" role="img" aria-label="Time in zones: mostly zone 2">
+                {[['Z1', 30], ['Z2', 90], ['Z3', 22], ['Z4', 6], ['Z5', 0]].map(([z, v]) => <span><i style={`--v:${v}%`} />{z}</span>)}
+              </div>
+              <p class="gs-wl-p gs-wl-small">Streak: <b data-wl-streak2>13</b> days</p>
+              <button type="button" class="gs-wl-btn gs-wl-btn--go" data-wgo="face" data-streak>Done</button>
+            </div>
+          </section>
+
+          <!-- REST -->
+          <section class="gs-wl-scr" data-wscr="rest" aria-label="Rest day">
+            <div class="gs-wl-rest">
+              <span class="gs-wl-moon" aria-hidden="true"></span>
+              <p class="gs-wl-big gs-wl-big--sm">Rest counts.</p>
+              <p class="gs-wl-p">Your streak stays alive. Recovery is part of training.</p>
+              <button type="button" class="gs-wl-btn gs-wl-btn--rest" data-wgo="face" data-streak>Done</button>
+            </div>
+          </section>
+
+          <div class="gs-wl-aod" aria-hidden="true">
+            <p class="gs-wl-time">9:41</p>
+            <p class="gs-wl-aod-c">Easy walk · 20 min</p>
+          </div>
+          <div class="gs-wl-glass" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+    <p class="gs-wl-caption t-label" aria-live="polite"><span data-wl-caption>Watch face</span></p>
+  </div>
+
+  <div class="gs-wl-side-panel">
+    <div class="gs-wl-taps">
+      <p class="t-label">Taps from face to workout</p>
+      <p class="gs-wl-tapn"><b data-wl-taps>0</b><span>target: 2 or fewer</span></p>
+      <p class="t-small" data-wl-tapnote>Start on the face. Tap the complication, then “Start walk”.</p>
+    </div>
+    <fieldset class="gs-wl-group">
+      <legend class="t-label">Complication</legend>
+      <div class="gs-wl-seg" role="radiogroup" aria-label="Complication family">
+        {comps.map((c, i) => <button type="button" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-comp={c.id}>{c.label}</button>)}
+      </div>
+    </fieldset>
+    <div class="gs-wl-group">
+      <p class="t-label">Jump to a screen</p>
+      <div class="gs-wl-jumps">
+        {jumps.map((j) => <button type="button" data-wjump={j.id}>{j.label}</button>)}
+      </div>
+    </div>
+    <button type="button" class="gs-wl-wrist" data-wl-wrist aria-pressed="false">Lower wrist (Always-On)</button>
+    <ul class="gs-wl-rules" role="list">
+      <li><strong>Two-second glance.</strong> The complication answers “what should I do today?” before the app opens.</li>
+      <li><strong>One action per screen.</strong> The biggest button is always the gentle option.</li>
+      <li><strong>Rest is a button, not a failure.</strong> “Rest instead” sits next to “Start walk”.</li>
+      <li><strong>Always-On stays calm.</strong> Wrist down, the face dims to time and one line, no colour blocks.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-gs-wl]').forEach((root) => {
+    const screens = [...root.querySelectorAll<HTMLElement>('[data-wscr]')];
+    const caption = root.querySelector<HTMLElement>('[data-wl-caption]')!;
+    const tapsEl = root.querySelector<HTMLElement>('[data-wl-taps]')!;
+    const tapNote = root.querySelector<HTMLElement>('[data-wl-tapnote]')!;
+    const timerEl = root.querySelector<HTMLElement>('[data-wl-timer]')!;
+    const hrEl = root.querySelector<HTMLElement>('[data-wl-hr]')!;
+    const actEl = root.querySelector<HTMLElement>('[data-wl-act]')!;
+    const durEl = root.querySelector<HTMLElement>('[data-wl-dur]')!;
+    const streakEls = [...root.querySelectorAll<HTMLElement>('[data-wl-streak], [data-wl-streak2]')];
+    const crown = root.querySelector<HTMLButtonElement>('[data-wl-crown]')!;
+    const rig = root.querySelector<HTMLElement>('[data-wl-rig]')!;
+    const stage = root.querySelector<HTMLElement>('[data-wl-stage]')!;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const history: string[] = [];
+    let current = 'face';
+    let taps = 0;
+    let counting = false;
+    let started = 0;
+    let raf = 0;
+    let streak = 12;
+    let crownRot = 0;
+
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) root.querySelectorAll('[data-wl-scroll]').forEach((s) => s.setAttribute('data-lenis-prevent', ''));
+    const titleOf = (id: string) => screens.find((s) => s.dataset.wscr === id)?.getAttribute('aria-label') || id;
+
+    const show = (id: string, back = false) => {
+      if (id === current) return;
+      const from = screens.find((s) => s.dataset.wscr === current);
+      const to = screens.find((s) => s.dataset.wscr === id);
+      if (!to) return;
+      from?.classList.remove('is-on');
+      from?.classList.add(back ? 'is-out-back' : 'is-out');
+      setTimeout(() => from?.classList.remove('is-out', 'is-out-back'), 450);
+      to.classList.remove('is-out', 'is-out-back');
+      to.classList.add('is-on');
+      to.classList.toggle('is-back', back);
+      to.querySelectorAll<HTMLElement>('[data-wl-scroll]').forEach((s) => (s.scrollTop = 0));
+      current = id;
+      caption.textContent = titleOf(id);
+      // Glance budget: count taps from the face to a running workout.
+      if (id === 'face') {
+        counting = true;
+        taps = 0;
+        tapsEl.textContent = '0';
+        tapNote.textContent = 'Start on the face. Tap the complication, then “Start walk”.';
+      }
+      if (id === 'live') {
+        started = performance.now();
+        tick();
+        if (counting) {
+          tapNote.textContent = taps <= 2 ? `Workout running in ${taps} taps. Under budget.` : `Workout running in ${taps} taps. We’d look for a shortcut.`;
+          counting = false;
+        }
+      } else cancelAnimationFrame(raf);
+      if (id === 'summary') {
+        const m = Math.max(1, Math.round((performance.now() - started) / 1000));
+        durEl.textContent = `${m} sec`;
+      }
+    };
+
+    const tick = () => {
+      const s = (performance.now() - started) / 1000;
+      timerEl.textContent = `${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, '0')}`;
+      hrEl.textContent = String(Math.round(100 + Math.sin(s * 0.8) * 3 + Math.sin(s * 2.3)));
+      raf = requestAnimationFrame(tick);
+    };
+
+    root.addEventListener('click', (e) => {
+      const el = (e.target as HTMLElement).closest<HTMLElement>('[data-wgo],[data-wback]');
+      if (!el || !root.querySelector('[data-wl-screen]')!.contains(el)) return;
+      if (root.classList.contains('is-aod')) return wake();
+      if (counting) {
+        taps++;
+        tapsEl.textContent = String(taps);
+      }
+      if (el.hasAttribute('data-wback')) return show(history.pop() || 'face', true);
+      if (el.dataset.act) actEl.textContent = el.dataset.act;
+      if (el.hasAttribute('data-streak')) {
+        streak++;
+        streakEls.forEach((s) => (s.textContent = String(streak)));
+      }
+      const to = el.dataset.wgo!;
+      if (to === 'face') history.length = 0;
+      else history.push(current);
+      show(to, to === 'face');
+    });
+    root.querySelector('[data-wl-side]')!.addEventListener('click', () => show(history.pop() || 'face', true));
+    crown.addEventListener('click', () => {
+      crownRot += 40;
+      crown.style.setProperty('--rot', `${crownRot}deg`);
+      if (root.classList.contains('is-aod')) return wake();
+      history.length = 0;
+      show('face', true);
+    });
+    const scrollBy = (dy: number) => {
+      const sc = screens.find((s) => s.dataset.wscr === current)?.querySelector<HTMLElement>('[data-wl-scroll]');
+      crownRot += dy > 0 ? 18 : -18;
+      crown.style.setProperty('--rot', `${crownRot}deg`);
+      sc?.scrollBy({ top: dy, behavior: reduce ? 'auto' : 'smooth' });
+    };
+    crown.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        scrollBy(e.key === 'ArrowDown' ? 50 : -50);
+      }
+    });
+    crown.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      scrollBy(Math.sign(e.deltaY) * 40);
+    }, { passive: false });
+
+    root.querySelectorAll<HTMLButtonElement>('[data-comp]').forEach((b) =>
+      b.addEventListener('click', () => {
+        root.querySelectorAll('[data-comp]').forEach((x) => x !== root && x.setAttribute('aria-checked', String(x === b)));
+        root.dataset.comp = b.dataset.comp;
+        history.length = 0;
+        show('face', true);
+      }),
+    );
+    root.querySelectorAll<HTMLButtonElement>('[data-wjump]').forEach((b) =>
+      b.addEventListener('click', () => {
+        if (root.classList.contains('is-aod')) wake();
+        history.length = 0;
+        if (b.dataset.wjump !== 'face') history.push('face');
+        show(b.dataset.wjump!);
+      }),
+    );
+
+    const wrist = root.querySelector<HTMLButtonElement>('[data-wl-wrist]')!;
+    const wake = () => {
+      root.classList.remove('is-aod');
+      wrist.setAttribute('aria-pressed', 'false');
+      wrist.textContent = 'Lower wrist (Always-On)';
+      caption.textContent = titleOf(current);
+    };
+    wrist.addEventListener('click', () => {
+      if (root.classList.contains('is-aod')) return wake();
+      root.classList.add('is-aod');
+      wrist.setAttribute('aria-pressed', 'true');
+      wrist.textContent = 'Raise wrist';
+      caption.textContent = 'Always-On: wrist down';
+    });
+
+    // Raise to wake as it scrolls into view, then a gentle tilt toward the pointer.
+    if (!reduce) {
+      root.classList.add('is-asleep');
+      new IntersectionObserver((en, io) => {
+        if (en[0]?.isIntersecting) {
+          root.classList.remove('is-asleep');
+          io.disconnect();
+        }
+      }, { threshold: 0.5 }).observe(stage);
+      if (window.matchMedia('(hover: hover)').matches) {
+        stage.addEventListener('pointermove', (e) => {
+          const r = stage.getBoundingClientRect();
+          const x = (e.clientX - r.left) / r.width - 0.5;
+          const y = (e.clientY - r.top) / r.height - 0.5;
+          rig.style.transform = `rotateY(${x * 22}deg) rotateX(${-y * 16}deg)`;
+        });
+        stage.addEventListener('pointerleave', () => (rig.style.transform = ''));
+      }
+    }
+    counting = true;
+  });
+</script>
+
+<style>
+  .gs-wl { display: grid; grid-template-columns: 1.1fr 1fr; gap: var(--s-7); align-items: center; padding: var(--s-6); border-radius: calc(var(--r-lg) + 8px); border: 1px solid var(--line); background: radial-gradient(55% 70% at 30% 50%, rgb(255 122 69 / 0.16), transparent 70%), radial-gradient(40% 50% at 80% 90%, rgb(74 47 120 / 0.3), transparent 70%), var(--bg-2); }
+  .gs-wl-stage { display: grid; justify-items: center; gap: var(--s-5); padding-block: var(--s-7) var(--s-4); perspective: 1100px; }
+  .gs-wl-rig { position: relative; width: 236px; height: 288px; transform-style: preserve-3d; transition: transform 0.9s cubic-bezier(0.45, 0, 0.55, 1); }
+  .gs-wl.is-asleep .gs-wl-rig { transform: rotateX(48deg) rotateZ(-8deg) translateY(30px); }
+  .gs-wl-band { position: absolute; left: 50%; width: 150px; margin-left: -75px; height: 150px; border-radius: 30px; background: repeating-linear-gradient(0deg, #4a2f78 0 6px, #563889 6px 12px); transform: translateZ(-24px); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06); }
+  .gs-wl-band--top { bottom: 92%; border-radius: 30px 30px 10px 10px; }
+  .gs-wl-band--bot { top: 92%; border-radius: 10px 10px 30px 30px; }
+  .gs-wl-case { position: absolute; inset: 0; border-radius: 64px; padding: 14px; background: linear-gradient(150deg, #f3e3d8 0%, #c9b3a5 30%, #8e7568 60%, #e9d6ca 100%); box-shadow: inset 0 2px 2px rgb(255 255 255 / 0.6), inset 0 -3px 6px rgb(0 0 0 / 0.35), 0 40px 70px -20px rgb(0 0 0 / 0.85); transform: translateZ(0); }
+  .gs-wl-crown { position: absolute; right: -14px; top: 62px; width: 18px; height: 46px; border-radius: 6px; background: linear-gradient(90deg, #8e7568, #e9d6ca 50%, #8e7568); box-shadow: 0 2px 4px rgb(0 0 0 / 0.4); overflow: hidden; }
+  .gs-wl-crown i { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent 0 3px, rgb(0 0 0 / 0.25) 3px 4px); background-position: 0 calc(var(--rot, 0deg) / 1deg * 0.2px); transition: background-position 0.4s var(--ease-out); }
+  .gs-wl-crown::after { content: ''; position: absolute; right: 2px; top: 50%; width: 4px; height: 12px; margin-top: -6px; border-radius: 2px; background: #ff7a45; }
+  .gs-wl-side { position: absolute; right: -8px; top: 136px; width: 10px; height: 64px; border-radius: 5px; background: linear-gradient(90deg, #8e7568, #d8c4b6); }
+  .gs-wl-crown:focus-visible, .gs-wl-side:focus-visible { outline: 2px solid #ff7a45; outline-offset: 3px; }
+  .gs-wl-screen { position: relative; width: 100%; height: 100%; border-radius: 50px; background: #000; overflow: hidden; color: #fff; font-family: Inter, system-ui, sans-serif; box-shadow: inset 0 0 0 4px #000; transition: filter 0.9s cubic-bezier(0.45, 0, 0.55, 1); }
+  .gs-wl.is-asleep .gs-wl-screen { filter: brightness(0.15); }
+  .gs-wl-glass { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(135deg, rgb(255 255 255 / 0.12), transparent 40%); }
+  .gs-wl-scr { position: absolute; inset: 0; visibility: hidden; transform: translateX(100%); transition: transform 0.45s cubic-bezier(0.45, 0, 0.25, 1), visibility 0s 0.45s; }
+  .gs-wl-scr.is-on { visibility: visible; transform: none; transition: transform 0.45s cubic-bezier(0.45, 0, 0.25, 1); }
+  .gs-wl-scr.is-on.is-back { animation: gs-wl-in-back 0.45s cubic-bezier(0.45, 0, 0.25, 1); }
+  .gs-wl-scr.is-out { visibility: visible; transform: translateX(-35%); opacity: 0; transition: transform 0.45s, opacity 0.45s; }
+  .gs-wl-scr.is-out-back { visibility: visible; transform: translateX(100%); transition: transform 0.45s; }
+  @keyframes gs-wl-in-back { from { transform: translateX(-35%); opacity: 0; } }
+  .gs-wl-scroll { position: absolute; inset: 0; overflow-y: auto; padding: 14px 14px 18px; display: grid; gap: 7px; align-content: start; scrollbar-width: none; }
+  .gs-wl-scroll::-webkit-scrollbar { display: none; }
+  .gs-wl-app { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #ff9466; padding: 0 6px; }
+  .gs-wl-app span:last-child { color: #fff; font-weight: 600; }
+  .gs-wl-back { color: #ff9466; font-size: 18px; line-height: 1; padding: 0 6px 0 0; }
+  .gs-wl-k { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #c9b8ad; }
+  .gs-wl-big { font: 800 30px/1 Montserrat, sans-serif; letter-spacing: -0.03em; color: #7ed957; }
+  .gs-wl-big--sm { font-size: 22px; color: #fff; }
+  .gs-wl-p { font-size: 13px; line-height: 1.35; color: #f2e6de; }
+  .gs-wl-small { font-size: 12px; }
+  .gs-wl-btn { min-height: 40px; border-radius: 20px; background: #2a2a2e; color: #fff; font: 700 14px/1 Inter, sans-serif; }
+  .gs-wl-btn--go { background: #ff7a45; color: #1d0c04; }
+  .gs-wl-btn--rest { background: #3b2a5e; color: #fff; }
+  .gs-wl-btn--end { background: #ff453a; color: #1d0505; width: 100%; }
+  .gs-wl-item { display: grid; gap: 2px; text-align: left; padding: 10px 12px; border-radius: 16px; background: #1f1f22; color: #fff; }
+  .gs-wl-item b { font-size: 14px; }
+  .gs-wl-item span { font-size: 11.5px; color: #c9b8ad; }
+  .gs-wl-item.is-sug { box-shadow: inset 0 0 0 1.5px #ff7a45; }
+
+  .gs-wl-face { position: absolute; inset: 0; padding: 18px 16px; display: grid; align-content: start; gap: 6px; }
+  .gs-wl-date { font-size: 12px; font-weight: 700; color: #ff9466; letter-spacing: 0.06em; }
+  .gs-wl-time { font: 300 54px/0.95 Inter, system-ui, sans-serif; letter-spacing: -0.04em; color: #fff; }
+  .gs-wl-comp { display: none; color: #fff; text-align: left; }
+  .gs-wl-comp--rect { padding: 8px 10px; border-radius: 14px; background: #1c1210; gap: 2px; box-shadow: inset 0 0 0 1px rgb(255 122 69 / 0.4); }
+  .gs-wl-c-k { font-size: 10px; letter-spacing: 0.12em; color: #ff9466; font-weight: 700; }
+  .gs-wl-c-t { font-size: 13px; font-weight: 700; }
+  .gs-wl[data-comp='rect'] .gs-wl-comp--rect { display: grid; }
+  .gs-wl-comp-row { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+  .gs-wl-comp--circ { width: 54px; height: 54px; position: relative; place-items: center; }
+  .gs-wl-comp--circ svg { position: absolute; inset: 0; }
+  .gs-wl-comp--circ span { font-size: 9.5px; font-weight: 700; }
+  .gs-wl[data-comp='circ'] .gs-wl-comp--circ { display: grid; }
+  .gs-wl[data-comp='circ'] .gs-wl-comp-row { margin-top: 30px; }
+  .gs-wl-ring-bg { fill: none; stroke: #2a1a14; stroke-width: 4; }
+  .gs-wl-ring { fill: none; stroke: #7ed957; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 100.5; transform: rotate(-90deg); transform-origin: center; }
+  .gs-wl-mini { display: grid; justify-items: center; width: 48px; height: 48px; align-content: center; border-radius: 50%; background: #151515; }
+  .gs-wl-mini b { font-size: 15px; }
+  .gs-wl-mini i { font-style: normal; font-size: 9px; color: #c9b8ad; }
+  .gs-wl-comp--corner { position: absolute; left: 6px; bottom: 6px; width: 72px; height: 72px; }
+  .gs-wl-comp--corner svg { position: absolute; inset: 0; width: 60px; height: 60px; }
+  .gs-wl-comp--corner span { position: absolute; left: 36px; bottom: 6px; font-size: 10px; font-weight: 700; color: #7ed957; white-space: nowrap; }
+  .gs-wl[data-comp='corner'] .gs-wl-comp--corner { display: block; }
+  .gs-wl[data-comp='corner'] .gs-wl-time { font-size: 64px; margin-top: 18px; }
+  .gs-wl-cg-bg { fill: none; stroke: #20321a; stroke-width: 9; stroke-linecap: round; }
+  .gs-wl-cg { fill: none; stroke: #7ed957; stroke-width: 9; stroke-linecap: round; stroke-dasharray: 76; stroke-dashoffset: 26; }
+  .gs-wl-cg-dot { fill: #fff; }
+
+  .gs-wl-live { position: absolute; inset: 0; padding: 14px 16px 18px; display: grid; gap: 6px; align-content: start; }
+  .gs-wl-timer { font: 700 36px/1 Inter, sans-serif; color: #f4c430; letter-spacing: -0.02em; }
+  .gs-wl-hr { font-size: 15px; color: #fff; }
+  .gs-wl-hr b { font-size: 22px; }
+  .gs-wl-heart { color: #ff453a; display: inline-block; animation: gs-wl-beat 0.6s ease-in-out infinite; }
+  @keyframes gs-wl-beat { 30% { transform: scale(1.3); } }
+  .gs-wl-zones { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+  .gs-wl-zones i { height: 8px; border-radius: 4px; background: #2a2a2e; }
+  .gs-wl-zones i.is-on { background: #7ed957; }
+  .gs-wl-zl { font-size: 11.5px; line-height: 1.3; color: #d8ccc4; }
+  .gs-wl-bars { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; align-items: end; height: 70px; }
+  .gs-wl-bars span { display: grid; align-content: end; justify-items: center; gap: 3px; height: 100%; font-size: 9.5px; color: #c9b8ad; }
+  .gs-wl-bars i { width: 100%; height: var(--v); min-height: 2px; border-radius: 4px; background: linear-gradient(#7ed957, #2f7d32); }
+  .gs-wl-rest { position: absolute; inset: 0; padding: 22px 18px; display: grid; gap: 8px; align-content: center; justify-items: start; background: radial-gradient(100% 70% at 50% 0%, #2e1b4e, #000 75%); }
+  .gs-wl-moon { width: 40px; height: 40px; border-radius: 50%; background: #e9dcff; -webkit-mask: radial-gradient(circle at 75% 30%, transparent 36%, #000 38%); mask: radial-gradient(circle at 75% 30%, transparent 36%, #000 38%); }
+  .gs-wl-rest .gs-wl-btn { width: 100%; margin-top: 6px; }
+
+  /* Always-On: wrist down. */
+  .gs-wl-aod { position: absolute; inset: 0; padding: 40px 18px; display: grid; align-content: center; gap: 6px; background: #000; opacity: 0; pointer-events: none; transition: opacity 0.8s; }
+  .gs-wl-aod .gs-wl-time { color: #b8aaa2; font-weight: 200; }
+  .gs-wl-aod-c { font-size: 13px; color: #b8aaa2; }
+  .gs-wl.is-aod .gs-wl-aod { opacity: 1; pointer-events: auto; }
+  .gs-wl.is-aod .gs-wl-rig { transform: rotateX(28deg) translateY(10px); }
+
+  .gs-wl-caption span { color: var(--ink); }
+  .gs-wl-side-panel { display: grid; gap: var(--s-5); align-content: start; }
+  .gs-wl-taps { padding: var(--s-4) var(--s-5); border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line); display: grid; gap: var(--s-2); }
+  .gs-wl-tapn { display: flex; align-items: baseline; gap: var(--s-3); }
+  .gs-wl-tapn b { font: 900 3rem/1 var(--font-display); letter-spacing: -0.04em; color: #ff9466; }
+  .gs-wl-tapn span { font-size: var(--fs-sm); color: var(--ink-2); }
+  .gs-wl-group { border: 0; margin: 0; padding: 0; display: grid; gap: var(--s-3); }
+  .gs-wl-seg { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: var(--r-pill); background: var(--surface-2); border: 1px solid var(--line); justify-self: start; }
+  .gs-wl-seg button { padding: 0.5rem 0.95rem; border-radius: var(--r-pill); font: 600 var(--fs-sm) var(--font-ui); color: var(--ink-2); }
+  .gs-wl-seg button[aria-checked='true'] { background: #ff7a45; color: #1d0c04; }
+  .gs-wl-jumps { display: flex; flex-wrap: wrap; gap: 6px; }
+  .gs-wl-jumps button, .gs-wl-wrist { padding: 0.5rem 0.9rem; border-radius: var(--r-pill); border: 1px solid var(--line-strong); font: 600 var(--fs-sm) var(--font-ui); color: var(--ink); }
+  .gs-wl-jumps button:hover, .gs-wl-wrist:hover { background: var(--surface-2); }
+  .gs-wl-wrist { justify-self: start; }
+  .gs-wl-wrist[aria-pressed='true'] { background: #4a2f78; border-color: #b9a6e8; }
+  .gs-wl-rules { list-style: none; padding: 0; display: grid; gap: var(--s-3); color: var(--ink-2); font-size: var(--fs-sm); }
+  .gs-wl-rules li { padding-left: var(--s-4); border-left: 2px solid #ff7a45; }
+  .gs-wl-rules strong { color: var(--ink); }
+  @media (max-width: 900px) {
+    .gs-wl { grid-template-columns: 1fr; padding: var(--s-4); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gs-wl-heart { animation: none; }
+    .gs-wl-scr, .gs-wl-scr.is-on, .gs-wl-rig { transition: none; }
+  }
+</style>

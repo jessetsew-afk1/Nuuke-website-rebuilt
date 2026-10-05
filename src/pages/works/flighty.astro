@@ -1,0 +1,749 @@
+---
+import Case from '../../layouts/Case.astro';
+import Chapter from '../../components/case/Chapter.astro';
+import Brief from '../../components/case/Brief.astro';
+import Personas from '../../components/case/Personas.astro';
+import JourneyMap from '../../components/case/JourneyMap.astro';
+import FlowMap from '../../components/case/FlowMap.astro';
+import ScreenStack from '../../components/case/ScreenStack.astro';
+import Prototype from '../../components/case/Prototype.astro';
+import DesignSystem from '../../components/case/DesignSystem.astro';
+import Metrics from '../../components/case/Metrics.astro';
+import HeroPoster from '../../components/cases/flighty/HeroPoster.astro';
+import Opening from '../../components/cases/flighty/Opening.astro';
+import Itinerary from '../../components/cases/flighty/Itinerary.astro';
+import LiveBench from '../../components/cases/flighty/LiveBench.astro';
+import TestReplay from '../../components/cases/flighty/TestReplay.astro';
+import PassportGlobe from '../../components/cases/flighty/PassportGlobe.astro';
+import { bySlug } from '../../data/projects';
+import { flightyLayers } from '../../data/cases/flighty';
+
+const p = bySlug('flighty');
+const chapters = [
+  { id: 'brief', label: 'Brief' },
+  { id: 'research', label: 'Research' },
+  { id: 'journey', label: 'Journey' },
+  { id: 'flow', label: 'User flow' },
+  { id: 'layers', label: '3D wireframe' },
+  { id: 'prototype', label: 'Prototype' },
+  { id: 'live', label: 'Live Activity' },
+  { id: 'test', label: 'Usability test' },
+  { id: 'passport', label: 'Passport globe' },
+  { id: 'system', label: 'Design system' },
+  { id: 'measure', label: 'Measure' },
+];
+const sources = [
+  { label: 'Wikipedia — Flighty', url: 'https://en.wikipedia.org/wiki/Flighty' },
+  { label: 'Mercury — Flighty case study', url: 'https://mercury.com/blog/flighty-app-case-study' },
+  { label: 'Apple — Behind the Design: Flighty', url: 'https://developer.apple.com/news/?id=970ncww4' },
+  { label: 'Apple Design Awards 2023', url: 'https://developer.apple.com/design/awards/2023/' },
+  { label: 'Apple Newsroom — 2023 ADA winners', url: 'https://www.apple.com/newsroom/2023/06/apple-announces-winners-of-the-2023-apple-design-awards/' },
+  { label: 'Flighty — homepage', url: 'https://flighty.com' },
+  { label: 'Flighty — pricing', url: 'https://flighty.com/pricing' },
+  { label: 'Flighty — Android waitlist', url: 'https://flighty.com/android-waitlist' },
+  { label: 'App Store — Flighty', url: 'https://apps.apple.com/us/app/flighty-live-flight-tracker/id1358823008' },
+  { label: 'Simple Flying — interview', url: 'https://simpleflying.com/flighty-app-interview/' },
+];
+const meta = [
+  { label: 'Brand', value: 'Flighty · live flight tracker' },
+  { label: 'Discipline', value: 'Mobile app · UX/UI' },
+  { label: 'Our role', value: 'Research, flows, prototype, Live Activities, usability testing' },
+  { label: 'Timeline (concept)', value: '4-week design sprint' },
+];
+const personas = [
+  {
+    name: 'Road-warrior Ana',
+    meta: '38 · consultant · ~80 legs a year',
+    quote: 'If it’s going to be late, I want to know before the queue at the gate does.',
+    goals: ['Rebook before everyone else', 'The reason, not just the word “delayed”', 'Gate and time without unlocking'],
+    pains: ['Status that says “on time” until it doesn’t', 'Five apps for one trip', 'Alerts that bury the next step'],
+    color: '#ffb020',
+  },
+  {
+    name: 'Pickup-duty Tom',
+    meta: '55 · collects family at arrivals',
+    quote: 'I don’t need the flight. I need to know when to leave the house.',
+    goals: ['One “leave by” time', 'A ping when they land', 'Which terminal and belt'],
+    pains: ['Airport maps', 'Refreshing a web page in the car', 'Jargon like “block time”'],
+    color: '#2ee58a',
+  },
+  {
+    name: 'AvGeek Jordan',
+    meta: '26 · counts tail numbers',
+    quote: 'Which plane is it, and where has it been today?',
+    goals: ['Aircraft history and type', 'A year-in-flight poster to share', 'Seeing the inbound plane live'],
+    pains: ['Stats hidden behind menus', 'Ugly share images', 'Losing old trips'],
+    color: '#6cb4ff',
+  },
+];
+const stages = [
+  { label: 'Booking', doing: 'Forwards the confirmation email.', feeling: 'Fine. One more trip.', score: 0.5, opportunity: 'Import from email, calendar or TripIt. The flight appears without typing a single code.' },
+  { label: 'Morning of', doing: 'Checks the airline app: on time.', feeling: 'Cautiously fine.', score: 0.3, opportunity: 'Watch the inbound plane. “Your plane is 48 min late in Denver” lands hours before the airline says so.' },
+  { label: 'To the airport', doing: 'Decides whether to leave early.', feeling: 'Second-guessing.', score: -0.6, opportunity: 'A “leave by” time based on the predicted departure, not the schedule.' },
+  { label: 'At the gate', doing: 'Gate changes; the board flips to DELAYED.', feeling: 'Frustrated, stuck in a crowd.', score: -1.7, opportunity: 'A gate-change alert with walk time, the reason in plain words, and rebooking one tap away.' },
+  { label: 'In the air', doing: 'Phone in flight mode, family waiting.', feeling: 'Settled.', score: 0.6, opportunity: 'The Live Activity keeps the flight clock on the lock screen; Friends show Tom a live ETA.' },
+  { label: 'Landing', doing: 'Finds the connection and the bags.', feeling: 'Relief.', score: 1.2, opportunity: 'Arrival gate and baggage belt the moment the wheels touch down.' },
+  { label: 'Year end', doing: 'Shares the Passport poster.', feeling: 'Proud, a bit nerdy.', score: 1.8, opportunity: 'A richer poster that is safe to share: routes and totals, no dates or seat numbers.' },
+];
+const nodes = [
+  { id: 'home', label: 'My flights', x: 90, y: 200, kind: 'start' as const },
+  { id: 'add', label: 'Add flight', x: 280, y: 80 },
+  { id: 'friends', label: 'Friends', x: 280, y: 290 },
+  { id: 'passport', label: 'Passport', x: 280, y: 380 },
+  { id: 'flight', label: 'Flight card', x: 490, y: 200, kind: 'key' as const },
+  { id: 'delay', label: 'Why it’s late', x: 710, y: 60 },
+  { id: 'timeline', label: 'Live timeline', x: 710, y: 160 },
+  { id: 'gate', label: 'Gate change', x: 710, y: 260 },
+  { id: 'live', label: 'Lock screen', x: 710, y: 360, kind: 'end' as const },
+  { id: 'inbound', label: 'Where’s my plane', x: 930, y: 110 },
+];
+const edges = [
+  { from: 'home', to: 'add', label: '+' },
+  { from: 'add', to: 'flight' },
+  { from: 'home', to: 'flight' },
+  { from: 'home', to: 'friends' },
+  { from: 'home', to: 'passport' },
+  { from: 'flight', to: 'delay', label: 'Why?' },
+  { from: 'flight', to: 'timeline' },
+  { from: 'flight', to: 'gate' },
+  { from: 'flight', to: 'live' },
+  { from: 'delay', to: 'inbound' },
+  { from: 'timeline', to: 'inbound' },
+];
+const tasks = [
+  { label: 'Add today’s flight', screen: 'add' },
+  { label: 'Open the flight card', screen: 'flight' },
+  { label: 'Find out why it’s late', screen: 'delay' },
+  { label: 'Follow the live timeline', screen: 'timeline' },
+  { label: 'Catch the gate change', screen: 'gate' },
+  { label: 'Find where your plane is', screen: 'inbound' },
+  { label: 'See it on the lock screen', screen: 'live' },
+  { label: 'Check a friend’s flight', screen: 'friends' },
+  { label: 'Open your Passport', screen: 'passport' },
+];
+const timeline = [
+  { t: '08:10', k: 'late', title: 'Delay predicted', sub: 'Your plane is 48 min late in Denver', go: 'delay' },
+  { t: '09:30', k: 'late', title: 'ATC ground delay at Denver', sub: 'Departures held about 45 min' },
+  { t: '12:03', k: 'ok', title: 'Your plane leaves Denver', sub: '48 min behind schedule' },
+  { t: '13:20', k: 'late', title: 'Airline posts the delay', sub: '5h 10m after you knew' },
+  { t: '13:58', k: 'sky', title: 'Gate change: B12 → C4', sub: 'Terminal 1 · 9 min walk', go: 'gate' },
+  { t: '14:18', k: 'next', title: 'Plane lands at ORD', sub: 'Predicted' },
+  { t: '14:28', k: 'next', title: 'Boarding', sub: 'Gate C4' },
+  { t: '14:53', k: 'next', title: 'Departs for SFO', sub: 'Lands 17:26' },
+];
+---
+
+<Case project={p} chapters={chapters} sources={sources} meta={meta}>
+  <HeroPoster slot="hero" />
+
+  <Opening />
+
+  <Chapter id="brief" n="01" label="The brief · Discover" title="Make bad news feel boringly obvious.">
+    <Brief
+      story="Flighty is a flight tracker for iPhone, iPad, Mac, Apple Watch and Apple Vision, founded by <strong>Ryan Jones</strong>, a former Apple operations employee. A six-hour delay pushed him to tweet that he’d build something better himself; his co-founders came from the replies. It launched in <strong>2019</strong> and combines live flight data with FAA and air-traffic-control data. The promise is simple: <em>delay alerts that arrive faster than the airline’s own</em>. The team’s own bar: <em>“work so well that it feels almost boringly obvious.”</em>"
+      facts={[
+        { v: '2019', k: 'Launched, after about 18 months of beta with frequent flyers and pilots (Mercury)' },
+        { v: 'ADA ’23', k: 'Apple Design Award winner, Interaction category' },
+        { v: 'Finalist', k: 'App Store Awards 2023, App of the Year' },
+        { v: '~10', k: 'People across seven countries; bootstrapped, no VC (Mercury)' },
+        { v: '3M+', k: 'Users, per Flighty’s homepage (Mercury reports a higher figure)' },
+        { v: '4.8', k: 'App Store rating from about 155K ratings (snapshot)' },
+      ]}
+      problems={[
+        { title: 'Calm under bad news', text: 'A cancellation or diversion has to feel urgent but never panicky, and lead with the next action: rebook.' },
+        { title: 'One hierarchy, every surface', text: 'Watch, Live Activity, widget and Mac each need the same reading order: one line per flight, like a departure board.' },
+        { title: 'Shareable by design', text: 'Flighty grows without paid marketing. Passport and Friends could become richer, privacy-safe moments worth sharing.' },
+      ]}
+      goal="Every surface answers two questions in one glance: is my flight OK, and what do I do next?"
+    />
+    <Itinerary />
+  </Chapter>
+
+  <Chapter id="research" n="02" label="Research" title="Three travellers, one departure board." intro="We built personas from Flighty’s public audience: frequent flyers, business travellers, aviation fans and the families who track them. Then we studied the interface every traveller already knows how to read.">
+    <Personas personas={personas} />
+    <h3 class="t-h4 fl-sub">What airport signage already solved</h3>
+    <div class="fl-sign" data-stagger="0.1">
+      <article class="fl-sign-card fl-sign-card--quote">
+        <p class="fl-sign-q">“They’ve had 50 years of figuring out what’s important.”</p>
+        <p class="t-small">Flighty’s team on airport boards, in Apple’s Behind the Design. We treat that as a design brief.</p>
+      </article>
+      <article class="fl-sign-card">
+        <span class="fl-sign-demo" aria-hidden="true"><b>14:05</b> SFO <i>DELAYED</i></span>
+        <h4 class="fl-sign-h">One line per flight</h4>
+        <p class="t-small">The departure-board analogy Flighty is known for. If it can’t fit a board row, it isn’t the headline.</p>
+      </article>
+      <article class="fl-sign-card">
+        <span class="fl-sign-demo fl-sign-demo--ring" aria-hidden="true"><i></i></span>
+        <h4 class="fl-sign-h">A circle for progress</h4>
+        <p class="t-small">Apple notes the Dynamic Island uses a simple circular chart for flight progress. We extend it into a flight clock.</p>
+      </article>
+    </div>
+    <h3 class="t-h4 fl-sub">How we’d validate it</h3>
+    <ol class="fl-plan" role="list" data-stagger="0.08">
+      <li><span class="t-num">A</span><b>Gate-side interviews</b><span>6 travellers at 2 airports, met during real delays.</span></li>
+      <li><span class="t-num">B</span><b>Two-trip diary study</b><span>Screenshots of every alert that helped or annoyed.</span></li>
+      <li><span class="t-num">C</span><b>Airline-app teardown</b><span>Where each one hides the reason for a delay.</span></li>
+      <li><span class="t-num">D</span><b>Moderated usability test</b><span>5 people, 3 tasks, v1 against v2. Replayed in chapter 08.</span></li>
+    </ol>
+  </Chapter>
+
+  <Chapter id="journey" n="03" label="Journey map" title="A travel day, from inbox to baggage belt." intro="Ana’s day with a delayed flight. Tap each moment to see what she’s doing, how she feels, and where the app can step in. The low point is the gate. That’s the moment to design for first.">
+    <JourneyMap stages={stages} />
+  </Chapter>
+
+  <Chapter id="flow" n="04" label="User flow" title="Ten screens around one flight card." intro="Everything branches from the <strong>flight card</strong>: the reason, the timeline, the gate and the plane itself. Tap any screen to open it in the live prototype.">
+    <FlowMap nodes={nodes} edges={edges} width={1100} height={430} />
+  </Chapter>
+
+  <Chapter id="layers" n="05" label="3D wireframe" title="Take the flight card apart." intro="Five layers, from grid to motion. Scroll and the exploded view assembles into the final card. Drag to look around it.">
+    <ScreenStack layers={flightyLayers} accent={p.accent} />
+  </Chapter>
+
+  <Chapter id="prototype" n="06" label="Prototype" title="Tap through a delayed travel day." intro="FL 214, Chicago to San Francisco, running late. Follow the journey on the left, and switch between <strong>Sketch</strong>, <strong>Wireframe</strong> and <strong>Hi-fi</strong> to see how each screen evolved.">
+    <Prototype title="FL 214 · travel day" start="home" tasks={tasks} note="Nine tasks, ten screens. Everything you can tap glows when you turn on tap targets.">
+      <!-- My flights -->
+      <section class="scr fl-s" data-screen="home" data-title="My flights">
+        <div class="fl-scroll" data-scroll>
+          <div class="fl-pad fl-top">
+            <div class="fl-head">
+              <h4 class="t fl-h1">My Flights</h4>
+              <button class="ui fl-plus" data-go="add" aria-label="Add a flight"><span class="ico fl-plus-i">+</span></button>
+            </div>
+            <button class="ui fl-today" data-go="flight">
+              <span class="fl-today-top"><span class="t fl-kick">Today · FL 214</span><span class="t fl-chip fl-chip--late">Delayed 48m</span></span>
+              <span class="fl-today-route">
+                <span class="t fl-code">ORD</span>
+                <svg class="img fl-today-arc" viewBox="0 0 120 30" aria-hidden="true"><path d="M4 26 Q60 -6 116 26" fill="none" stroke="#3a3a46" stroke-width="2" stroke-dasharray="3 4" /><circle cx="4" cy="26" r="4" fill="#ffb020" /></svg>
+                <span class="t fl-code">SFO</span>
+              </span>
+              <span class="fl-today-times"><span class="t"><s>14:05</s> <b class="fl-amb">14:53</b></span><span class="t"><s>16:38</s> <b class="fl-amb">17:26</b></span></span>
+              <span class="t fl-today-note">Gate C4 (was B12) · boarding 14:28</span>
+            </button>
+            <p class="t fl-kick fl-mt">Upcoming</p>
+            <div class="ui fl-boardlist">
+              {[
+                ['Thu 9', 'SFO → SEA', 'On time', 'ok'],
+                ['Fri 10', 'SEA → ORD', 'Cancelled', 'cx'],
+                ['Mon 20', 'ORD → JFK', 'Scheduled', 'mute'],
+              ].map(([d, r, s, k]) => (
+                <div class="fl-brd">
+                  <span class="t fl-brd-d">{d}</span>
+                  <span class="t fl-brd-r">{r}</span>
+                  <span class={`t fl-chip fl-chip--${k}`}>{s}</span>
+                </div>
+              ))}
+            </div>
+            <button class="ui fl-row" data-go="friends">
+              <span class="ico fl-dot fl-dot--sky"></span>
+              <span><span class="t fl-row-t">Maya is in the air</span><br /><span class="t fl-row-s">AUS → ORD · lands 15:12</span></span>
+              <span class="t fl-chev">›</span>
+            </button>
+          </div>
+        </div>
+        <nav class="fl-tabs ui">
+          <button class="is-on" data-go="home"><span class="ico"></span><span class="t">Flights</span></button>
+          <button data-go="friends"><span class="ico"></span><span class="t">Friends</span></button>
+          <button data-go="passport"><span class="ico"></span><span class="t">Passport</span></button>
+        </nav>
+      </section>
+
+      <!-- Add flight -->
+      <section class="scr fl-s" data-screen="add" data-title="Add a flight">
+        <div class="fl-pad fl-top">
+          <button class="fl-back t" data-back>‹ Cancel</button>
+          <h4 class="t fl-h2">Add a flight</h4>
+          <div class="ui fl-search"><span class="ico fl-search-i"></span><span class="t">FL 214</span><span class="fl-caret"></span></div>
+          <div class="fl-chips">
+            <button class="ui fl-pill is-on" data-toggle><span class="t">Today</span></button>
+            <button class="ui fl-pill" data-toggle><span class="t">Tomorrow</span></button>
+            <button class="ui fl-pill" data-toggle><span class="t">Pick a date</span></button>
+          </div>
+          <button class="ui fl-result" data-go="flight">
+            <span class="t fl-row-t">FL 214 · 14:05</span>
+            <span class="t fl-row-s">Chicago O’Hare → San Francisco</span>
+            <span class="t fl-chip fl-chip--late">Running late</span>
+          </button>
+          <p class="t fl-kick fl-mt">Or let it find you</p>
+          <div class="fl-grid3">
+            <button class="ui fl-imp" data-toggle><span class="ico fl-imp-i"></span><span class="t">Email</span></button>
+            <button class="ui fl-imp" data-toggle><span class="ico fl-imp-i"></span><span class="t">Calendar</span></button>
+            <button class="ui fl-imp" data-toggle><span class="ico fl-imp-i"></span><span class="t">TripIt</span></button>
+          </div>
+          <p class="t fl-p">Forward a confirmation email and the flight shows up on its own, usually before you’ve closed the mail app.</p>
+        </div>
+        <div class="fl-pad fl-bottom">
+          <button class="btn fl-cta" data-go="flight"><span class="t">Add FL 214</span></button>
+        </div>
+      </section>
+
+      <!-- Flight card -->
+      <section class="scr fl-s" data-screen="flight" data-title="Flight card">
+        <div class="fl-scroll fl-scroll--full" data-scroll>
+          <div class="fl-pad fl-top">
+            <div class="fl-head"><button class="fl-back t" data-back>‹ My Flights</button><span class="t fl-kick">FL 214 · Wed 8 Oct</span></div>
+            <div class="fl-route">
+              <div><span class="t fl-giant">ORD</span><span class="t fl-row-s">Chicago</span></div>
+              <svg class="img fl-route-plane" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12 L9 10 L13 3 L15.5 3 L13.5 10 L19 10 L21 7 L22.5 7 L21.5 12 L22.5 17 L21 17 L19 14 L13.5 14 L15.5 21 L13 21 L9 14 Z" fill="#f5f5f0" /></svg>
+              <div class="fl-r"><span class="t fl-giant">SFO</span><span class="t fl-row-s">San Francisco</span></div>
+            </div>
+            <div class="fl-times">
+              <div><span class="t fl-row-s">Departs</span><span class="t fl-time"><s>14:05</s> <b class="fl-amb">14:53</b></span></div>
+              <div class="fl-r"><span class="t fl-row-s">Arrives</span><span class="t fl-time"><s>16:38</s> <b class="fl-amb">17:26</b></span></div>
+            </div>
+            <button class="ui fl-status" data-go="delay" data-sheet>
+              <span><span class="t fl-status-t">Delayed 48 min</span><br /><span class="t fl-status-s">Your plane is late in Denver</span></span>
+              <span class="t fl-status-why">Why? ›</span>
+            </button>
+            <div class="ui fl-arc-card">
+              <svg class="img fl-arc" viewBox="0 0 300 90" aria-hidden="true">
+                <path d="M14 80 Q150 -20 286 80" fill="none" stroke="#2a2a35" stroke-width="5" stroke-linecap="round" />
+                <circle cx="14" cy="80" r="7" fill="#ffb020" /><circle cx="286" cy="80" r="5" fill="#3a3a46" />
+              </svg>
+              <span class="t fl-row-s">On the ground · 4h 12m flight · 1,846 mi</span>
+            </div>
+            <div class="fl-grid2">
+              <button class="ui fl-tile" data-go="gate"><span class="t fl-row-s">Gate</span><span class="t fl-tile-n"><s>B12</s> <b class="fl-amb">C4</b></span></button>
+              <div class="ui fl-tile"><span class="t fl-row-s">Terminal</span><span class="t fl-tile-n">1</span></div>
+              <div class="ui fl-tile"><span class="t fl-row-s">Boarding</span><span class="t fl-tile-n">14:28</span></div>
+              <div class="ui fl-tile"><span class="t fl-row-s">Seat</span><span class="t fl-tile-n">14A</span></div>
+            </div>
+            {[
+              ['timeline', 'Live timeline', '8 updates today', 'late'],
+              ['inbound', 'Where’s my plane?', 'In Denver · leaves 12:03', 'sky'],
+              ['live', 'Show on Lock Screen', 'Live Activity is on', 'ok'],
+              ['friends', 'Share with Tom', 'He sees your ETA, nothing else', 'mute'],
+            ].map(([go, t, s, k]) => (
+              <button class="ui fl-row" data-go={go}>
+                <span class={`ico fl-dot fl-dot--${k}`}></span>
+                <span><span class="t fl-row-t">{t}</span><br /><span class="t fl-row-s">{s}</span></span>
+                <span class="t fl-chev">›</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <!-- Delay sheet -->
+      <section class="scr fl-s fl-sheet-scr" data-screen="delay" data-title="Why it’s late (sheet)">
+        <div class="fl-sheet ui">
+          <div class="fl-grabber"></div>
+          <p class="t fl-kick">Why it’s late · predicted 08:10</p>
+          <h4 class="t fl-h2">Your plane is 48 min late in Denver</h4>
+          <p class="t fl-p">An air-traffic-control ground delay is holding it at DEN. It should leave around 12:03 your time, land here at 14:18 and needs 35 minutes to turn around.</p>
+          <div class="ui fl-conf">
+            <span class="t fl-row-s">Confidence</span>
+            <span class="img fl-conf-bar"><i></i></span>
+            <span class="t fl-row-t">High · the airline hasn’t posted this yet</span>
+          </div>
+          <button class="ui fl-row fl-row--amb" data-go="inbound">
+            <span class="ico fl-dot fl-dot--late"></span>
+            <span><span class="t fl-row-t">Your plane · in Denver</span><br /><span class="t fl-row-s">See its whole day</span></span>
+            <span class="t fl-chev">›</span>
+          </button>
+          <button class="btn fl-cta" data-back><span class="t">Got it</span></button>
+        </div>
+      </section>
+
+      <!-- Live timeline -->
+      <section class="scr fl-s" data-screen="timeline" data-title="Live timeline">
+        <div class="fl-scroll fl-scroll--full" data-scroll>
+          <div class="fl-pad fl-top">
+            <button class="fl-back t" data-back>‹ FL 214</button>
+            <h4 class="t fl-h2">Live timeline</h4>
+            <ol class="fl-tl" role="list">
+              {timeline.map((e) => (
+                <li class={`fl-tl-i fl-tl-i--${e.k}`}>
+                  <span class="t fl-tl-t">{e.t}</span>
+                  <span class="ico fl-tl-dot"></span>
+                  {e.go ? (
+                    <button class="ui fl-tl-c" data-go={e.go} data-sheet={e.go === 'delay' ? '' : undefined}>
+                      <span class="t fl-row-t">{e.title} ›</span>
+                      <span class="t fl-row-s">{e.sub}</span>
+                    </button>
+                  ) : (
+                    <span class="ui fl-tl-c">
+                      <span class="t fl-row-t">{e.title}</span>
+                      <span class="t fl-row-s">{e.sub}</span>
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <!-- Gate change -->
+      <section class="scr fl-s fl-gate-scr" data-screen="gate" data-title="Gate change">
+        <div class="fl-pad fl-top fl-center">
+          <button class="fl-back t" data-back>‹ FL 214</button>
+          <div class="ui fl-signbox">
+            <span class="t fl-sign-k">Gate change</span>
+            <span class="t fl-sign-old">B12</span>
+            <span class="t fl-sign-new">C4</span>
+            <span class="t fl-sign-s">Terminal 1 · about 9 min walk</span>
+          </div>
+          <div class="fl-grid2">
+            <div class="ui fl-tile"><span class="t fl-row-s">Boarding</span><span class="t fl-tile-n">14:28</span></div>
+            <div class="ui fl-tile"><span class="t fl-row-s">Departs</span><span class="t fl-tile-n fl-amb">14:53</span></div>
+          </div>
+          <p class="t fl-p">The old gate stays on screen, struck through, for 10 minutes, so you know this isn’t a typo.</p>
+        </div>
+        <div class="fl-pad fl-bottom">
+          <button class="ui fl-ghost" data-toggle><span class="t">Walking directions</span></button>
+          <button class="btn fl-cta" data-back><span class="t">On my way</span></button>
+        </div>
+      </section>
+
+      <!-- Where's my plane -->
+      <section class="scr fl-s" data-screen="inbound" data-title="Where’s my plane">
+        <div class="fl-scroll fl-scroll--full" data-scroll>
+          <div class="fl-pad fl-top">
+            <button class="fl-back t" data-back>‹ Back</button>
+            <p class="t fl-kick">Airbus A320 · tail N214XX</p>
+            <h4 class="t fl-h2">Your plane is in Denver</h4>
+            <p class="t fl-p">Held by an ATC ground delay. It leaves at 12:03 your time and flies straight to you.</p>
+            <div class="ui fl-inb-map">
+              <svg class="img" viewBox="0 0 300 110" aria-hidden="true">
+                <path d="M20 80 Q 90 20 150 60" fill="none" stroke="#2ee58a" stroke-width="3" />
+                <path d="M150 60 Q 210 10 280 50" fill="none" stroke="#ffb020" stroke-width="3" stroke-dasharray="5 5" />
+                <circle cx="20" cy="80" r="5" fill="#f5f5f0" /><circle cx="150" cy="60" r="8" fill="#ffb020" /><circle cx="280" cy="50" r="5" fill="#f5f5f0" />
+                <text x="20" y="102" fill="#a3a3ad" font-size="11" text-anchor="middle" font-family="system-ui">SEA</text>
+                <text x="150" y="86" fill="#ffb020" font-size="11" text-anchor="middle" font-family="system-ui">DEN</text>
+                <text x="280" y="72" fill="#a3a3ad" font-size="11" text-anchor="middle" font-family="system-ui">ORD</text>
+              </svg>
+            </div>
+            <p class="t fl-kick fl-mt">Its next 25 hours</p>
+            <ol class="fl-legs" role="list">
+              <li class="fl-leg fl-leg--done"><span class="t fl-row-t">SEA → DEN</span><span class="t fl-row-s">Landed 09:47 · 16 min late</span></li>
+              <li class="fl-leg fl-leg--now"><span class="t fl-row-t">DEN → ORD</span><span class="t fl-row-s">Leaves 12:03 · ATC hold</span></li>
+              <li class="fl-leg fl-leg--you"><span class="t fl-row-t">ORD → SFO · your flight</span><span class="t fl-row-s">Departs 14:53</span></li>
+              <li class="fl-leg"><span class="t fl-row-t">SFO → LAX</span><span class="t fl-row-s">18:40 · next</span></li>
+              <li class="fl-leg"><span class="t fl-row-t">LAX → SFO</span><span class="t fl-row-s">Tomorrow 07:15</span></li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <!-- Lock screen / Live Activity -->
+      <section class="scr fl-s fl-lock-scr" data-screen="live" data-title="Lock screen · Live Activity">
+        <div class="fl-lock-wall img"></div>
+        <button class="ui fl-island" data-toggle aria-label="Expand the Dynamic Island">
+          <span class="t fl-island-l">C4</span>
+          <span class="t fl-island-r">14:53</span>
+          <span class="fl-island-x">
+            <span class="fl-island-row"><span class="t">ORD <b>14:53</b></span><span class="ico fl-island-ring"></span><span class="t">SFO <b>17:26</b></span></span>
+            <span class="t fl-island-hl">Delayed 48 min · Gate C4 · boards 14:28</span>
+          </span>
+        </button>
+        <p class="t fl-lock-time">13:31</p>
+        <p class="t fl-lock-date">Wednesday 8 October</p>
+        <div class="ui fl-la">
+          <span class="fl-la-h"><span class="t">FL 214 · ORD → SFO</span><span class="t fl-chip fl-chip--late">Delayed</span></span>
+          <span class="fl-la-r">
+            <span class="t fl-code">ORD</span>
+            <span class="img fl-la-track"><i></i></span>
+            <span class="t fl-code">SFO</span>
+          </span>
+          <span class="fl-la-r">
+            <span class="t fl-row-s"><s>14:05</s> <b class="fl-amb">14:53</b></span>
+            <span class="t fl-row-s fl-r">Gate <b class="fl-amb">C4</b></span>
+          </span>
+        </div>
+        <button class="fl-unlock t" data-back>Swipe up to unlock</button>
+      </section>
+
+      <!-- Friends -->
+      <section class="scr fl-s" data-screen="friends" data-title="Friends">
+        <div class="fl-scroll" data-scroll>
+          <div class="fl-pad fl-top">
+            <button class="fl-back t" data-back>‹ Back</button>
+            <h4 class="t fl-h2">Friends</h4>
+            <div class="ui fl-friend">
+              <span class="fl-friend-top"><span class="ico fl-ava">M</span><span><span class="t fl-row-t">Maya</span><br /><span class="t fl-row-s">AUS → ORD · in the air</span></span><span class="t fl-chip fl-chip--ok">On time</span></span>
+              <svg class="img fl-friend-map" viewBox="0 0 300 80" aria-hidden="true"><path d="M16 64 Q150 -10 284 40" fill="none" stroke="#2a2a35" stroke-width="4" /><path d="M16 64 Q90 20 175 22" fill="none" stroke="#2ee58a" stroke-width="4" /><circle cx="175" cy="22" r="7" fill="#f5f5f0" /></svg>
+              <span class="fl-grid2">
+                <span class="ui fl-tile"><span class="t fl-row-s">Lands</span><span class="t fl-tile-n">15:12</span></span>
+                <span class="ui fl-tile"><span class="t fl-row-s">Leave home by</span><span class="t fl-tile-n">14:35</span></span>
+              </span>
+            </div>
+            <div class="ui fl-row">
+              <span class="ico fl-ava fl-ava--t">T</span>
+              <span><span class="t fl-row-t">Tom follows your flight</span><br /><span class="t fl-row-s">He sees FL 214’s ETA only</span></span>
+              <button class="fl-switch ui is-on" data-toggle aria-label="Share your flight with Tom"><i></i></button>
+            </div>
+            <p class="t fl-p">Sharing is private: only people you add, only the flights you choose.</p>
+            <button class="ui fl-ghost" data-toggle><span class="t">Invite a friend</span></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Passport -->
+      <section class="scr fl-s" data-screen="passport" data-title="Passport">
+        <div class="fl-scroll" data-scroll>
+          <div class="fl-pad fl-top">
+            <button class="fl-back t" data-back>‹ Back</button>
+            <div class="ui fl-poster">
+              <span class="t fl-kick">Passport · 2026</span>
+              <svg class="img fl-poster-map" viewBox="0 0 300 140" aria-hidden="true">
+                <g fill="none" stroke-width="2" stroke-linecap="round">
+                  <path d="M40 70 Q100 20 160 60" stroke="#2ee58a" /><path d="M160 60 Q200 20 250 40" stroke="#ffb020" />
+                  <path d="M160 60 Q120 110 70 100" stroke="#6cb4ff" /><path d="M250 40 Q275 10 292 30" stroke="#2ee58a" />
+                  <path d="M40 70 Q20 40 30 20" stroke="#6cb4ff" /><path d="M160 60 Q190 100 220 110" stroke="#ffb020" />
+                </g>
+                <g fill="#f5f5f0"><circle cx="40" cy="70" r="3" /><circle cx="160" cy="60" r="4" /><circle cx="250" cy="40" r="3" /><circle cx="70" cy="100" r="3" /><circle cx="30" cy="20" r="3" /><circle cx="292" cy="30" r="3" /><circle cx="220" cy="110" r="3" /></g>
+              </svg>
+              <span class="fl-poster-grid">
+                <span><span class="t fl-poster-n">42</span><span class="t fl-row-s">flights</span></span>
+                <span><span class="t fl-poster-n">61k</span><span class="t fl-row-s">miles</span></span>
+                <span><span class="t fl-poster-n">23</span><span class="t fl-row-s">airports</span></span>
+                <span><span class="t fl-poster-n fl-amb">9h 40m</span><span class="t fl-row-s">delayed</span></span>
+              </span>
+            </div>
+            <p class="t fl-p">Sample data. The share version drops dates and seat numbers by default.</p>
+            <button class="btn fl-cta" data-toggle><span class="t">Share poster</span></button>
+          </div>
+        </div>
+      </section>
+    </Prototype>
+  </Chapter>
+
+  <Chapter id="live" n="07" label="Making of · Lock screen & island" title="Design for the screen nobody opens." intro="Most of a travel day happens on the lock screen and in the Dynamic Island. We designed those surfaces on a bench: <strong>switch the flight state</strong> and watch the Live Activity and all three island sizes update together, then try the one-second glance test.">
+    <LiveBench />
+  </Chapter>
+
+  <Chapter id="test" n="08" label="Making of · Usability test" title="Watch a tester get lost. Then watch them not." intro="We test before we polish. This replay shows the method: taps build a heatmap, the dashed line is the path, the ticks on the scrubber are taps (red = misclick). Switch tasks, then flip to <strong>After · v2</strong> to see the redesigned screen take the same test.">
+    <TestReplay />
+  </Chapter>
+
+  <Chapter id="passport" n="09" label="Passport" title="A year of flying, drawn as great circles." intro="Passport is where Flighty turns a year of travel into something you want to share. We prototyped a richer version as a 3D globe. Drag it, or pick a route.">
+    <PassportGlobe />
+  </Chapter>
+
+  <Chapter id="system" n="10" label="Design system" title="A departure board at night: colour only ever means status.">
+    <DesignSystem
+      colors={[
+        { name: 'Night', hex: '#0B0B0F', use: 'Base background, like a board at night' },
+        { name: 'Board', hex: '#15151C', use: 'Cards and sheets' },
+        { name: 'Flap', hex: '#1E1E27', use: 'Tiles, tracks, inactive rings' },
+        { name: 'Signage', hex: '#F5F5F0', use: 'Primary text and codes' },
+        { name: 'On time', hex: '#2EE58A', use: 'On time, boarding, landed' },
+        { name: 'Delayed', hex: '#FFB020', use: 'Delays and changes, always with a word' },
+        { name: 'Cancelled', hex: '#FF5A5A', use: 'Cancelled or diverted, then the next step' },
+        { name: 'In the air', hex: '#6CB4FF', use: 'Live progress, friends’ flights' },
+      ]}
+      type={[
+        { role: 'Airport codes', sample: 'ORD → SFO', spec: 'System sans (SF-style) Heavy · 44/44', style: 'font-family:-apple-system,system-ui,Inter,sans-serif;font-weight:800;font-size:2.6rem;letter-spacing:-0.01em' },
+        { role: 'Times', sample: '14:05 → 14:53', spec: 'System sans Bold · tabular numerals · 28', style: 'font-family:-apple-system,system-ui,Inter,sans-serif;font-weight:700;font-size:1.75rem;font-variant-numeric:tabular-nums' },
+        { role: 'Status', sample: 'DELAYED 48 MIN', spec: 'Inter 800 · 13 · +0.08em', style: 'font-family:Inter;font-weight:800;font-size:.85rem;letter-spacing:.08em;color:#FFB020' },
+        { role: 'Body', sample: 'Your plane is late out of Denver.', spec: 'System sans 400 · 15/21', style: 'font-family:-apple-system,system-ui,Inter,sans-serif;font-size:1rem' },
+      ]}
+      note="Hex values and type are our working approximation of a night-mode, signage-style UI. Flighty publishes no official palette or typeface."
+    />
+    <div class="fl-states" data-stagger="0.06">
+      <span class="fl-st fl-st--ok">On time</span>
+      <span class="fl-st fl-st--ok">Boarding</span>
+      <span class="fl-st fl-st--late">Delayed 48m</span>
+      <span class="fl-st fl-st--late">Gate change</span>
+      <span class="fl-st fl-st--cx">Cancelled</span>
+      <span class="fl-st fl-st--cx">Diverted</span>
+      <span class="fl-st fl-st--sky">In the air</span>
+    </div>
+  </Chapter>
+
+  <Chapter id="measure" n="11" label="Ship & measure" title="How we’d know it worked.">
+    <Metrics
+      metrics={[
+        { name: 'Head start', hypothesis: 'Users hear about delays meaningfully earlier than the airline’s own update, on most delayed flights.', how: 'First alert timestamp vs. the airline’s first status change, per delayed flight.' },
+        { name: 'One-second read', hypothesis: 'At least 9 in 10 testers read gate and time from the Live Activity in a one-second glance.', how: 'The glance test from chapter 07, run per state in moderated sessions.' },
+        { name: 'Calm cancellations', hypothesis: 'After a cancellation, people reach rebooking options faster and contact support less.', how: 'Time from cancel alert to rebook tap; rebook completion; a short stress rating.' },
+        { name: 'Shared, not bought', hypothesis: 'Passport posters and Friends invites bring new installs without paid media.', how: 'Share-sheet completions and installs attributed to share links.' },
+      ]}
+    />
+  </Chapter>
+</Case>
+
+<style>
+  /* ---------- page modules ---------- */
+  .fl-sub { margin: var(--s-9) 0 var(--s-5); }
+  .fl-sign { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: var(--s-4); }
+  .fl-sign-card { display: grid; gap: var(--s-3); align-content: start; padding: var(--s-6); border-radius: var(--r-lg); border: 1px solid var(--line); background: var(--surface); }
+  .fl-sign-card--quote { background: #f4f1e8; border-color: #f4f1e8; color: #0b0b0f; }
+  .fl-sign-card--quote .t-small { color: #4a463c; }
+  .fl-sign-q { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-xl); line-height: 1.2; letter-spacing: -0.02em; }
+  .fl-sign-h { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-lg); }
+  .fl-sign-demo { display: inline-flex; gap: 0.6em; align-items: center; justify-self: start; padding: 0.5rem 0.8rem; border-radius: 8px; background: #0b0b0f; border: 1px solid #24242e; font: 700 1rem var(--font-ui); font-variant-numeric: tabular-nums; }
+  .fl-sign-demo i { font-style: normal; color: #ffb020; letter-spacing: 0.08em; font-size: 0.85rem; }
+  .fl-sign-demo--ring { width: 56px; height: 56px; padding: 0; border-radius: 50%; justify-content: center; }
+  .fl-sign-demo--ring i { width: 38px; height: 38px; border-radius: 50%; background: radial-gradient(closest-side, #0b0b0f 70%, transparent 72%), conic-gradient(#6cb4ff 0 42%, #2a2a35 0); }
+  .fl-plan { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s-4); }
+  .fl-plan li { display: grid; gap: var(--s-2); align-content: start; padding: var(--s-5); border-radius: var(--r-md); border: 1px dashed var(--line-strong); color: var(--ink-2); font-size: var(--fs-sm); }
+  .fl-plan .t-num { color: var(--a); font-weight: 800; }
+  .fl-plan b { color: var(--ink); font-size: var(--fs-base); }
+  .fl-states { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-6); }
+  .fl-st { padding: 0.4rem 0.9rem; border-radius: var(--r-pill); font: 800 var(--fs-sm) var(--font-ui); letter-spacing: 0.04em; }
+  .fl-st--ok { background: #2ee58a; color: #03170c; }
+  .fl-st--late { background: #ffb020; color: #1a1200; }
+  .fl-st--cx { background: #ff5a5a; color: #1f0505; }
+  .fl-st--sky { background: #6cb4ff; color: #031424; }
+  @media (max-width: 900px) {
+    .fl-sign, .fl-plan { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- Flighty app screens ---------- */
+  .fl-s { background: #0b0b0f; color: #f5f5f0; font-family: -apple-system, 'SF Pro Text', system-ui, Inter, sans-serif; font-variant-numeric: tabular-nums; }
+  .fl-scroll { position: absolute; inset: 0 0 86px; }
+  .fl-scroll--full { inset: 0; }
+  .fl-pad { padding: 0 20px; }
+  .fl-top { padding-top: 62px; padding-bottom: 30px; display: grid; gap: 12px; }
+  .fl-bottom { position: absolute; left: 0; right: 0; bottom: 40px; display: grid; gap: 10px; }
+  .fl-center { text-align: center; justify-items: center; }
+  .fl-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .fl-h1 { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; }
+  .fl-h2 { font-size: 26px; font-weight: 800; line-height: 1.12; letter-spacing: -0.01em; }
+  .fl-kick { font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #a3a3ad; }
+  .fl-p { font-size: 15px; line-height: 1.45; color: #c9c9d2; }
+  .fl-mt { margin-top: 10px; }
+  .fl-r { text-align: right; justify-items: end; }
+  .fl-amb { color: #ffb020; }
+  .fl-s s { color: #9a9aa5; font-weight: 500; }
+  .fl-back { justify-self: start; color: #c9c9d2; font-size: 15px; }
+  .fl-plus { width: 36px; height: 36px; border-radius: 50%; background: #1e1e27; display: grid; place-items: center; }
+  .fl-plus-i { font-size: 22px; line-height: 1; color: #f5f5f0; }
+  .fl-chip { padding: 3px 9px; border-radius: 99px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+  .fl-chip--late { background: #ffb020; color: #1a1200; }
+  .fl-chip--ok { background: #2ee58a; color: #03170c; }
+  .fl-chip--cx { background: #ff5a5a; color: #1f0505; }
+  .fl-chip--mute { background: #26262f; color: #d0d0d8; }
+  .fl-code { font-size: 26px; font-weight: 800; letter-spacing: -0.01em; }
+  .fl-today { display: grid; gap: 10px; padding: 16px; border-radius: 22px; background: linear-gradient(160deg, #1d1d27, #15151c); text-align: left; width: 100%; color: #f5f5f0; box-shadow: inset 0 0 0 1px #2a2a35; }
+  .fl-today-top, .fl-today-route, .fl-today-times { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .fl-today-arc { flex: 1; height: 30px; }
+  .fl-today-times { font-size: 15px; font-weight: 700; }
+  .fl-today-note { font-size: 13px; color: #c9c9d2; }
+  .fl-boardlist { display: grid; border-radius: 18px; background: #15151c; overflow: hidden; }
+  .fl-brd { display: grid; grid-template-columns: 56px 1fr auto; gap: 10px; align-items: center; padding: 13px 14px; border-bottom: 1px solid #22222c; font-size: 15px; }
+  .fl-brd:last-child { border-bottom: 0; }
+  .fl-brd-d { color: #a3a3ad; font-size: 13px; }
+  .fl-brd-r { font-weight: 700; }
+  .fl-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 13px 14px; border-radius: 16px; background: #15151c; color: #f5f5f0; text-align: left; width: 100%; }
+  .fl-row--amb { background: #2a2414; }
+  .fl-row-t { font-weight: 700; font-size: 15px; }
+  .fl-row-s { font-size: 13px; color: #a9a9b4; }
+  .fl-chev { color: #a3a3ad; font-size: 20px; }
+  .fl-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .fl-dot--late { background: #ffb020; }
+  .fl-dot--ok { background: #2ee58a; }
+  .fl-dot--sky { background: #6cb4ff; }
+  .fl-dot--mute { background: #6b6b75; }
+  .fl-tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 86px; padding: 10px 12px 26px; display: grid; grid-template-columns: repeat(3, 1fr); background: #08080c; border-top: 1px solid #1e1e27; }
+  .fl-tabs button { display: grid; justify-items: center; gap: 4px; color: #a3a3ad; font-size: 11px; }
+  .fl-tabs .ico { width: 22px; height: 22px; border-radius: 7px; background: #26262f; }
+  .fl-tabs .is-on { color: #ffb020; }
+  .fl-tabs .is-on .ico { background: #ffb020; }
+  .fl-search { display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 16px; border-radius: 16px; background: #1e1e27; font-size: 18px; font-weight: 700; }
+  .fl-search-i { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #a3a3ad; }
+  .fl-caret { width: 2px; height: 22px; background: #ffb020; animation: fl-caret 1s steps(2, jump-none) infinite; }
+  @keyframes fl-caret { 50% { opacity: 0; } }
+  .fl-chips { display: flex; gap: 8px; }
+  .fl-pill { padding: 8px 14px; border-radius: 99px; background: #1e1e27; color: #d0d0d8; font-size: 13px; font-weight: 600; }
+  .fl-pill.is-on { background: #f5f5f0; color: #0b0b0f; }
+  .fl-result { display: grid; gap: 4px; justify-items: start; padding: 14px 16px; border-radius: 18px; background: #15151c; box-shadow: inset 0 0 0 1.5px #ffb020; color: #f5f5f0; text-align: left; width: 100%; }
+  .fl-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .fl-imp { display: grid; justify-items: center; gap: 8px; padding: 14px 6px; border-radius: 16px; background: #15151c; color: #d0d0d8; font-size: 13px; font-weight: 600; border: 1.5px solid transparent; }
+  .fl-imp.is-on { border-color: #2ee58a; color: #fff; }
+  .fl-imp-i { width: 26px; height: 26px; border-radius: 8px; background: #2a2a35; }
+  .fl-imp.is-on .fl-imp-i { background: #2ee58a; }
+  .fl-cta { width: 100%; height: 54px; border-radius: 16px; background: #ffb020; color: #1a1200; font-weight: 800; font-size: 16px; display: grid; place-items: center; }
+  .fl-ghost { width: 100%; height: 50px; border-radius: 16px; background: transparent; border: 1.5px solid #3a3a46; color: #f5f5f0; font-weight: 700; font-size: 15px; }
+  .fl-ghost.is-on { border-color: #2ee58a; color: #2ee58a; }
+  .fl-route { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+  .fl-route > div { display: grid; }
+  .fl-giant { font-size: 52px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+  .fl-route-plane { width: 34px; height: 34px; }
+  .fl-times { display: flex; justify-content: space-between; }
+  .fl-times > div { display: grid; }
+  .fl-time { font-size: 22px; font-weight: 700; }
+  .fl-time s { font-size: 14px; }
+  .fl-status { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 16px; background: #ffb020; color: #1a1200; text-align: left; width: 100%; }
+  .fl-status-t { font-weight: 800; font-size: 16px; }
+  .fl-status-s { font-size: 13px; font-weight: 600; }
+  .fl-status-why { font-weight: 800; font-size: 15px; padding: 6px 10px; border-radius: 99px; background: rgb(0 0 0 / 0.14); }
+  .fl-arc-card { display: grid; gap: 4px; padding: 14px 14px 12px; border-radius: 18px; background: #15151c; }
+  .fl-arc { width: 100%; height: auto; }
+  .fl-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+  .fl-tile { display: grid; gap: 2px; padding: 12px 14px; border-radius: 16px; background: #15151c; text-align: left; color: #f5f5f0; }
+  .fl-tile-n { font-size: 22px; font-weight: 800; }
+  .fl-tile-n s { font-size: 14px; }
+  .fl-sheet-scr { background: rgb(0 0 0 / 0.55); }
+  .fl-sheet { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 22px 40px; border-radius: 30px 30px 0 0; background: #17171f; display: grid; gap: 12px; }
+  .fl-grabber { width: 40px; height: 5px; border-radius: 3px; background: #3a3a46; justify-self: center; }
+  .fl-conf { display: grid; gap: 6px; padding: 12px 14px; border-radius: 16px; background: #1e1e27; }
+  .fl-conf-bar { display: block; height: 8px; border-radius: 4px; background: #2a2a35; }
+  .fl-conf-bar i { display: block; width: 82%; height: 100%; border-radius: 4px; background: linear-gradient(90deg, #ffb020, #ffd27a); }
+  .fl-tl { list-style: none; padding: 0; display: grid; gap: 4px; position: relative; }
+  .fl-tl::before { content: ''; position: absolute; left: 55px; top: 10px; bottom: 10px; width: 2px; background: #22222c; }
+  .fl-tl-i { display: grid; grid-template-columns: 44px 22px 1fr; align-items: start; gap: 0; }
+  .fl-tl-t { font-size: 13px; font-weight: 700; padding-top: 12px; }
+  .fl-tl-dot { width: 12px; height: 12px; margin: 14px 0 0 5px; border-radius: 50%; background: #3a3a46; position: relative; z-index: 1; box-shadow: 0 0 0 3px #0b0b0f; }
+  .fl-tl-i--late .fl-tl-dot { background: #ffb020; }
+  .fl-tl-i--ok .fl-tl-dot { background: #2ee58a; }
+  .fl-tl-i--sky .fl-tl-dot { background: #6cb4ff; }
+  .fl-tl-i--next .fl-tl-t { color: #a3a3ad; }
+  .fl-tl-c { display: grid; gap: 2px; padding: 10px 12px; border-radius: 14px; background: #15151c; text-align: left; color: #f5f5f0; width: 100%; }
+  .fl-tl-i--next .fl-tl-c { background: transparent; box-shadow: inset 0 0 0 1px #22222c; }
+  button.fl-tl-c { box-shadow: inset 0 0 0 1.5px #ffb020; }
+  .fl-gate-scr { background: radial-gradient(90% 50% at 50% 0%, #2a2414, #0b0b0f 70%); }
+  .fl-signbox { width: 100%; display: grid; justify-items: center; gap: 2px; padding: 22px 16px 20px; margin-top: 14px; border-radius: 24px; background: #ffb020; color: #1a1200; }
+  .fl-sign-k { font-size: 13px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; }
+  .fl-sign-old { font-size: 28px; font-weight: 800; text-decoration: line-through; text-decoration-thickness: 3px; }
+  .fl-sign-new { font-size: 128px; font-weight: 900; line-height: 0.95; letter-spacing: -0.04em; }
+  .fl-sign-s { font-size: 15px; font-weight: 700; }
+  .fl-inb-map { padding: 10px; border-radius: 18px; background: #15151c; }
+  .fl-inb-map svg { width: 100%; height: auto; display: block; }
+  .fl-legs { list-style: none; padding: 0; display: grid; gap: 8px; }
+  .fl-leg { display: grid; gap: 2px; padding: 12px 14px 12px 18px; border-radius: 14px; background: #15151c; position: relative; }
+  .fl-leg::before { content: ''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 4px; border-radius: 2px; background: #3a3a46; }
+  .fl-leg--done::before { background: #2ee58a; }
+  .fl-leg--now { box-shadow: inset 0 0 0 1.5px #ffb020; }
+  .fl-leg--now::before { background: #ffb020; }
+  .fl-leg--you { background: #1e1e27; }
+  .fl-leg--you::before { background: #f5f5f0; }
+
+  .fl-lock-scr { background: #000; }
+  .fl-lock-wall { position: absolute; inset: 0; background: radial-gradient(80% 50% at 30% 15%, #2f3c6e, transparent 60%), radial-gradient(70% 50% at 90% 85%, #4a3410, transparent 70%), #0a0a12; }
+  .fl-island { position: absolute; z-index: 21; left: 50%; top: 11px; width: 234px; height: 36px; margin-left: -117px; border-radius: 20px; background: #000; color: #fff; display: block; overflow: hidden; transition: width 0.5s var(--ease-out), height 0.5s var(--ease-out), margin 0.5s var(--ease-out), border-radius 0.5s var(--ease-out); }
+  .fl-island-l, .fl-island-r { position: absolute; top: 8px; font-size: 15px; font-weight: 800; transition: opacity 0.2s; }
+  .fl-island-l { left: 16px; color: #ffb020; }
+  .fl-island-r { right: 16px; }
+  .fl-island-x { position: absolute; inset: 0; padding: 50px 22px 16px; display: grid; gap: 10px; opacity: 0; transition: opacity 0.3s 0.1s; text-align: left; }
+  .fl-island-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #c9c9d2; }
+  .fl-island-row b { display: block; font-size: 24px; color: #fff; }
+  .fl-island-ring { width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(closest-side, #000 70%, transparent 72%), conic-gradient(#ffb020 0 8%, #2a2a35 0); }
+  .fl-island-hl { font-size: 14px; font-weight: 700; color: #ffb020; }
+  .fl-island.is-on { width: 370px; height: 170px; margin-left: -185px; border-radius: 44px; }
+  .fl-island.is-on .fl-island-l, .fl-island.is-on .fl-island-r { opacity: 0; }
+  .fl-island.is-on .fl-island-x { opacity: 1; }
+  .fl-lock-time { position: absolute; left: 0; right: 0; top: 128px; text-align: center; font-size: 92px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .fl-lock-date { position: absolute; left: 0; right: 0; top: 100px; text-align: center; font-size: 17px; font-weight: 600; color: #e6e6ee; }
+  .fl-la { position: absolute; left: 14px; right: 14px; bottom: 120px; display: grid; gap: 12px; padding: 16px; border-radius: 26px; background: rgb(20 20 26 / 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+  .fl-la-h, .fl-la-r { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 13px; color: #c9c9d2; }
+  .fl-la-track { flex: 1; height: 4px; border-radius: 2px; background: #33333f; position: relative; }
+  .fl-la-track i { position: absolute; left: 0; top: -4px; width: 12px; height: 12px; border-radius: 50%; background: #ffb020; }
+  .fl-unlock { position: absolute; left: 0; right: 0; bottom: 44px; text-align: center; font-size: 14px; color: #d0d0d8; }
+  .fl-friend { display: grid; gap: 12px; padding: 16px; border-radius: 20px; background: #15151c; }
+  .fl-friend-top { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
+  .fl-friend .fl-tile { background: #1e1e27; }
+  .fl-friend-map { width: 100%; height: auto; display: block; }
+  .fl-ava { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: #6cb4ff; color: #031424; font-weight: 800; font-size: 16px; }
+  .fl-ava--t { background: #2ee58a; color: #03170c; }
+  .fl-switch { width: 52px; height: 32px; border-radius: 16px; background: #3a3a46; position: relative; transition: background 0.25s; }
+  .fl-switch i { position: absolute; left: 3px; top: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  .fl-switch.is-on { background: #1f9d5c; }
+  .fl-switch.is-on i { transform: translateX(20px); }
+  .fl-poster { display: grid; gap: 14px; padding: 20px; border-radius: 26px; background: radial-gradient(120% 80% at 80% 0%, #24305a, transparent 60%), linear-gradient(160deg, #1b1b25, #0e0e14); box-shadow: inset 0 0 0 1px #2a2a35; }
+  .fl-poster-map { width: 100%; height: auto; display: block; }
+  .fl-poster-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .fl-poster-grid > span { display: grid; }
+  .fl-poster-n { font-size: 34px; font-weight: 900; letter-spacing: -0.02em; line-height: 1.05; }
+</style>

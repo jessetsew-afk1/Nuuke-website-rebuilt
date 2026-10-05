@@ -1,0 +1,501 @@
+---
+// Trust-first onboarding: six moments from "hello" to the first insight, shown on a
+// phone with numbered annotation pins. Tap a pin to read what we show and why.
+// Bank names are invented; product facts (price, institution count, US-only,
+// no ads / no data selling) come from Copilot's public pages.
+type Pin = { show: string; why: string; flag?: string };
+const steps: { k: string; title: string; anxiety: number; pins: Pin[] }[] = [
+  {
+    k: 'The promise',
+    title: 'Say the deal before asking for anything.',
+    anxiety: 2,
+    pins: [
+      { show: 'No ads, no data selling, support from real people, as the first thing you read.', why: 'Copilot’s early users asked for exactly this. One request, quoted by Apple: “Please don’t sell my data or put in ads. I’m willing to pay a few bucks for this service.” We answer it before it’s asked.' },
+      { show: 'The trial and the yearly price, before a single account is linked.', why: 'A paywall after someone has handed over bank access feels like a trap. Price first makes linking a choice, not an ambush.' },
+    ],
+  },
+  {
+    k: 'Find your bank',
+    title: 'Search first, with the real number.',
+    anxiety: 3,
+    pins: [
+      { show: 'A search field that says “10,000+ institutions”, with popular banks as text tiles below.', why: 'People know their bank’s name; scanning a wall of logos is slower. The number quietly says “yours is almost certainly here”.' },
+      { show: '“US accounts only” in plain words, right under the search.', why: 'A visitor outside the US should find out at step two, not after creating an account and getting their hopes up.' },
+    ],
+  },
+  {
+    k: 'Before you sign in',
+    title: 'Preview the hand-off before it happens.',
+    anxiety: 5,
+    pins: [
+      { show: 'Three numbered steps: sign in with your bank on a secure connection screen, balances and transactions come back, you pick the accounts.', why: 'The jump to a bank’s login is where people bail. Previewed, the redirect becomes a step they were told about rather than a surprise.', flag: 'Exact wording depends on Copilot’s connection partner; we’d confirm it with their engineering team before shipping.' },
+      { show: 'The promise again, repeated at the scariest moment.', why: 'Reassurance works where the fear is. Saying it once on a welcome screen isn’t enough.' },
+    ],
+  },
+  {
+    k: 'Choose accounts',
+    title: 'Every account is opt-in, visible and reversible.',
+    anxiety: 3,
+    pins: [
+      { show: 'A switch per account, defaulting on, with a line saying you can change this later.', why: 'Control lowers anxiety. Couples like Sam & Alex may want the joint account in and the side-business account out.', flag: '“Change this later” assumes accounts can be hidden after linking; to confirm.' },
+      { show: 'Only the last four digits of each account.', why: 'Enough to recognise the account, nothing someone looking over your shoulder could use.' },
+    ],
+  },
+  {
+    k: 'First sync',
+    title: 'Show the work, not a spinner.',
+    anxiety: 2,
+    pins: [
+      { show: 'A live count of transactions being read, with categories filling up as they’re sorted.', why: 'Watching categories fill builds trust in auto-categorisation before you have to rely on it. A silent spinner here feels like a black box.' },
+      { show: '“You can leave. We’ll let you know when it’s ready.”', why: 'Nobody should have to watch a sync. A notification brings them back for the payoff.' },
+    ],
+  },
+  {
+    k: 'First insight',
+    title: 'Pay off the scary step within a minute.',
+    anxiety: 1,
+    pins: [
+      { show: 'A first “what changed” card instead of an empty dashboard.', why: 'The reward for linking a bank is an insight. It also delivers on the whole concept: tell me what changed.' },
+      { show: '“12 transactions we weren’t sure about”, with a button to review them.', why: 'Admitting low-confidence guesses is more trustworthy than pretending the model is perfect, and it starts the review habit on day one.' },
+    ],
+  },
+];
+const banks = [
+  ['HF', 'Hudson Federal', '#1C6CFF'],
+  ['PC', 'Pinecrest CU', '#00CC4B'],
+  ['LB', 'Lakeview Bank', '#9085e9'],
+  ['NS', 'Northstar Card', '#FF4433'],
+  ['BT', 'Bayside Trust', '#FECE4C'],
+  ['MV', 'Meridian Invest', '#199e70'],
+];
+const pin = (s: number, p: number) => `${s}-${p}`;
+---
+
+<div class="cmt" data-cmt>
+  <div class="cmt-stage">
+    <div class="cmt-phone">
+      <div class="cmt-screen">
+        <div class="cmt-island" aria-hidden="true"></div>
+
+        <!-- 1 · Promise -->
+        <div class="cmt-scr is-on" data-scr="0">
+          <div class="cmt-hero-orb" aria-hidden="true"></div>
+          <p class="cmt-kick">Welcome</p>
+          <p class="cmt-h">Your money, beautifully organized.</p>
+          <p class="cmt-p">Bring every account into one calm view.</p>
+          <div class="cmt-annot" data-annot={pin(0, 0)}>
+            <ul class="cmt-promise" role="list">
+              <li><span aria-hidden="true">🚫</span> No ads</li>
+              <li><span aria-hidden="true">🔒</span> No data selling</li>
+              <li><span aria-hidden="true">🙋</span> Support from real people</li>
+            </ul>
+            <button type="button" class="cmt-pin" data-pin={pin(0, 0)} aria-label="Annotation 1: the promise">1</button>
+          </div>
+          <div class="cmt-bottom">
+            <div class="cmt-annot" data-annot={pin(0, 1)}>
+              <p class="cmt-price">1 month free, then $95/year</p>
+              <button type="button" class="cmt-pin" data-pin={pin(0, 1)} aria-label="Annotation 2: price up front">2</button>
+            </div>
+            <span class="cmt-cta">Connect an account</span>
+          </div>
+        </div>
+
+        <!-- 2 · Find your bank -->
+        <div class="cmt-scr" data-scr="1">
+          <p class="cmt-kick">Step 1 of 3</p>
+          <p class="cmt-h2">Find your bank</p>
+          <div class="cmt-annot" data-annot={pin(1, 0)}>
+            <span class="cmt-search"><span aria-hidden="true">⌕</span> Search 10,000+ institutions</span>
+            <button type="button" class="cmt-pin" data-pin={pin(1, 0)} aria-label="Annotation 1: search first">1</button>
+          </div>
+          <div class="cmt-annot" data-annot={pin(1, 1)}>
+            <p class="cmt-note">US accounts only · also Venmo, Apple Card and Coinbase</p>
+            <button type="button" class="cmt-pin" data-pin={pin(1, 1)} aria-label="Annotation 2: US only, said early">2</button>
+          </div>
+          <div class="cmt-banks">
+            {
+              banks.map(([i, n, c]) => (
+                <span class="cmt-bank">
+                  <span class="cmt-av" style={`--c:${c}`}>{i}</span>
+                  {n}
+                </span>
+              ))
+            }
+          </div>
+          <p class="cmt-tiny">Bank names are invented for this concept.</p>
+        </div>
+
+        <!-- 3 · Before you sign in -->
+        <div class="cmt-scr cmt-scr--sheet" data-scr="2">
+          <div class="cmt-dim" aria-hidden="true"></div>
+          <div class="cmt-sheet">
+            <span class="cmt-grab" aria-hidden="true"></span>
+            <p class="cmt-kick">Hudson Federal</p>
+            <p class="cmt-h2">Here’s what happens next</p>
+            <div class="cmt-annot" data-annot={pin(2, 0)}>
+              <ol class="cmt-steps" role="list">
+                <li><b>1</b><span>You sign in with your bank on a secure connection screen.</span></li>
+                <li><b>2</b><span>Your balances and transactions come back to Copilot.</span></li>
+                <li><b>3</b><span>You choose which accounts to include.</span></li>
+              </ol>
+              <button type="button" class="cmt-pin" data-pin={pin(2, 0)} aria-label="Annotation 1: preview the hand-off">1</button>
+            </div>
+            <div class="cmt-annot" data-annot={pin(2, 1)}>
+              <p class="cmt-never"><span aria-hidden="true">🔒</span> We never sell your data or show you ads.</p>
+              <button type="button" class="cmt-pin" data-pin={pin(2, 1)} aria-label="Annotation 2: the promise, repeated">2</button>
+            </div>
+            <span class="cmt-cta">Continue to Hudson Federal</span>
+          </div>
+        </div>
+
+        <!-- 4 · Choose accounts -->
+        <div class="cmt-scr" data-scr="3">
+          <p class="cmt-kick">Step 3 of 3</p>
+          <p class="cmt-h2">Choose what to include</p>
+          <p class="cmt-p">You can change this later in Settings.</p>
+          <div class="cmt-annot" data-annot={pin(3, 0)}>
+            <ul class="cmt-accts" role="list">
+              {
+                [
+                  ['Checking', '4821', '$6,240', true],
+                  ['Savings', '0937', '$22,180', true],
+                  ['Credit card', '1180', '−$1,420', true],
+                  ['Side-business checking', '5520', '$3,905', false],
+                ].map(([n, d, v, on]) => (
+                  <li>
+                    <span>
+                      <b>{n}</b>
+                      <small>
+                        •• <span class="cmt-digits">{d}</span> · {v}
+                      </small>
+                    </span>
+                    <span class:list={['cmt-sw', { 'is-on': on }]} aria-hidden="true">
+                      <i />
+                    </span>
+                  </li>
+                ))
+              }
+            </ul>
+            <button type="button" class="cmt-pin" data-pin={pin(3, 0)} aria-label="Annotation 1: opt-in switches">1</button>
+          </div>
+          <div class="cmt-annot cmt-annot--digits" data-annot={pin(3, 1)}>
+            <p class="cmt-tiny">Last four digits only. Sample balances.</p>
+            <button type="button" class="cmt-pin" data-pin={pin(3, 1)} aria-label="Annotation 2: masked account numbers">2</button>
+          </div>
+          <div class="cmt-bottom"><span class="cmt-cta">Include 3 accounts</span></div>
+        </div>
+
+        <!-- 5 · Sync -->
+        <div class="cmt-scr" data-scr="4">
+          <p class="cmt-kick">Setting up</p>
+          <p class="cmt-h2">Sorting your history</p>
+          <div class="cmt-annot" data-annot={pin(4, 0)}>
+            <div class="cmt-sync">
+              <p class="cmt-sync-n"><span data-cmt-n>1,284</span> <small>of 2,314 transactions</small></p>
+              <span class="cmt-bar"><i data-cmt-bar></i></span>
+              <div class="cmt-cats">
+                {
+                  [
+                    ['🛒', 'Groceries', 212, '#d95926'],
+                    ['☕', 'Coffee', 96, '#c98500'],
+                    ['🍜', 'Dining', 141, '#199e70'],
+                    ['🏠', 'Rent', 12, '#3987e5'],
+                    ['🚇', 'Transport', 188, '#d55181'],
+                    ['📦', 'Other', 302, '#9085e9'],
+                  ].map(([e, n, c, col]) => (
+                    <span class="cmt-cat" style={`--c:${col}`}>
+                      <span aria-hidden="true">{e}</span> {n} <b data-cmt-c={c}>{c}</b>
+                    </span>
+                  ))
+                }
+              </div>
+            </div>
+            <button type="button" class="cmt-pin" data-pin={pin(4, 0)} aria-label="Annotation 1: show the work">1</button>
+          </div>
+          <div class="cmt-annot" data-annot={pin(4, 1)}>
+            <p class="cmt-note">You can leave. We’ll let you know when it’s ready.</p>
+            <button type="button" class="cmt-pin" data-pin={pin(4, 1)} aria-label="Annotation 2: permission to leave">2</button>
+          </div>
+        </div>
+
+        <!-- 6 · First insight -->
+        <div class="cmt-scr" data-scr="5">
+          <p class="cmt-kick">You’re all set</p>
+          <p class="cmt-h2">Here’s what changed</p>
+          <div class="cmt-annot" data-annot={pin(5, 0)}>
+            <div class="cmt-insight">
+              <p class="cmt-kick">Last 3 months</p>
+              <p class="cmt-ins-t"><span aria-hidden="true">🍜</span> Dining grew fastest</p>
+              <svg viewBox="0 0 220 60" aria-hidden="true"><path d="M4 50 L60 44 L116 40 L172 30 L216 10" fill="none" stroke="#00CC4B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /><circle cx="216" cy="10" r="5" fill="#F2F6FF" stroke="#001533" stroke-width="2" /></svg>
+              <p class="cmt-p">Up 44% since June, mostly weekend dinners.</p>
+            </div>
+            <button type="button" class="cmt-pin" data-pin={pin(5, 0)} aria-label="Annotation 1: a payoff in the first minute">1</button>
+          </div>
+          <div class="cmt-annot" data-annot={pin(5, 1)}>
+            <span class="cmt-review"><b>12</b> transactions we weren’t sure about <span aria-hidden="true">›</span></span>
+            <button type="button" class="cmt-pin" data-pin={pin(5, 1)} aria-label="Annotation 2: admit uncertainty">2</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <label class="cmt-all"><input type="checkbox" data-cmt-all /> Show every annotation</label>
+  </div>
+
+  <div class="cmt-side">
+    <div class="cmt-tabs" role="tablist" aria-label="Onboarding moments">
+      {
+        steps.map((s, i) => (
+          <button type="button" role="tab" id={`cmt-tab-${i}`} aria-controls="cmt-panel" aria-selected={i === 0 ? 'true' : 'false'} data-step={i}>
+            <span class="t-num">{i + 1}</span>
+            <span class="cmt-tab-l">{s.k}</span>
+          </button>
+        ))
+      }
+    </div>
+
+    <div class="cmt-panel" id="cmt-panel" role="tabpanel" aria-labelledby="cmt-tab-0" data-cmt-panel>
+      {
+        steps.map((s, i) => (
+          <div class:list={['cmt-step', { 'is-on': i === 0 }]} data-step-body={i}>
+            <p class="t-label">
+              Moment {i + 1} of {steps.length} · {s.k}
+            </p>
+            <h3 class="t-h4 cmt-title">{s.title}</h3>
+            <div class="cmt-pins" role="group" aria-label="Annotations">
+              {s.pins.map((_, j) => (
+                <button type="button" class:list={['cmt-pinbtn', { 'is-on': j === 0 }]} data-pinbtn={pin(i, j)} aria-pressed={j === 0 ? 'true' : 'false'}>
+                  Annotation {j + 1}
+                </button>
+              ))}
+            </div>
+            {s.pins.map((p, j) => (
+              <div class:list={['cmt-note-card', { 'is-on': j === 0 }]} data-note={pin(i, j)}>
+                <div>
+                  <p class="cmt-nk">What we show</p>
+                  <p>{p.show}</p>
+                </div>
+                <div>
+                  <p class="cmt-nk cmt-nk--why">Why</p>
+                  <p>{p.why}</p>
+                </div>
+                {p.flag && (
+                  <p class="cmt-flag">
+                    <span aria-hidden="true">⚑</span> {p.flag}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="cmt-meter">
+      <p class="t-label">Expected anxiety at each moment <span class="cmt-hyp">· our hypothesis</span></p>
+      <div class="cmt-bars" aria-hidden="true">
+        {steps.map((s, i) => <span class:list={['cmt-b', { 'is-on': i === 0 }]} data-bar={i} style={`--h:${s.anxiety * 20}%`}><i /></span>)}
+      </div>
+      <p class="t-small">Peaks at the bank hand-off. That’s where we spent the most words.</p>
+    </div>
+
+    <div class="cmt-nav">
+      <button type="button" class="cmt-navbtn" data-cmt-prev>‹ Previous</button>
+      <button type="button" class="cmt-navbtn cmt-navbtn--next" data-cmt-next>Next moment ›</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-cmt]').forEach((root) => {
+    const scrs = [...root.querySelectorAll<HTMLElement>('[data-scr]')];
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-step]')];
+    const bodies = [...root.querySelectorAll<HTMLElement>('[data-step-body]')];
+    const bars = [...root.querySelectorAll<HTMLElement>('[data-bar]')];
+    const panel = root.querySelector<HTMLElement>('[data-cmt-panel]')!;
+    const next = root.querySelector<HTMLButtonElement>('[data-cmt-next]')!;
+    const prev = root.querySelector<HTMLButtonElement>('[data-cmt-prev]')!;
+    const all = root.querySelector<HTMLInputElement>('[data-cmt-all]')!;
+    const syncN = root.querySelector<HTMLElement>('[data-cmt-n]');
+    const syncBar = root.querySelector<HTMLElement>('[data-cmt-bar]');
+    const catNums = [...root.querySelectorAll<HTMLElement>('[data-cmt-c]')];
+    let step = 0;
+    let syncRaf = 0;
+
+    const setPin = (id: string) => {
+      const [s] = id.split('-');
+      root.querySelectorAll<HTMLElement>('[data-annot]').forEach((a) => a.classList.toggle('is-on', a.dataset.annot === id));
+      root.querySelectorAll<HTMLElement>('[data-pin]').forEach((b) => b.classList.toggle('is-on', b.dataset.pin === id));
+      root.querySelectorAll<HTMLButtonElement>('[data-pinbtn]').forEach((b) => {
+        if (!b.dataset.pinbtn!.startsWith(s + '-')) return;
+        const on = b.dataset.pinbtn === id;
+        b.classList.toggle('is-on', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+      root.querySelectorAll<HTMLElement>('[data-note]').forEach((n) => {
+        if (n.dataset.note!.startsWith(s + '-')) n.classList.toggle('is-on', n.dataset.note === id);
+      });
+    };
+
+    const runSync = () => {
+      cancelAnimationFrame(syncRaf);
+      if (!syncN || !syncBar) return;
+      const t0 = performance.now();
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const tick = (now: number) => {
+        const k = reduce ? 1 : Math.min(1, (now - t0) / 2600);
+        const e = 1 - Math.pow(1 - k, 3);
+        syncN.textContent = Math.round(e * 2314).toLocaleString('en-US');
+        syncBar.style.transform = `scaleX(${e})`;
+        catNums.forEach((c) => (c.textContent = String(Math.round(Number(c.dataset.cmtC) * e))));
+        if (k < 1) syncRaf = requestAnimationFrame(tick);
+      };
+      syncRaf = requestAnimationFrame(tick);
+    };
+
+    const go = (i: number) => {
+      step = Math.max(0, Math.min(scrs.length - 1, i));
+      scrs.forEach((s, j) => s.classList.toggle('is-on', j === step));
+      bodies.forEach((b, j) => b.classList.toggle('is-on', j === step));
+      bars.forEach((b, j) => b.classList.toggle('is-on', j === step));
+      tabs.forEach((t, j) => {
+        t.setAttribute('aria-selected', String(j === step));
+        t.tabIndex = j === step ? 0 : -1;
+      });
+      panel.setAttribute('aria-labelledby', `cmt-tab-${step}`);
+      prev.disabled = step === 0;
+      next.textContent = step === scrs.length - 1 ? 'Start again ↺' : 'Next moment ›';
+      setPin(`${step}-0`);
+      if (step === 4) runSync();
+    };
+
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => go(i));
+      t.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          const j = (i + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+          go(j);
+          tabs[j].focus();
+        }
+      });
+    });
+    next.addEventListener('click', () => go(step === scrs.length - 1 ? 0 : step + 1));
+    prev.addEventListener('click', () => go(step - 1));
+    root.querySelectorAll<HTMLButtonElement>('[data-pin]').forEach((b) => b.addEventListener('click', () => setPin(b.dataset.pin!)));
+    root.querySelectorAll<HTMLButtonElement>('[data-pinbtn]').forEach((b) => b.addEventListener('click', () => setPin(b.dataset.pinbtn!)));
+    all.addEventListener('change', () => root.classList.toggle('show-all', all.checked));
+    go(0);
+  });
+</script>
+
+<style>
+  .cmt { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s-8); align-items: start; padding: var(--s-7); border-radius: calc(var(--r-lg) + 8px); border: 1px solid var(--line); background: radial-gradient(60% 60% at 20% 30%, rgb(28 108 255 / 0.14), transparent 70%), var(--bg-2); }
+  .cmt-stage { display: grid; justify-items: center; gap: var(--s-4); }
+  .cmt-phone { width: 310px; height: 640px; padding: 10px; border-radius: 52px; background: linear-gradient(145deg, #3a3f4c, #11131a 40%, #2a2e38); box-shadow: 0 0 0 2px #050506, 0 40px 100px -30px rgb(0 0 0 / 0.9), 0 0 70px -20px rgb(28 108 255 / 0.5); }
+  .cmt-screen { position: relative; height: 100%; border-radius: 42px; overflow: hidden; background: #000814; color: #f2f6ff; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, system-ui, sans-serif; }
+  .cmt-island { position: absolute; z-index: 5; top: 10px; left: 50%; width: 92px; height: 26px; margin-left: -46px; border-radius: 16px; background: #000; }
+  .cmt-scr { position: absolute; inset: 0; padding: 58px 18px 26px; display: flex; flex-direction: column; gap: 10px; opacity: 0; visibility: hidden; transform: translateX(24px); transition: opacity 0.45s var(--ease-out), transform 0.6s var(--ease-out), visibility 0s 0.45s; }
+  .cmt-scr.is-on { opacity: 1; visibility: visible; transform: none; transition: opacity 0.45s var(--ease-out), transform 0.6s var(--ease-out), visibility 0s; }
+  .cmt-kick { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #a9b7d3; font-weight: 600; }
+  .cmt-h { font-size: 30px; line-height: 1.05; font-weight: 800; letter-spacing: -0.03em; }
+  .cmt-h2 { font-size: 23px; line-height: 1.1; font-weight: 800; letter-spacing: -0.02em; }
+  .cmt-p { font-size: 13px; line-height: 1.45; color: #a9b7d3; }
+  .cmt-tiny { font-size: 11px; color: #a9b7d3; }
+  .cmt-hero-orb { height: 120px; margin: -6px -18px 4px; background: radial-gradient(40% 70% at 30% 60%, rgb(0 204 75 / 0.55), transparent 70%), radial-gradient(45% 80% at 70% 40%, rgb(28 108 255 / 0.7), transparent 70%); filter: blur(6px); }
+  .cmt-bottom { margin-top: auto; display: grid; gap: 10px; }
+  .cmt-cta { display: grid; place-items: center; height: 48px; border-radius: 16px; background: #00cc4b; color: #000814; font-weight: 700; font-size: 15px; }
+  .cmt-promise { list-style: none; padding: 12px 14px; display: grid; gap: 8px; border-radius: 16px; background: #001533; font-size: 14px; font-weight: 600; }
+  .cmt-price { text-align: center; font-size: 13px; color: #a9b7d3; padding: 4px; }
+  .cmt-search { display: flex; gap: 8px; align-items: center; height: 44px; padding: 0 14px; border-radius: 14px; background: #001533; color: #a9b7d3; font-size: 14px; border: 1px solid #1b3157; }
+  .cmt-note { font-size: 12px; line-height: 1.4; color: #c6d1e6; padding: 8px 10px; border-radius: 10px; background: #001533; }
+  .cmt-banks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cmt-bank { display: grid; justify-items: start; gap: 8px; padding: 12px; border-radius: 14px; background: #001533; font-size: 12px; font-weight: 600; }
+  .cmt-av { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: color-mix(in srgb, var(--c) 30%, #001533); box-shadow: inset 0 0 0 1.5px var(--c); font-size: 11px; font-weight: 800; }
+  .cmt-scr--sheet { padding: 0; justify-content: flex-end; }
+  .cmt-dim { position: absolute; inset: 0; background: radial-gradient(60% 40% at 50% 20%, rgb(28 108 255 / 0.3), transparent), #000510; }
+  .cmt-sheet { position: relative; display: grid; gap: 12px; padding: 12px 18px 28px; border-radius: 28px 28px 0 0; background: #001533; }
+  .cmt-grab { justify-self: center; width: 38px; height: 5px; border-radius: 3px; background: #2a4068; }
+  .cmt-steps { list-style: none; padding: 0; display: grid; gap: 10px; }
+  .cmt-steps li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; font-size: 13px; line-height: 1.4; }
+  .cmt-steps b { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #1c6cff; color: #fff; font-size: 12px; }
+  .cmt-never { font-size: 13px; font-weight: 600; padding: 10px 12px; border-radius: 12px; background: #0a2147; }
+  .cmt-accts { list-style: none; padding: 0; display: grid; gap: 8px; }
+  .cmt-accts li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 14px; background: #001533; font-size: 13px; }
+  .cmt-accts small { display: block; color: #a9b7d3; font-size: 11px; margin-top: 2px; }
+  .cmt-sw { flex: none; position: relative; width: 42px; height: 26px; border-radius: 13px; background: #2a4068; }
+  .cmt-sw i { position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform 0.3s; }
+  .cmt-sw.is-on { background: #00cc4b; }
+  .cmt-sw.is-on i { transform: translateX(16px); }
+  .cmt-sync { display: grid; gap: 10px; padding: 14px; border-radius: 16px; background: #001533; }
+  .cmt-sync-n { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .cmt-sync-n small { font-size: 12px; font-weight: 500; color: #a9b7d3; letter-spacing: 0; }
+  .cmt-bar { height: 6px; border-radius: 3px; background: #0a2147; overflow: hidden; }
+  .cmt-bar i { display: block; height: 100%; background: linear-gradient(90deg, #00cc4b, #1c6cff); transform-origin: left; transform: scaleX(0.55); }
+  .cmt-cats { display: flex; flex-wrap: wrap; gap: 6px; }
+  .cmt-cat { display: inline-flex; gap: 4px; align-items: center; padding: 5px 8px; border-radius: 99px; background: color-mix(in srgb, var(--c) 22%, #001533); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 70%, transparent); font-size: 11px; }
+  .cmt-cat b { font-variant-numeric: tabular-nums; }
+  .cmt-insight { display: grid; gap: 6px; padding: 14px; border-radius: 18px; background: linear-gradient(160deg, #0a2147, #001533); }
+  .cmt-ins-t { font-size: 18px; font-weight: 800; }
+  .cmt-insight svg { width: 100%; height: auto; }
+  .cmt-review { display: flex; gap: 8px; align-items: center; padding: 12px; border-radius: 14px; background: rgb(254 206 76 / 0.12); box-shadow: inset 0 0 0 1px rgb(254 206 76 / 0.5); font-size: 13px; }
+  .cmt-review b { display: grid; place-items: center; min-width: 26px; height: 26px; border-radius: 13px; background: #fece4c; color: #000814; }
+
+  /* Annotation targets and pins */
+  .cmt-annot { position: relative; border-radius: 16px; transition: box-shadow 0.35s var(--ease-out); }
+  .cmt-annot.is-on, .show-all .cmt-annot { box-shadow: 0 0 0 2px #fece4c, 0 0 24px rgb(254 206 76 / 0.35); }
+  .cmt-pin { position: absolute; right: -8px; top: -10px; z-index: 3; width: 28px; height: 28px; border-radius: 50%; background: #f2f6ff; color: #000814; font: 800 13px/1 var(--font-ui); box-shadow: 0 4px 14px rgb(0 0 0 / 0.5); transition: transform 0.3s var(--ease-out), background 0.2s; }
+  .cmt-pin::after { content: ''; position: absolute; inset: -5px; border-radius: 50%; border: 2px solid #fece4c; opacity: 0; }
+  .cmt-pin:hover { transform: scale(1.1); }
+  .cmt-pin.is-on { background: #fece4c; }
+  .cmt-pin.is-on::after { animation: cm-ping 1.6s ease-out infinite; }
+  @keyframes cm-tf-up { from { opacity: 0; transform: translateY(10px); } }
+  @keyframes cm-ping { from { opacity: 0.9; transform: scale(0.8); } to { opacity: 0; transform: scale(1.6); } }
+  .cmt-all { display: inline-flex; gap: var(--s-2); align-items: center; font-size: var(--fs-sm); color: var(--ink-2); cursor: pointer; }
+  .cmt-all input { accent-color: #fece4c; width: 16px; height: 16px; }
+
+  /* Side panel */
+  .cmt-side { display: grid; gap: var(--s-5); align-content: start; min-width: 0; }
+  .cmt-tabs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+  .cmt-tabs button { display: grid; gap: 4px; justify-items: start; text-align: left; padding: 10px; border-radius: var(--r-md); border: 1px solid var(--line); color: var(--ink-2); font: 500 12px/1.25 var(--font-ui); transition: border-color var(--dur-1), background var(--dur-1), color var(--dur-1); }
+  .cmt-tabs button:hover { border-color: var(--line-strong); color: var(--ink); }
+  .cmt-tabs button .t-num { font-weight: 800; font-size: 14px; color: var(--muted); }
+  .cmt-tabs button[aria-selected='true'] { border-color: #00cc4b; background: rgb(0 204 75 / 0.1); color: var(--ink); }
+  .cmt-tabs button[aria-selected='true'] .t-num { color: #00cc4b; }
+  .cmt-panel { min-height: 330px; }
+  .cmt-step { display: none; gap: var(--s-4); }
+  .cmt-step.is-on { display: grid; animation: cm-tf-up 0.6s var(--ease-out); }
+  .cmt-title { font-size: var(--fs-2xl); line-height: 1.05; letter-spacing: -0.03em; max-width: 20ch; }
+  .cmt-pins { display: flex; gap: var(--s-2); flex-wrap: wrap; }
+  .cmt-pinbtn { padding: 0.5rem 0.9rem; border-radius: var(--r-pill); border: 1px solid var(--line-strong); font: 600 var(--fs-sm) / 1 var(--font-ui); color: var(--ink-2); }
+  .cmt-pinbtn.is-on { background: #fece4c; border-color: #fece4c; color: #000814; }
+  .cmt-note-card { display: none; grid-template-columns: 1fr 1fr; gap: var(--s-5); padding: var(--s-5); border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--line); }
+  .cmt-note-card.is-on { display: grid; animation: cm-tf-up 0.5s var(--ease-out); }
+  .cmt-note-card p { color: var(--ink-2); font-size: var(--fs-sm); line-height: 1.55; }
+  .cmt-nk { font: 700 var(--fs-label) / 1 var(--font-ui) !important; letter-spacing: var(--tracking-label); text-transform: uppercase; color: #fece4c !important; margin-bottom: var(--s-2); }
+  .cmt-nk--why { color: #6b9dff !important; }
+  .cmt-flag { grid-column: 1 / -1; padding: var(--s-3) var(--s-4); border-radius: var(--r-md); border: 1px dashed rgb(254 206 76 / 0.5); color: var(--ink) !important; }
+  .cmt-meter { display: grid; gap: var(--s-3); }
+  .cmt-hyp { text-transform: none; letter-spacing: 0; }
+  .cmt-bars { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; height: 80px; align-items: end; }
+  .cmt-b { height: 100%; display: flex; align-items: flex-end; }
+  .cmt-b i { width: 100%; height: var(--h); border-radius: 4px 4px 0 0; background: #23365a; transition: background var(--dur-2); }
+  .cmt-b.is-on i { background: linear-gradient(#ff4433, #fece4c); }
+  .cmt-nav { display: flex; gap: var(--s-3); }
+  .cmt-navbtn { padding: 0.75rem 1.2rem; border-radius: var(--r-pill); border: 1px solid var(--line-strong); font: 600 var(--fs-sm) / 1 var(--font-ui); color: var(--ink); }
+  .cmt-navbtn:disabled { color: var(--muted); border-color: var(--line); cursor: default; }
+  .cmt-navbtn--next { background: #00cc4b; border-color: #00cc4b; color: #000814; }
+
+  @media (max-width: 1100px) {
+    .cmt { grid-template-columns: 1fr; padding: var(--s-5); gap: var(--s-6); }
+    .cmt-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 560px) {
+    .cmt { padding: var(--s-4) var(--s-3); }
+    .cmt-note-card { grid-template-columns: 1fr; padding: var(--s-4); }
+    .cmt-tab-l { font-size: 11px; }
+    .cmt-panel { min-height: 0; }
+  }
+  @media (max-width: 360px) {
+    .cmt-phone { transform: scale(0.92); transform-origin: top center; margin-bottom: -50px; }
+  }
+</style>

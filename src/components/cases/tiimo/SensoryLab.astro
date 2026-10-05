@@ -1,0 +1,283 @@
+---
+// Sensory settings lab: a live phone that adapts as visitors change colour
+// intensity, motion, font, timer style and cue settings. Haptics and sound are
+// shown as visual indicators only (no audio, no vibration).
+import { DAY, INTENSITY, fmtTime } from '../../../data/cases/tiimo';
+const list = DAY.slice(3, 7);
+const groups = [
+  { id: 'int', label: 'Colour intensity', opts: [['soft', 'Soft'], ['balanced', 'Balanced'], ['vivid', 'Vivid'], ['mono', 'Mono']], def: 'balanced' },
+  { id: 'motion', label: 'Motion', opts: [['full', 'Full'], ['gentle', 'Gentle'], ['off', 'Still']], def: 'full' },
+  { id: 'font', label: 'Font', opts: [['std', 'Standard'], ['dys', 'Dyslexia-friendly'], ['big', 'Larger']], def: 'std' },
+  { id: 'timer', label: 'Timer style', opts: [['disc', 'Disc'], ['ring', 'Ring'], ['bar', 'Bar']], def: 'disc' },
+];
+---
+
+<div class="ti-sl" data-ti-sl data-intensity={JSON.stringify(INTENSITY)}>
+  <div class="ti-sl-stage">
+    <div class="ti-sl-phone" data-ti-sl-phone data-int="balanced" data-motion="full" data-font="std" data-timer="disc">
+      <div class="ti-sl-screen">
+        <div class="ti-sl-island"></div>
+        <div class="ti-sl-cues" aria-hidden="true">
+          <span class="ti-sl-cue ti-sl-cue--h" data-ti-cue-h><i></i>Haptic tick</span>
+          <span class="ti-sl-cue ti-sl-cue--s" data-ti-cue-s><i></i>Soft chime</span>
+        </div>
+        <p class="ti-sl-k">NOW · 10:14</p>
+        <div class="ti-sl-focus" style="background:var(--lilac)">
+          <div class="ti-sl-timer" aria-hidden="true"><span class="ti-sl-disc"></span><span class="ti-sl-ring"></span><span class="ti-sl-bar"><i></i></span></div>
+          <div class="ti-sl-focus-t">
+            <span class="ti-sl-e">💻</span>
+            <b>Focus: Friday deck</b>
+            <span class="ti-sl-left">15 min left · step 2 of 3</span>
+          </div>
+        </div>
+        <p class="ti-sl-k">LATER TODAY</p>
+        <div class="ti-sl-list">
+          {
+            list.map((d) => (
+              <div class="ti-sl-row" style={`background:var(--${d.c})`}>
+                <span class="ti-sl-time">{fmtTime(d.start)}</span>
+                <span class="ti-sl-e">{d.emoji}</span>
+                <span class="ti-sl-label">{d.t}</span>
+              </div>
+            ))
+          }
+          <span class="ti-sl-now" aria-hidden="true"></span>
+        </div>
+        <div class="ti-sl-tabbar"><span class="is-on"></span><span></span><span></span><span></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ti-sl-panel">
+    {
+      groups.map((g) => (
+        <div class="ti-sl-group">
+          <p class="ti-sl-glabel" id={`ti-sl-${g.id}`}>{g.label}</p>
+          <div class="ti-sl-seg" role="group" aria-labelledby={`ti-sl-${g.id}`}>
+            {g.opts.map(([v, l]) => (
+              <button type="button" data-ti-set={g.id} data-v={v} aria-pressed={v === g.def ? 'true' : 'false'}>
+                {l}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))
+    }
+    <div class="ti-sl-group">
+      <p class="ti-sl-glabel" id="ti-sl-cues">Cues (shown visually here)</p>
+      <div class="ti-sl-toggles" role="group" aria-labelledby="ti-sl-cues">
+        <button type="button" class="ti-sl-switch" data-ti-cue="h" aria-pressed="true"><span class="ti-sl-sw" aria-hidden="true"><i></i></span>Haptic tick each 5 min</button>
+        <button type="button" class="ti-sl-switch" data-ti-cue="s" aria-pressed="false"><span class="ti-sl-sw" aria-hidden="true"><i></i></span>Soft chime at the end</button>
+      </div>
+    </div>
+    <div class="ti-sl-read">
+      <p class="ti-sl-contrast"><span class="t-label">Lowest text contrast on a block</span><b data-ti-contrast>—</b></p>
+      <p class="ti-sl-why" aria-live="polite" data-ti-why>Every setting changes the same components, so contrast and layout hold whatever you pick.</p>
+      <button type="button" class="ti-sl-reset" data-ti-reset>↺ Reset to defaults</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { reducedMotion } from '../../../scripts/motion';
+  type Levels = Record<string, Record<string, string>>;
+  const WHY: Record<string, Record<string, string>> = {
+    int: {
+      soft: 'Soft: lower saturation for people who find colour loud. Ink text stays the same, so contrast goes up, not down.',
+      balanced: 'Balanced: the default pastels. Distinct enough to tell tasks apart at a glance.',
+      vivid: 'Vivid: stronger hues for low vision or bright rooms. We picked hues that keep dark text above 7:1.',
+      mono: 'Mono: colour off. Emoji and position carry the meaning, so nothing relies on colour alone.',
+    },
+    motion: {
+      full: 'Full: the now line glides and the timer drains continuously.',
+      gentle: 'Gentle: everything moves at a third of the speed, with no pulsing.',
+      off: 'Still: no animation at all. The now line steps once a minute and the timer shows a still snapshot.',
+    },
+    font: {
+      std: 'Standard: our rounded, friendly sans at a comfortable size.',
+      dys: 'Dyslexia-friendly: wider letter and word spacing, taller lines and heavier letter shapes. (Approximated here with system fonts.)',
+      big: 'Larger: one step up the type scale. Blocks grow to fit; nothing truncates.',
+    },
+    timer: {
+      disc: 'Disc: a pie that drains. Easiest to read from across a room.',
+      ring: 'Ring: a quieter outline that empties, for people who find a filled disc stressful.',
+      bar: 'Bar: a straight line that shortens. Works well as a Live Activity.',
+    },
+  };
+  const lum = (hex: string) => {
+    const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)));
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  };
+  const ratio = (a: string, b: string) => {
+    const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m);
+    return (x + 0.05) / (y + 0.05);
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-ti-sl]').forEach((root) => {
+    const levels = JSON.parse(root.dataset.intensity || '{}') as Levels;
+    const phone = root.querySelector<HTMLElement>('[data-ti-sl-phone]')!;
+    const why = root.querySelector<HTMLElement>('[data-ti-why]')!;
+    const contrast = root.querySelector<HTMLElement>('[data-ti-contrast]')!;
+    const cueH = root.querySelector<HTMLElement>('[data-ti-cue-h]')!;
+    const cueS = root.querySelector<HTMLElement>('[data-ti-cue-s]')!;
+    const setBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-ti-set]')];
+    const cueBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-ti-cue]')];
+    const defaults: Record<string, string> = { int: 'balanced', motion: reducedMotion ? 'off' : 'full', font: 'std', timer: 'disc' };
+
+    const applyColours = (lvl: string) => {
+      const sw = levels[lvl];
+      Object.entries(sw).forEach(([k, v]) => phone.style.setProperty(`--${k}`, v));
+      const min = Math.min(...Object.values(sw).map((v) => ratio('#1F1A33', v)));
+      contrast.textContent = `${min.toFixed(1)} : 1 · ${min >= 7 ? 'AAA' : min >= 4.5 ? 'AA' : 'fails'} ✓`;
+    };
+    const set = (group: string, v: string, explain = true) => {
+      phone.dataset[group] = v;
+      setBtns.filter((b) => b.dataset.tiSet === group).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
+      if (group === 'int') applyColours(v);
+      if (explain) why.textContent = WHY[group]?.[v] ?? '';
+      // Re-trigger the gentle "settle" so visitors see the UI adapt.
+      phone.classList.remove('is-adapt');
+      void phone.offsetWidth;
+      phone.classList.add('is-adapt');
+    };
+    setBtns.forEach((b) => b.addEventListener('click', () => set(b.dataset.tiSet!, b.dataset.v!)));
+
+    const cues = { h: true, s: false };
+    const setCue = (k: 'h' | 's', on: boolean, explain = true) => {
+      cues[k] = on;
+      cueBtns.find((b) => b.dataset.tiCue === k)?.setAttribute('aria-pressed', String(on));
+      (k === 'h' ? cueH : cueS).classList.toggle('is-enabled', on);
+      if (explain)
+        why.textContent = k === 'h'
+          ? on ? 'Haptic tick: a soft tap every five minutes, so you feel time pass without looking. Shown here as a pulse.' : 'Haptics off. Nothing buzzes; the timer is still visible.'
+          : on ? 'Soft chime: one gentle sound when the timer ends, never a siren. Shown here as a ripple; this page plays no audio.' : 'Chime off. The end of a timer is shown, not heard.';
+    };
+    cueBtns.forEach((b) => b.addEventListener('click', () => setCue(b.dataset.tiCue as 'h' | 's', b.getAttribute('aria-pressed') !== 'true')));
+
+    root.querySelector('[data-ti-reset]')?.addEventListener('click', () => {
+      Object.entries(defaults).forEach(([g, v]) => set(g, v, false));
+      setCue('h', true, false);
+      setCue('s', false, false);
+      why.textContent = 'Back to defaults. Your choices would sync to every device, widget and Live Activity.';
+    });
+
+    // Simulated cue every few seconds while the lab is on screen.
+    let visible = false;
+    new IntersectionObserver((e) => (visible = e[0]?.isIntersecting ?? false)).observe(root);
+    let n = 0;
+    window.setInterval(() => {
+      if (!visible) return;
+      n++;
+      const fire = (el: HTMLElement) => {
+        el.classList.remove('is-fire');
+        void el.offsetWidth;
+        el.classList.add('is-fire');
+      };
+      if (cues.h) fire(cueH);
+      if (cues.s && n % 2 === 0) fire(cueS);
+      if (cues.h && phone.dataset.motion === 'full') {
+        phone.classList.remove('is-buzz');
+        void phone.offsetWidth;
+        phone.classList.add('is-buzz');
+      }
+    }, 3200);
+
+    Object.entries(defaults).forEach(([g, v]) => set(g, v, false));
+    setCue('h', true, false);
+    phone.classList.remove('is-adapt');
+  });
+</script>
+
+<style>
+  .ti-sl { display: grid; grid-template-columns: minmax(280px, 0.9fr) 1.1fr; gap: var(--s-8); align-items: center; padding: var(--s-7); border-radius: calc(var(--r-lg) + 8px); border: 1px solid var(--line); background: radial-gradient(60% 70% at 25% 50%, color-mix(in srgb, var(--a) 18%, transparent), transparent 70%), var(--bg-2); }
+  .ti-sl-stage { display: grid; place-items: center; }
+
+  /* ----- phone ----- */
+  .ti-sl-phone { --lilac: #dccfff; --pink: #ffd3df; --peach: #ffdcbf; --butter: #fff0b0; --mint: #c9f1dd; --sky: #d2e7ff; --ti-ff: 'Inter', system-ui, sans-serif; --ti-ls: 0; --ti-ws: 0; --ti-lh: 1.3; --ti-sc: 1; --ti-speed: 40s;
+    width: min(330px, 100%); aspect-ratio: 9 / 19; padding: 10px; border-radius: 50px; background: linear-gradient(150deg, #f4f1fb, #cfc8e2 40%, #efeaf9); box-shadow: 0 50px 100px -40px rgb(0 0 0 / 0.9), 0 0 0 1px rgb(255 255 255 / 0.25); container-type: inline-size; }
+  .ti-sl-screen { position: relative; height: 100%; border-radius: 41px; overflow: hidden; background: #f7f3ff; color: #1f1a33; padding: 17cqw 5.5cqw 0; font-family: var(--ti-ff); letter-spacing: var(--ti-ls); word-spacing: var(--ti-ws); line-height: var(--ti-lh); display: grid; align-content: start; gap: 3cqw; }
+  .ti-sl-island { position: absolute; left: 50%; top: 3.4cqw; width: 28cqw; height: 8cqw; margin-left: -14cqw; border-radius: 9cqw; background: #1f1a33; }
+  .ti-sl-phone[data-font='dys'] { --ti-ff: Verdana, Tahoma, 'Segoe UI', sans-serif; --ti-ls: 0.04em; --ti-ws: 0.14em; --ti-lh: 1.55; }
+  .ti-sl-phone[data-font='big'] { --ti-sc: 1.16; }
+  .ti-sl-k { font-size: calc(3.2cqw * var(--ti-sc)); font-weight: 700; letter-spacing: 0.14em; color: #625a7c; }
+  .ti-sl-cues { position: absolute; top: 13cqw; right: 5cqw; left: 5cqw; display: flex; justify-content: flex-end; gap: 1.6cqw; }
+  .ti-sl-cue { display: inline-flex; align-items: center; gap: 1.4cqw; padding: 1cqw 2.4cqw; border-radius: 5cqw; background: #fff; font-size: 2.8cqw; font-weight: 700; color: #4d4566; opacity: 0; transform: translateY(-4px); transition: opacity 0.4s, transform 0.4s; }
+  .ti-sl-cue.is-enabled { opacity: 1; transform: none; }
+  .ti-sl-cue i { position: relative; width: 2.6cqw; height: 2.6cqw; border-radius: 50%; background: #a98bff; }
+  .ti-sl-cue--s i { background: #ff9db8; }
+  .ti-sl-cue i::after { content: ''; position: absolute; inset: -1.2cqw; border-radius: 50%; border: 0.5cqw solid currentColor; opacity: 0; }
+  .ti-sl-cue.is-fire i::after { animation: ti-sl-ripple 1.2s var(--ease-out); }
+  .ti-sl-cue.is-fire { background: #1f1a33; color: #fff; transition: background 0.2s, color 0.2s; }
+  @keyframes ti-sl-ripple { from { opacity: 0.9; transform: scale(0.6); } to { opacity: 0; transform: scale(2.4); } }
+  .ti-sl-phone.is-buzz { animation: ti-sl-buzz 0.42s ease-in-out; }
+  @keyframes ti-sl-buzz { 20% { translate: -2px 0; } 40% { translate: 2px 0; } 60% { translate: -1.5px 0; } 80% { translate: 1px 0; } }
+
+  .ti-sl-focus { display: grid; grid-template-columns: auto 1fr; gap: 3.4cqw; align-items: center; padding: 4cqw; border-radius: 6cqw; transition: background 0.6s; }
+  .ti-sl-focus-t { display: grid; gap: 0.6cqw; min-width: 0; }
+  .ti-sl-focus-t b { font-size: calc(4.4cqw * var(--ti-sc)); font-weight: 800; }
+  .ti-sl-left { font-size: calc(3.2cqw * var(--ti-sc)); color: #4d4566; font-weight: 600; }
+  .ti-sl-e { font-size: calc(4.6cqw * var(--ti-sc)); line-height: 1; }
+  @property --ti-sl-f { syntax: '<percentage>'; inherits: true; initial-value: 62%; }
+  .ti-sl-timer { position: relative; width: 22cqw; height: 22cqw; --ti-sl-f: 62%; animation: ti-sl-drain var(--ti-speed) linear infinite; }
+  @keyframes ti-sl-drain { from { --ti-sl-f: 96%; } to { --ti-sl-f: 4%; } }
+  .ti-sl-disc, .ti-sl-ring, .ti-sl-bar { position: absolute; inset: 0; opacity: 0; transition: opacity 0.4s; }
+  .ti-sl-disc { border-radius: 50%; background: radial-gradient(circle, #fff 0 28%, transparent 29%), conic-gradient(#5b3fd1 0 var(--ti-sl-f), #fff 0); }
+  .ti-sl-ring { border-radius: 50%; background: conic-gradient(#5b3fd1 0 var(--ti-sl-f), rgb(255 255 255 / 0.9) 0); -webkit-mask: radial-gradient(circle, transparent 0 60%, #000 61%); mask: radial-gradient(circle, transparent 0 60%, #000 61%); }
+  .ti-sl-bar { top: 40%; bottom: 40%; border-radius: 3cqw; background: #fff; overflow: hidden; }
+  .ti-sl-bar i { display: block; height: 100%; width: var(--ti-sl-f); background: #5b3fd1; border-radius: 3cqw; }
+  .ti-sl-phone[data-timer='disc'] .ti-sl-disc, .ti-sl-phone[data-timer='ring'] .ti-sl-ring, .ti-sl-phone[data-timer='bar'] .ti-sl-bar { opacity: 1; }
+
+  .ti-sl-list { position: relative; display: grid; gap: 2cqw; }
+  .ti-sl-row { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 2.6cqw; padding: calc(3cqw * var(--ti-sc)) 3.6cqw; border-radius: 4.6cqw; transition: background 0.6s, padding 0.4s; }
+  .ti-sl-time { font-size: calc(3cqw * var(--ti-sc)); font-weight: 700; color: #4d4566; font-feature-settings: 'tnum' 1; }
+  .ti-sl-label { font-size: calc(3.9cqw * var(--ti-sc)); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ti-sl-now { position: absolute; left: -2cqw; right: -2cqw; top: 8%; height: 0.6cqw; border-radius: 1cqw; background: #5b3fd1; animation: ti-sl-now calc(var(--ti-speed) / 2) ease-in-out infinite alternate; }
+  .ti-sl-now::before { content: ''; position: absolute; left: 0; top: -1.3cqw; width: 3.2cqw; height: 3.2cqw; border-radius: 50%; background: #5b3fd1; box-shadow: 0 0 0 1.4cqw rgb(91 63 209 / 0.18); }
+  @keyframes ti-sl-now { from { top: 6%; } to { top: 90%; } }
+  .ti-sl-tabbar { position: absolute; left: 0; right: 0; bottom: 0; height: 16cqw; display: grid; grid-template-columns: repeat(4, 1fr); place-items: center; background: rgb(255 255 255 / 0.85); border-top: 1px solid #e2daf3; }
+  .ti-sl-tabbar span { width: 6cqw; height: 6cqw; border-radius: 2cqw; background: #e2daf3; }
+  .ti-sl-tabbar .is-on { background: #a98bff; }
+
+  .ti-sl-phone[data-motion='gentle'] { --ti-speed: 120s; }
+  .ti-sl-phone[data-motion='gentle'] .ti-sl-now::before { box-shadow: none; }
+  .ti-sl-phone[data-motion='off'] .ti-sl-timer, .ti-sl-phone[data-motion='off'] .ti-sl-now { animation: none; }
+  .ti-sl-phone[data-motion='off'] .ti-sl-now { top: 30%; }
+  .ti-sl-phone[data-motion='off'] .ti-sl-now::before { box-shadow: none; }
+  .ti-sl-phone[data-motion='off'] .ti-sl-cue.is-fire i::after { animation: none; }
+  .ti-sl-phone.is-adapt .ti-sl-screen > * { animation: ti-sl-settle 0.7s var(--ease-out) both; }
+  .ti-sl-phone[data-motion='off'].is-adapt .ti-sl-screen > * { animation: none; }
+  @keyframes ti-sl-settle { from { opacity: 0.4; transform: translateY(6px); } }
+  .ti-sl-phone.is-adapt .ti-sl-island, .ti-sl-phone.is-adapt .ti-sl-tabbar, .ti-sl-phone.is-adapt .ti-sl-cues { animation: none; }
+
+  /* ----- controls ----- */
+  .ti-sl-panel { display: grid; gap: var(--s-5); }
+  .ti-sl-group { display: grid; gap: var(--s-2); }
+  .ti-sl-glabel { font: 600 var(--fs-label)/1.2 var(--font-ui); letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--ink-2); }
+  .ti-sl-seg { display: flex; flex-wrap: wrap; gap: 6px; padding: 5px; border-radius: 18px; background: var(--surface-2); border: 1px solid var(--line); justify-self: start; }
+  .ti-sl-seg button { padding: 0.55rem 0.95rem; border-radius: 13px; font: 600 var(--fs-sm)/1.1 var(--font-ui); color: var(--ink-2); transition: background var(--dur-1), color var(--dur-1); }
+  .ti-sl-seg button:hover { color: var(--ink); }
+  .ti-sl-seg button[aria-pressed='true'] { background: var(--a); color: #140f24; }
+  .ti-sl-toggles { display: flex; flex-wrap: wrap; gap: var(--s-3); }
+  .ti-sl-switch { display: inline-flex; align-items: center; gap: 0.7rem; padding: 0.5rem 0.9rem 0.5rem 0.55rem; border-radius: var(--r-pill); border: 1px solid var(--line-strong); font: 600 var(--fs-sm)/1.2 var(--font-ui); color: var(--ink-2); text-align: left; }
+  .ti-sl-switch:hover { color: var(--ink); }
+  .ti-sl-sw { position: relative; flex: none; width: 40px; height: 24px; border-radius: 12px; background: #3b3650; transition: background 0.25s; }
+  .ti-sl-sw i { position: absolute; left: 3px; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform 0.35s var(--ease-out); }
+  .ti-sl-switch[aria-pressed='true'] { color: var(--ink); border-color: var(--a); }
+  .ti-sl-switch[aria-pressed='true'] .ti-sl-sw { background: var(--a); }
+  .ti-sl-switch[aria-pressed='true'] .ti-sl-sw i { transform: translateX(16px); }
+  .ti-sl-read { display: grid; gap: var(--s-3); padding: var(--s-5); border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line); }
+  .ti-sl-contrast { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); flex-wrap: wrap; }
+  .ti-sl-contrast b { font: 800 var(--fs-xl)/1 var(--font-display); color: var(--a); font-feature-settings: 'tnum' 1; }
+  .ti-sl-why { color: var(--ink-2); font-size: var(--fs-sm); min-height: 4.8em; }
+  .ti-sl-reset { justify-self: start; font: 600 var(--fs-sm)/1 var(--font-ui); color: var(--ink-2); padding: 0.4rem 0; }
+  .ti-sl-reset:hover { color: var(--ink); }
+
+  @media (max-width: 960px) {
+    .ti-sl { grid-template-columns: 1fr; padding: var(--s-5); gap: var(--s-6); }
+    .ti-sl-phone { width: min(300px, 100%); }
+  }
+  @media (max-width: 480px) {
+    .ti-sl { padding: var(--s-4); border-radius: var(--r-lg); }
+    .ti-sl-seg button { padding: 0.5rem 0.7rem; font-size: 0.82rem; }
+  }
+</style>

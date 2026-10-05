@@ -1,0 +1,380 @@
+---
+// Road to launch: scrub a concept release roadmap (Beta → 1.0 → 1.1 → 2.0) and
+// watch an App Store product page mock and a release-notes writer follow along.
+import { RELEASES, SHOTS, TONE_FLAGS, TI } from '../../../data/cases/tiimo';
+const payload = JSON.stringify({ releases: RELEASES, flags: TONE_FLAGS });
+const weeks = [0, 2, 4, 6, 8, 10, 12, 14, 16];
+---
+
+<div class="ti-rl" data-ti-rl>
+  <script type="application/json" data-ti-rl-data set:html={payload} />
+
+  <!-- 1. Roadmap -->
+  <div class="ti-rl-road">
+    <div class="ti-rl-road-head">
+      <h3 class="t-h4">The release roadmap</h3>
+      <p class="t-small">Drag the handle or pick a milestone. Versions and timings are our illustrative plan for this concept, not Tiimo’s real release history.</p>
+    </div>
+    <div class="ti-rl-track">
+      <div class="ti-rl-rail" aria-hidden="true">
+        <span class="ti-rl-fill" data-ti-rl-fill></span>
+        {weeks.map((w) => <span class="ti-rl-wk" style={`left:${(w / 16) * 100}%`}>W{w}</span>)}
+        {RELEASES.map((r) => <span class="ti-rl-dot" data-ti-rl-dot style={`left:${r.at}%`} />)}
+      </div>
+      <input class="ti-rl-range" type="range" min="0" max="100" step="1" value="33" aria-label="Scrub the release roadmap" data-ti-rl-range />
+    </div>
+    <div class="ti-rl-miles" role="group" aria-label="Milestones">
+      {
+        RELEASES.map((r, i) => (
+          <button type="button" class="ti-rl-mile" data-ti-rl-mile={i} aria-pressed={i === 1 ? 'true' : 'false'}>
+            <span class="ti-rl-v">{r.v}</span>
+            <span class="ti-rl-name">{r.name}</span>
+            <span class="ti-rl-when">{r.when}</span>
+          </button>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="ti-rl-grid">
+    <!-- 2. App Store product page mock -->
+    <div class="ti-rl-store-wrap">
+      <h3 class="t-h4">The App Store page</h3>
+      <div class="ti-rl-store" data-ti-rl-store>
+        <div class="ti-as-beta" data-ti-as-beta>TestFlight build · not on the App Store yet</div>
+        <div class="ti-as-top">
+          <span class="ti-as-icon" aria-hidden="true"><i></i><i></i><i></i><b></b></span>
+          <div class="ti-as-id">
+            <p class="ti-as-name">Tiimo</p>
+            <p class="ti-as-sub">Visual day planner · concept listing</p>
+            <span class="ti-as-get" data-ti-as-get>Get</span>
+          </div>
+        </div>
+        <dl class="ti-as-facts">
+          <div><dt>Rating</dt><dd>4.6 ★</dd><dd class="ti-as-s">≈21K ratings*</dd></div>
+          <div><dt>Award</dt><dd>App of the Year</dd><dd class="ti-as-s">iPhone · 2025</dd></div>
+          <div><dt>Apple</dt><dd>Editors’ Choice</dd><dd class="ti-as-s">App Store</dd></div>
+        </dl>
+        <div class="ti-as-shots-head">
+          <p class="ti-as-h">Preview</p>
+          <div class="ti-as-nav">
+            <button type="button" data-ti-as-prev aria-label="Previous screenshot">‹</button>
+            <button type="button" data-ti-as-next aria-label="Next screenshot">›</button>
+          </div>
+        </div>
+        <div class="ti-as-shots" data-ti-as-shots data-lenis-prevent tabindex="0" role="region" aria-label="Screenshots">
+          {
+            SHOTS.map((s, i) => (
+              <figure class={`ti-as-shot ti-as-shot--${s.kind}`} style={`--c:${s.c}`} data-ti-as-shot>
+                <figcaption><b>{s.h}</b><span>{s.s}</span></figcaption>
+                <div class="ti-as-mini" aria-hidden="true">
+                  {s.kind === 'today' && [TI.peach, TI.lilac, TI.mint, TI.pink, TI.butter].map((c, j) => <i style={`background:${c};height:${[18, 38, 18, 14, 22][j]}px`} />)}
+                  {s.kind === 'plan' && ['Clear the counter', 'Dishes away', 'Wipe surfaces', 'Bin out'].map((t) => <i class="ti-as-step">{t}</i>)}
+                  {s.kind === 'focus' && <i class="ti-as-disc" />}
+                  {s.kind === 'sense' && ['Aa', 'Motion', 'Colour'].map((t, j) => <i class="ti-as-tog"><span>{t}</span><em class:list={{ on: j !== 1 }} /></i>)}
+                  {s.kind === 'mood' && <i class="ti-as-moods">😣 😕 😐 🙂 😄</i>}
+                </div>
+                <span class="visually-hidden">Screenshot {i + 1} of {SHOTS.length}</span>
+              </figure>
+            ))
+          }
+        </div>
+        <div class="ti-as-dots" aria-hidden="true">{SHOTS.map(() => <span data-ti-as-dot />)}</div>
+        <div class="ti-as-new">
+          <div class="ti-as-new-head">
+            <p class="ti-as-h">What’s New</p>
+            <span class="ti-as-ver" data-ti-as-ver>Version 1.0</span>
+          </div>
+          <ul class="ti-as-notes" role="list" data-ti-as-notes></ul>
+        </div>
+        <p class="ti-as-foot">*Rating and awards as publicly reported for the real app (snapshot). Everything else on this page is a NUUKE mock.</p>
+      </div>
+    </div>
+
+    <!-- Release details -->
+    <div class="ti-rl-detail" aria-live="polite">
+      <p class="t-label">Selected release</p>
+      <p class="ti-rl-big"><span data-ti-rl-v>1.0</span> <span class="ti-rl-big-name" data-ti-rl-name>Launch</span></p>
+      <div class="ti-rl-cols">
+        <div>
+          <p class="t-label">What ships</p>
+          <ul role="list" class="ti-rl-ships" data-ti-rl-ships></ul>
+        </div>
+        <div>
+          <p class="t-label">Gate before release</p>
+          <ul role="list" class="ti-rl-gate" data-ti-rl-gate></ul>
+        </div>
+      </div>
+      <div class="ti-rl-watch">
+        <p class="t-label">The one thing we’d watch</p>
+        <p data-ti-rl-watch></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Release-notes writer -->
+  <div class="ti-rw">
+    <div class="ti-rw-head">
+      <h3 class="t-h4">Release notes, in a gentle voice</h3>
+      <p class="t-small">Pick a tone, then edit the draft. The voice check updates as you type.</p>
+    </div>
+    <div class="ti-rw-grid">
+      <div class="ti-rw-edit">
+        <div class="ti-rw-tones" role="group" aria-label="Tone of voice">
+          <button type="button" data-ti-tone="gentle" aria-pressed="true">Gentle · our pick</button>
+          <button type="button" data-ti-tone="corporate" aria-pressed="false">Corporate</button>
+          <button type="button" data-ti-tone="hype" aria-pressed="false">Hype</button>
+        </div>
+        <label class="ti-rw-label" for="ti-rw-text">Draft for <span data-ti-rw-ver>version 1.0</span></label>
+        <textarea id="ti-rw-text" class="ti-rw-text" rows="6" data-ti-rw-text data-lenis-prevent></textarea>
+      </div>
+      <div class="ti-rw-check">
+        <p class="ti-rw-score"><b data-ti-rw-score>5/5</b> <span>voice check</span></p>
+        <span class="ti-rw-meter" aria-hidden="true"><i data-ti-rw-meter></i></span>
+        <ul role="list" class="ti-rw-list" data-ti-rw-list></ul>
+        <div class="ti-rw-flags" data-ti-rw-flags></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import type { Release } from '../../../data/cases/tiimo';
+  type Tone = 'gentle' | 'corporate' | 'hype';
+
+  document.querySelectorAll<HTMLElement>('[data-ti-rl]').forEach((root) => {
+    const q = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const data = JSON.parse(q('[data-ti-rl-data]').textContent || '{}') as { releases: Release[]; flags: { re: string; why: string }[] };
+    const R = data.releases;
+    const flags = data.flags.map((f) => ({ re: new RegExp(f.re, 'gi'), why: f.why }));
+    const range = q<HTMLInputElement>('[data-ti-rl-range]');
+    const fill = q<HTMLElement>('[data-ti-rl-fill]');
+    const dots = [...root.querySelectorAll<HTMLElement>('[data-ti-rl-dot]')];
+    const miles = [...root.querySelectorAll<HTMLButtonElement>('[data-ti-rl-mile]')];
+    const shots = q<HTMLElement>('[data-ti-as-shots]');
+    const shotEls = [...root.querySelectorAll<HTMLElement>('[data-ti-as-shot]')];
+    const shotDots = [...root.querySelectorAll<HTMLElement>('[data-ti-as-dot]')];
+    const store = q<HTMLElement>('[data-ti-rl-store]');
+    const text = q<HTMLTextAreaElement>('[data-ti-rw-text]');
+    const toneBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-ti-tone]')];
+    let idx = 1;
+    let tone: Tone = 'gentle';
+
+    const li = (items: string[], cls = '') => items.map((t) => `<li${cls ? ` class="${cls}"` : ''}>${t}</li>`).join('');
+
+    const check = () => {
+      const v = text.value;
+      const words = v.trim().split(/\s+/).filter(Boolean).length;
+      const emoji = (v.match(/\p{Extended_Pictographic}/gu) || []).length;
+      const hits: { w: string; why: string }[] = [];
+      flags.forEach((f) => (v.match(f.re) || []).forEach((w) => hits.push({ w, why: f.why })));
+      const tests = [
+        { ok: /\b(you|your)\b/i.test(v), t: 'Talks to you, not about users' },
+        { ok: /\b(now|new|can)\b/i.test(v), t: 'Says what changed' },
+        { ok: hits.length === 0, t: 'No pressure or jargon words' },
+        { ok: !/!!/.test(v) && emoji <= 1, t: 'Calm punctuation, one emoji at most' },
+        { ok: words > 0 && words <= 70, t: `Short enough to read on a phone (${words} words)` },
+      ];
+      const score = tests.filter((x) => x.ok).length;
+      q('[data-ti-rw-score]').textContent = `${score}/5`;
+      q<HTMLElement>('[data-ti-rw-meter]').style.transform = `scaleX(${score / 5})`;
+      root.querySelector('.ti-rw-check')!.classList.toggle('is-good', score === 5);
+      q('[data-ti-rw-list]').innerHTML = tests.map((x) => `<li class="${x.ok ? 'ok' : 'no'}"><span aria-hidden="true">${x.ok ? '✓' : '✕'}</span> ${x.t}<span class="visually-hidden">${x.ok ? ': passes' : ': needs work'}</span></li>`).join('');
+      q('[data-ti-rw-flags]').innerHTML = hits.length
+        ? `<p class="t-label">Flagged</p>` + hits.slice(0, 6).map((h) => `<p><mark>${h.w.replace(/</g, '&lt;')}</mark> ${h.why}</p>`).join('')
+        : '';
+    };
+
+    const fillDraft = () => {
+      text.value = R[idx].notes[tone].join('\n\n');
+      check();
+    };
+
+    const select = (i: number, fromRange = false) => {
+      idx = i;
+      const r = R[i];
+      if (!fromRange) range.value = String(r.at);
+      const val = parseFloat(range.value);
+      fill.style.transform = `scaleX(${val / 100})`;
+      dots.forEach((d, j) => d.classList.toggle('is-past', R[j].at <= val));
+      miles.forEach((m, j) => m.setAttribute('aria-pressed', String(j === i)));
+      q('[data-ti-rl-v]').textContent = r.v;
+      q('[data-ti-rl-name]').textContent = r.name;
+      q('[data-ti-rl-ships]').innerHTML = li(r.ships);
+      q('[data-ti-rl-gate]').innerHTML = li(r.gate);
+      q('[data-ti-rl-watch]').textContent = r.watch;
+      // Store page follows the release.
+      const beta = r.v === 'Beta';
+      store.classList.toggle('is-beta', beta);
+      q('[data-ti-as-get]').textContent = beta ? 'Join beta' : 'Get';
+      q('[data-ti-as-ver]').textContent = beta ? 'Build 0.9' : `Version ${r.v}`;
+      q('[data-ti-as-notes]').innerHTML = li(r.notes.gentle);
+      q('[data-ti-rw-ver]').textContent = beta ? 'the beta' : `version ${r.v}`;
+      shotEls.forEach((s, j) => s.classList.toggle('is-new', (i === 2 && j === 2) || (i === 3 && j === 4) || (i === 1 && j < 4)));
+      fillDraft();
+    };
+
+    range.addEventListener('input', () => {
+      const v = parseFloat(range.value);
+      let i = 0;
+      R.forEach((r, j) => {
+        if (r.at <= v + 4) i = j;
+      });
+      if (i !== idx) select(i, true);
+      else {
+        fill.style.transform = `scaleX(${v / 100})`;
+        dots.forEach((d, j) => d.classList.toggle('is-past', R[j].at <= v));
+      }
+    });
+    miles.forEach((m, i) => m.addEventListener('click', () => select(i)));
+
+    toneBtns.forEach((b) =>
+      b.addEventListener('click', () => {
+        tone = b.dataset.tiTone as Tone;
+        toneBtns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        fillDraft();
+      }),
+    );
+    text.addEventListener('input', check);
+
+    // Screenshot carousel.
+    const step = () => (shotEls[0]?.offsetWidth ?? 160) + 12;
+    q('[data-ti-as-prev]').addEventListener('click', () => shots.scrollBy({ left: -step(), behavior: 'smooth' }));
+    q('[data-ti-as-next]').addEventListener('click', () => shots.scrollBy({ left: step(), behavior: 'smooth' }));
+    const syncDots = () => {
+      const i = Math.round(shots.scrollLeft / step());
+      shotDots.forEach((d, j) => d.classList.toggle('is-on', j === i));
+    };
+    shots.addEventListener('scroll', () => requestAnimationFrame(syncDots), { passive: true });
+    syncDots();
+
+    select(1);
+  });
+</script>
+
+<style>
+  .ti-rl { display: grid; gap: var(--s-8); }
+  .ti-rl-road { display: grid; gap: var(--s-5); padding: var(--s-6); border-radius: calc(var(--r-lg) + 8px); border: 1px solid var(--line); background: var(--bg-2); }
+  .ti-rl-road-head { display: grid; gap: var(--s-2); max-width: 70ch; }
+  .ti-rl-track { position: relative; height: 64px; margin-inline: 14px; }
+  .ti-rl-rail { position: absolute; left: 0; right: 0; top: 22px; height: 6px; border-radius: 3px; background: var(--surface-2); }
+  .ti-rl-fill { position: absolute; inset: 0; border-radius: 3px; background: linear-gradient(90deg, #ffb3c7, var(--a)); transform-origin: left; transform: scaleX(0.33); transition: transform 0.3s var(--ease-out); }
+  .ti-rl-wk { position: absolute; top: 18px; translate: -50% 0; font: 500 0.68rem/1 var(--font-ui); color: var(--muted); }
+  .ti-rl-dot { position: absolute; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: var(--surface-2); border: 3px solid var(--line-strong); transition: background 0.3s, border-color 0.3s, transform 0.3s; }
+  .ti-rl-dot.is-past { background: var(--a); border-color: #fff; transform: scale(1.1); }
+  .ti-rl-range { position: absolute; left: -14px; right: -14px; top: 6px; width: calc(100% + 28px); height: 38px; margin: 0; background: transparent; appearance: none; -webkit-appearance: none; cursor: pointer; touch-action: pan-y; }
+  .ti-rl-range::-webkit-slider-runnable-track { height: 38px; background: transparent; }
+  .ti-rl-range::-moz-range-track { height: 38px; background: transparent; }
+  .ti-rl-range::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; margin-top: 5px; border-radius: 50%; background: #fff; border: 6px solid var(--a); box-shadow: 0 6px 20px -4px rgb(0 0 0 / 0.6); }
+  .ti-rl-range::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 6px solid var(--a); }
+  .ti-rl-range:focus-visible { outline: 2px solid var(--a); outline-offset: 4px; border-radius: 20px; }
+  .ti-rl-miles { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s-3); }
+  .ti-rl-mile { display: grid; gap: 0.2rem; text-align: left; padding: var(--s-4); border-radius: var(--r-md); border: 1px solid var(--line); transition: border-color var(--dur-1), background var(--dur-1); }
+  .ti-rl-mile:hover { border-color: var(--line-strong); }
+  .ti-rl-mile[aria-pressed='true'] { border-color: var(--a); background: color-mix(in srgb, var(--a) 12%, transparent); }
+  .ti-rl-v { font: 800 var(--fs-xl)/1 var(--font-display); color: var(--ink); }
+  .ti-rl-name { font-weight: 700; color: var(--ink); font-size: var(--fs-sm); }
+  .ti-rl-when { font: 500 var(--fs-label)/1.2 var(--font-ui); color: var(--muted); }
+
+  .ti-rl-grid { display: grid; grid-template-columns: minmax(300px, 420px) 1fr; gap: var(--s-8); align-items: start; }
+  .ti-rl-store-wrap { display: grid; gap: var(--s-4); }
+
+  /* ----- App Store mock (light, iOS-like, original) ----- */
+  .ti-rl-store { position: relative; display: grid; gap: 16px; padding: 22px 0 18px; border-radius: 36px; background: #fff; color: #1c1c1e; font-family: -apple-system, 'SF Pro Text', Inter, system-ui, sans-serif; box-shadow: 0 0 0 10px #1a1a1f, 0 50px 100px -30px rgb(0 0 0 / 0.9); overflow: hidden; }
+  .ti-rl-store > * { padding-inline: 20px; }
+  .ti-as-beta { display: none; margin: -22px 0 0; padding-block: 8px; background: #fff0b0; font-size: 0.78rem; font-weight: 700; color: #4a3b00; text-align: center; }
+  .ti-rl-store.is-beta .ti-as-beta { display: block; }
+  .ti-as-top { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; }
+  .ti-as-icon { position: relative; width: 92px; height: 92px; border-radius: 22px; background: linear-gradient(150deg, #efe8ff, #dccfff 45%, #ffd3df); display: grid; align-content: center; gap: 6px; padding: 0 16px; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.06); }
+  .ti-as-icon i { display: block; height: 11px; border-radius: 6px; background: #fff; box-shadow: 0 2px 6px -2px rgb(91 63 209 / 0.5); }
+  .ti-as-icon i:nth-child(2) { width: 70%; background: #5b3fd1; }
+  .ti-as-icon i:nth-child(3) { width: 85%; }
+  .ti-as-icon b { position: absolute; right: 13px; bottom: 13px; width: 14px; height: 14px; border-radius: 4px; background: #c9f1dd; }
+  .ti-as-id { display: grid; gap: 2px; justify-items: start; }
+  .ti-as-name { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em; }
+  .ti-as-sub { font-size: 0.85rem; color: #5c5c63; }
+  .ti-as-get { margin-top: 8px; padding: 0.35rem 1.2rem; border-radius: 999px; background: #0a5fd6; color: #fff; font-weight: 800; font-size: 0.9rem; }
+  .ti-as-facts { display: grid; grid-template-columns: repeat(3, 1fr); border-block: 1px solid #e5e5ea; padding-block: 10px; text-align: center; }
+  .ti-as-facts div { display: grid; gap: 1px; padding: 0 4px; }
+  .ti-as-facts div + div { border-left: 1px solid #e5e5ea; }
+  .ti-as-facts dt { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6c6c72; }
+  .ti-as-facts dd { font-size: 0.82rem; font-weight: 800; color: #3a3a3f; }
+  .ti-as-facts .ti-as-s { font-size: 0.66rem; font-weight: 500; color: #6c6c72; }
+  .ti-as-shots-head, .ti-as-new-head { display: flex; justify-content: space-between; align-items: center; }
+  .ti-as-h { font-size: 1.15rem; font-weight: 800; }
+  .ti-as-nav { display: flex; gap: 6px; }
+  .ti-as-nav button { width: 32px; height: 32px; border-radius: 50%; background: #f0f0f4; color: #1c1c1e; font-size: 1.2rem; line-height: 1; }
+  .ti-as-nav button:hover { background: #e2e2ea; }
+  .ti-as-shots { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 4px; }
+  .ti-as-shots::-webkit-scrollbar { display: none; }
+  .ti-as-shots:focus-visible { outline: 2px solid #0a5fd6; outline-offset: 2px; }
+  .ti-as-shot { position: relative; flex: none; width: 168px; height: 330px; scroll-snap-align: start; border-radius: 20px; background: var(--c); padding: 14px 12px 0; display: grid; grid-template-rows: auto 1fr; gap: 10px; overflow: hidden; color: #1f1a33; }
+  .ti-as-shot.is-new::after { content: 'NEW'; position: absolute; right: 10px; top: 10px; padding: 2px 6px; border-radius: 6px; background: #1f1a33; color: #fff; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.08em; }
+  .ti-as-shot figcaption { display: grid; gap: 3px; padding-right: 26px; }
+  .ti-as-shot figcaption b { font: 800 1rem/1.15 Montserrat, sans-serif; letter-spacing: -0.02em; }
+  .ti-as-shot figcaption span { font-size: 0.72rem; color: #3d3654; }
+  .ti-as-mini { align-self: end; height: 200px; border-radius: 18px 18px 0 0; background: #f7f3ff; box-shadow: 0 0 0 5px #1f1a33; margin: 0 6px; padding: 16px 10px; display: grid; align-content: start; gap: 6px; }
+  .ti-as-mini > i { display: block; border-radius: 7px; font-style: normal; }
+  .ti-as-step { padding: 6px 8px; background: #fff; font-size: 0.66rem; font-weight: 600; box-shadow: inset 3px 0 0 #a98bff; }
+  .ti-as-disc { justify-self: center; width: 110px; height: 110px; margin-top: 14px; border-radius: 50% !important; background: radial-gradient(circle, #fff 0 32%, transparent 33%), conic-gradient(#a98bff 0 64%, #eee7fc 0); }
+  .ti-as-tog { display: flex !important; justify-content: space-between; align-items: center; padding: 8px; background: #fff; font-size: 0.7rem; font-weight: 700; }
+  .ti-as-tog em { width: 26px; height: 15px; border-radius: 8px; background: #d8d3e4; }
+  .ti-as-tog em.on { background: #5b3fd1; }
+  .ti-as-moods { font-size: 1.1rem; letter-spacing: 0.08em; text-align: center; margin-top: 30px; }
+  .ti-as-dots { display: flex; justify-content: center; gap: 6px; }
+  .ti-as-dots span { width: 6px; height: 6px; border-radius: 50%; background: #d1d1d6; transition: background 0.3s, width 0.3s; }
+  .ti-as-dots span.is-on { background: #1c1c1e; width: 16px; border-radius: 3px; }
+  .ti-as-new { display: grid; gap: 8px; border-top: 1px solid #e5e5ea; padding-top: 14px; }
+  .ti-as-ver { font-size: 0.8rem; color: #5c5c63; }
+  .ti-as-notes { list-style: none; padding: 0; display: grid; gap: 6px; font-size: 0.86rem; line-height: 1.45; color: #2c2c30; }
+  .ti-as-foot { font-size: 0.7rem; color: #5c5c63; line-height: 1.4; }
+
+  .ti-rl-detail { display: grid; gap: var(--s-5); padding-top: calc(var(--fs-xl) + var(--s-4)); }
+  .ti-rl-big { font: 900 clamp(3rem, 2rem + 5vw, 6.5rem)/0.9 var(--font-display); letter-spacing: -0.05em; }
+  .ti-rl-big-name { font-size: 0.42em; letter-spacing: -0.03em; color: var(--a); }
+  .ti-rl-cols { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-6); }
+  .ti-rl-cols ul { list-style: none; padding: 0; margin-top: var(--s-3); display: grid; gap: var(--s-2); color: var(--ink-2); }
+  .ti-rl-ships :global(li)::before { content: '◆ '; color: var(--a); }
+  .ti-rl-gate :global(li)::before { content: '☐ '; color: var(--b); }
+  .ti-rl-watch { padding: var(--s-5); border-radius: var(--r-md); border: 1px dashed color-mix(in srgb, var(--a) 60%, transparent); }
+  .ti-rl-watch p:last-child { margin-top: var(--s-2); font: 700 var(--fs-lg)/1.35 var(--font-display); color: var(--ink); }
+
+  /* ----- Release-notes writer ----- */
+  .ti-rw { display: grid; gap: var(--s-5); padding: var(--s-6); border-radius: calc(var(--r-lg) + 8px); border: 1px solid var(--line); background: radial-gradient(60% 80% at 90% 0%, color-mix(in srgb, var(--b) 12%, transparent), transparent 70%), var(--bg-2); }
+  .ti-rw-head { display: grid; gap: var(--s-2); }
+  .ti-rw-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--s-6); align-items: start; }
+  .ti-rw-edit { display: grid; gap: var(--s-3); }
+  .ti-rw-tones { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ti-rw-tones button { padding: 0.55rem 1rem; border-radius: var(--r-pill); border: 1px solid var(--line-strong); font: 600 var(--fs-sm)/1 var(--font-ui); color: var(--ink-2); }
+  .ti-rw-tones button:hover { color: var(--ink); }
+  .ti-rw-tones button[aria-pressed='true'] { background: var(--a); border-color: var(--a); color: #140f24; }
+  .ti-rw-label { font: 600 var(--fs-label)/1.2 var(--font-ui); letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--ink-2); margin-top: var(--s-2); }
+  .ti-rw-text { width: 100%; min-height: 11rem; resize: vertical; padding: var(--s-4); border-radius: var(--r-md); border: 1px solid var(--line-strong); background: #f7f3ff; color: #1f1a33; font: 500 1rem/1.55 Inter, system-ui, sans-serif; }
+  .ti-rw-text:focus-visible { outline: 2px solid var(--a); outline-offset: 2px; }
+  .ti-rw-check { display: grid; gap: var(--s-3); padding: var(--s-5); border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line); }
+  .ti-rw-score { display: flex; align-items: baseline; gap: var(--s-2); color: var(--ink-2); font-size: var(--fs-sm); }
+  .ti-rw-score b { font: 900 var(--fs-2xl)/1 var(--font-display); color: var(--ink); }
+  .ti-rw-check.is-good .ti-rw-score b { color: var(--a); }
+  .ti-rw-meter { height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+  .ti-rw-meter i { display: block; height: 100%; background: linear-gradient(90deg, #ffb3c7, var(--a)); transform-origin: left; transition: transform 0.5s var(--ease-out); }
+  .ti-rw-list { list-style: none; padding: 0; display: grid; gap: 0.4rem; font-size: var(--fs-sm); color: var(--ink-2); }
+  .ti-rw-list :global(li.ok span:first-child) { color: #86e0b4; font-weight: 800; }
+  .ti-rw-list :global(li.no span:first-child) { color: #ff9db8; font-weight: 800; }
+  .ti-rw-flags { display: grid; gap: 0.35rem; font-size: var(--fs-sm); color: var(--ink-2); }
+  .ti-rw-flags :global(mark) { background: #ffd3df; color: #1f1a33; padding: 0 0.3em; border-radius: 4px; font-weight: 700; }
+
+  @media (max-width: 960px) {
+    .ti-rl-grid, .ti-rw-grid { grid-template-columns: 1fr; }
+    .ti-rl-detail { padding-top: 0; }
+  }
+  @media (max-width: 640px) {
+    .ti-rl-road, .ti-rw { padding: var(--s-4); }
+    .ti-rl-miles { grid-template-columns: 1fr 1fr; }
+    .ti-rl-wk:nth-child(odd) { display: none; }
+    .ti-rl-cols { grid-template-columns: 1fr; }
+    .ti-rl-store { border-radius: 28px; box-shadow: 0 0 0 7px #1a1a1f, 0 40px 80px -30px rgb(0 0 0 / 0.9); }
+    .ti-rl-store > * { padding-inline: 16px; }
+    .ti-as-icon { width: 76px; height: 76px; border-radius: 18px; padding: 0 13px; gap: 5px; }
+    .ti-as-icon i { height: 9px; }
+  }
+</style>

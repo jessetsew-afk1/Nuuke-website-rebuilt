@@ -1,0 +1,409 @@
+---
+// Cinematic opening: an airport at night. Scroll drives a split-flap departure board that
+// clatters into a short manifesto, re-flips into real-looking departures, then a plane arc
+// draws across a globe while a flight-clock ring sweeps 08:10 → 13:20. The board finally
+// admits the delay; the lockup lands in flap tiles. Reduced motion → a static poster.
+import { AIRPORTS as A, arcPath, graticule, project as proj, FL } from '../../../data/cases/flighty';
+
+const N = 19;
+const pad = (s: string) => s.padEnd(N, ' ').slice(0, N);
+type Target = { text: string; s: number; e: number; tone?: 'ok' | 'late' | 'cx' | 'mute'; hl?: [number, number]; lamp: 'ok' | 'late' | 'cx' | 'mute' };
+const mani: [string, Target['lamp'], [number, number]?][] = [
+  ['YOUR FLIGHT', 'ok'],
+  ['LEAVES AT 14:05.', 'ok', [10, 16]],
+  ['ITS PLANE IS', 'ok'],
+  ['STILL IN DENVER.', 'late', [9, 16]],
+  ['RUNNING 48 LATE.', 'late', [8, 16]],
+  ['THE BOARD WON’T', 'cx'],
+  ['SAY SO FOR HOURS.', 'cx'],
+];
+const dep: [string, Target['lamp']][] = [
+  ['12:50 DEN DEPARTED', 'mute'],
+  ['13:15 JFK BOARDING', 'ok'],
+  ['13:40 AUS ON TIME', 'ok'],
+  ['14:05 SFO ON TIME', 'ok'],
+  ['14:20 BOS CANCELLED', 'cx'],
+  ['15:00 LAX ON TIME', 'ok'],
+  ['15:35 SEA ON TIME', 'ok'],
+];
+// Typographic apostrophe is not on a flap; use a plain one.
+const clean = (s: string) => pad(s.replace('’', "'"));
+const rows = mani.map(([t, lamp, hl], i) => {
+  const targets: Target[] = [
+    { text: clean(t), s: 0.02 + i * 0.05, e: 0.09 + i * 0.05, lamp, hl, tone: 'late' },
+    { text: clean(dep[i][0]), s: 0.44 + i * 0.014, e: 0.5 + i * 0.014, lamp: dep[i][1], hl: [10, 19], tone: dep[i][1] },
+  ];
+  if (i === 3) targets.push({ text: clean('14:53 SFO DELAYED'), s: 0.785, e: 0.83, lamp: 'late', hl: [0, 19], tone: 'late' });
+  return targets;
+});
+const payload = JSON.stringify({ N, rows });
+
+const view = { lat0: 39, lon0: -99, cx: 200, cy: 200, r: 300 };
+const DISC = 142;
+const grat = graticule(view, 15);
+const inbound = arcPath(A.DEN, A.ORD, view, 0.22);
+const yours = arcPath(A.ORD, A.SFO, view, 0.2);
+const cities = ['DEN', 'ORD', 'SFO', 'JFK', 'AUS', 'SEA', 'LAX', 'BOS', 'MIA', 'YYZ', 'MEX'].map((c) => ({ c, p: proj(A[c].lat, A[c].lon, view) })).filter((c) => Math.hypot(c.p.x - 200, c.p.y - 200) < DISC - 6);
+const lockA = 'YOU KNEW'.split('');
+const lockB = 'AT 08:10.'.split('');
+const marquee = [
+  ['ORD', 'ON TIME', 'ok'], ['DEN', 'DELAYED 48', 'late'], ['SFO', 'ON TIME', 'ok'], ['BOS', 'CANCELLED', 'cx'], ['JFK', 'BOARDING', 'ok'],
+  ['AUS', 'ON TIME', 'ok'], ['SEA', 'DELAYED 12', 'late'], ['LAX', 'LANDED', 'ok'], ['MIA', 'GATE CHANGE', 'late'], ['LHR', 'ON TIME', 'ok'], ['HNL', 'DIVERTED', 'cx'], ['NRT', 'IN THE AIR', 'ok'],
+];
+---
+
+<div class="fl-open" data-fl-open>
+  <div class="fl-open-sticky">
+    <div class="fl-open-sky" aria-hidden="true">
+      <div class="fl-glass"></div>
+      <div class="fl-runway">{Array.from({ length: 22 }).map((_, i) => <i style={`--k:${i}`}></i>)}</div>
+    </div>
+
+    <p class="visually-hidden">
+      Your flight leaves at 14:05. Its plane is still in Denver, running 48 minutes late. The board won’t say so for hours. At 08:10 your phone tells you to expect 14:53; the departure board changes to delayed at 13:20. You knew at 08:10.
+    </p>
+
+    <div class="fl-open-grid container" aria-hidden="true">
+      <div class="fl-board" data-fl-board>
+        <div class="fl-board-head">
+          <span class="fl-board-title">Departures</span>
+          <span class="fl-board-clock" data-fl-clock>08:10</span>
+        </div>
+        <div class="fl-board-cols"><span>Time</span><span>To</span><span>Status</span></div>
+        {
+          rows.map((_, r) => (
+            <div class="fl-brow" data-fl-row={r}>
+              <span class="fl-lamp" data-fl-lamp />
+              <span class="fl-cells">
+                {Array.from({ length: N }).map(() => (
+                  <span class="fl-cell">
+                    <i> </i>
+                  </span>
+                ))}
+              </span>
+            </div>
+          ))
+        }
+        <p class="fl-headstart" data-fl-head><span>Head start</span> 5h 10m</p>
+      </div>
+
+      <div class="fl-globe">
+        <svg viewBox="0 0 400 400" class="fl-globe-svg">
+          <defs>
+            <radialGradient id="flo-globe" cx="38%" cy="32%" r="78%">
+              <stop offset="0" stop-color="#1e2132" />
+              <stop offset="1" stop-color="#0a0a10" />
+            </radialGradient>
+            <clipPath id="flo-clip"><circle cx="200" cy="200" r={DISC} /></clipPath>
+            <radialGradient id="flo-shade" cx="50%" cy="50%" r="50%"><stop offset=".7" stop-color="#000" stop-opacity="0" /><stop offset="1" stop-color="#000" stop-opacity=".55" /></radialGradient>
+            <filter id="flo-glow" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="3" result="b" />
+              <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+            </filter>
+          </defs>
+          <g class="fl-ticks">
+            {Array.from({ length: 48 }).map((_, i) => <line x1="200" x2="200" y1={i % 4 ? 14 : 8} y2="20" transform={`rotate(${i * 7.5} 200 200)`} />)}
+          </g>
+          <circle cx="200" cy="200" r="174" fill="none" stroke="#24242f" stroke-width="7" />
+          <circle cx="200" cy="200" r="174" fill="none" stroke={FL.late} stroke-width="7" stroke-linecap="round" pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="1" transform="rotate(-90 200 200)" class="fl-ring" data-fl-ring />
+          <circle cx="200" cy="200" r={DISC} fill="url(#flo-globe)" />
+          <g clip-path="url(#flo-clip)">
+            <path d={grat} fill="none" stroke="#fff" stroke-opacity=".08" />
+            <path d={yours} fill="none" stroke={FL.ok} stroke-width="2" stroke-dasharray="3 6" stroke-linecap="round" opacity=".75" />
+            <path d={inbound} fill="none" stroke={FL.late} stroke-width="3.5" stroke-linecap="round" pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="1" filter="url(#flo-glow)" data-fl-arc />
+            {
+              cities.map((c) => (
+                <g>
+                  <circle cx={c.p.x} cy={c.p.y} r={['DEN', 'ORD', 'SFO'].includes(c.c) ? 4.5 : 2.5} fill={c.c === 'DEN' ? FL.late : '#f5f5f0'} />
+                  {['DEN', 'ORD', 'SFO'].includes(c.c) && (
+                    <text x={c.p.x + (c.c === 'SFO' ? -9 : c.c === 'DEN' ? -6 : 8)} y={c.p.y + (c.c === 'ORD' ? -10 : 18)} text-anchor={c.c === 'SFO' || c.c === 'DEN' ? 'end' : 'start'} class="fl-gl-label">{c.c}</text>
+                  )}
+                </g>
+              ))
+            }
+          </g>
+          <circle cx="200" cy="200" r={DISC} fill="none" stroke="#fff" stroke-opacity=".14" />
+          <circle cx="200" cy="200" r={DISC} fill="url(#flo-shade)" />
+          <g data-fl-plane class="fl-plane">
+            <path d="M-14 0 L-4 -2 L2 -11 L6 -11 L3 -2 L10 -2 L13 -6 L15 -6 L14 0 L15 6 L13 6 L10 2 L3 2 L6 11 L2 11 L-4 2 Z" fill="#f5f5f0" />
+          </g>
+        </svg>
+        <div class="fl-readout">
+          <span class="fl-readout-k">Now</span>
+          <span class="fl-readout-v" data-fl-now>08:10</span>
+          <span class="fl-readout-k">Board says</span>
+          <span class="fl-readout-s" data-fl-says>ON TIME</span>
+        </div>
+        <div class="fl-note" data-fl-note>
+          <span class="fl-note-ic"></span>
+          <span class="fl-note-body">
+            <b>08:10 · FL 214 to SFO</b>
+            Your plane is running 48 min late in Denver. Plan on leaving around 14:53.
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="fl-lock" data-fl-lock aria-hidden="true">
+      <p class="fl-lock-pre">The board caught up at 13:20.</p>
+      <p class="fl-lock-main">
+        <span class="fl-lock-line">{lockA.map((c, i) => <span class:list={['fl-tile', { 'is-gap': c === ' ' }]} style={`--j:${i}`}>{c}</span>)}</span>
+        <span class="fl-lock-line">{lockB.map((c, i) => <span class:list={['fl-tile', { 'is-gap': c === ' ', 'is-amber': i > 2 }]} style={`--j:${i + 8}`}>{c}</span>)}</span>
+      </p>
+      <p class="fl-lock-post">Illustrative scenario. Flighty says its model can flag a late-arriving plane up to 6 hours before the airline does.</p>
+    </div>
+
+    <div class="fl-marquee" aria-hidden="true">
+      <div class="fl-marquee-track">
+        {
+          Array.from({ length: 2 }, () => (
+            <span>
+              {marquee.map(([c, s, t]) => (
+                <span class="fl-mq">
+                  <b>{c}</b>
+                  <i class={`fl-mq-${t}`}>● {s}</i>
+                </span>
+              ))}
+            </span>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+  <script type="application/json" data-fl-open-data set:html={payload} />
+</div>
+
+<script>
+  import { ScrollTrigger, reducedMotion } from '../../../scripts/motion';
+
+  type Target = { text: string; s: number; e: number; tone?: string; hl?: [number, number]; lamp: string };
+  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:.';
+  const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+  const range = (p: number, a: number, b: number) => clamp01((p - a) / (b - a));
+  const ease = (x: number) => x * x * (3 - 2 * x);
+
+  document.querySelectorAll<HTMLElement>('[data-fl-open]').forEach((root) => {
+    const data = JSON.parse(root.querySelector('[data-fl-open-data]')!.textContent || '{}') as { N: number; rows: Target[][] };
+    const N = data.N;
+    const rowEls = [...root.querySelectorAll<HTMLElement>('[data-fl-row]')];
+    const cells = rowEls.map((r) => [...r.querySelectorAll<HTMLElement>('.fl-cell')]);
+    const glyphs = cells.map((r) => r.map((c) => c.querySelector('i')!));
+    const lamps = rowEls.map((r) => r.querySelector<HTMLElement>('[data-fl-lamp]')!);
+    const shown: string[][] = cells.map((r) => r.map(() => ' '));
+    const clock = root.querySelector<HTMLElement>('[data-fl-clock]')!;
+    const now = root.querySelector<HTMLElement>('[data-fl-now]')!;
+    const says = root.querySelector<HTMLElement>('[data-fl-says]')!;
+    const ring = root.querySelector<SVGCircleElement>('[data-fl-ring]')!;
+    const arc = root.querySelector<SVGPathElement>('[data-fl-arc]')!;
+    const plane = root.querySelector<SVGGElement>('[data-fl-plane]')!;
+    const note = root.querySelector<HTMLElement>('[data-fl-note]')!;
+    const head = root.querySelector<HTMLElement>('[data-fl-head]')!;
+    const lock = root.querySelector<HTMLElement>('[data-fl-lock]')!;
+    const arcLen = arc.getTotalLength();
+    let progress = 0;
+    let flux = false;
+    let raf = 0;
+    let lastTick = 0;
+
+    const rnd = () => CHARS[(Math.random() * CHARS.length) | 0];
+
+    const renderBoard = (p: number, animate: boolean) => {
+      flux = false;
+      data.rows.forEach((targets, r) => {
+        let lamp = '';
+        for (let i = 0; i < N; i++) {
+          let ch = ' ';
+          let tone = '';
+          for (const tg of targets) {
+            if (p < tg.s) break;
+            const k = (p - tg.s) / (tg.e - tg.s);
+            const want = tg.text[i];
+            const inHl = tg.hl && i >= tg.hl[0] && i < tg.hl[1];
+            if (k >= 1 || ch === want) {
+              ch = want;
+              tone = inHl ? tg.tone || '' : '';
+              if (i === 0) lamp = k >= 1 ? tg.lamp : lamp;
+            } else {
+              const settle = 0.15 + 0.85 * (i / N);
+              if (k >= settle) {
+                ch = want;
+                tone = inHl ? tg.tone || '' : '';
+              } else {
+                ch = rnd();
+                tone = '';
+                flux = true;
+              }
+              break;
+            }
+          }
+          const cell = cells[r][i];
+          if (shown[r][i] !== ch) {
+            shown[r][i] = ch;
+            glyphs[r][i].textContent = ch;
+            if (animate) glyphs[r][i].animate([{ transform: 'rotateX(0deg)' }, { transform: 'rotateX(-80deg)', offset: 0.45 }, { transform: 'rotateX(0deg)' }], { duration: 110, easing: 'ease-out' });
+          }
+          cell.dataset.tone = tone;
+        }
+        lamps[r].dataset.tone = lamp;
+      });
+    };
+
+    const fmt = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(Math.floor(m % 60)).padStart(2, '0')}`;
+    const renderScene = (p: number) => {
+      const c = ease(range(p, 0.58, 0.8));
+      const minutes = 8 * 60 + 10 + c * 310;
+      clock.textContent = fmt(minutes);
+      now.textContent = fmt(minutes);
+      ring.style.strokeDashoffset = String(1 - c);
+      arc.style.strokeDashoffset = String(1 - c);
+      const pt = arc.getPointAtLength(Math.max(0.001, c) * arcLen);
+      const pt2 = arc.getPointAtLength(Math.min(arcLen, Math.max(0.001, c) * arcLen + 2));
+      const ang = (Math.atan2(pt2.y - pt.y, pt2.x - pt.x) * 180) / Math.PI;
+      plane.setAttribute('transform', `translate(${pt.x} ${pt.y}) rotate(${ang})`);
+      plane.style.opacity = p > 0.56 ? '1' : '0';
+      const late = p > 0.8;
+      says.textContent = late ? 'DELAYED' : 'ON TIME';
+      says.dataset.tone = late ? 'late' : 'ok';
+      root.classList.toggle('is-scene', p > 0.42);
+      note.classList.toggle('is-in', p > 0.6);
+      head.classList.toggle('is-in', p > 0.83);
+      root.classList.toggle('is-done', p > 0.87);
+      lock.classList.toggle('is-in', p > 0.87);
+    };
+
+    const loop = (t: number) => {
+      raf = 0;
+      if (t - lastTick > 70) {
+        lastTick = t;
+        renderBoard(progress, true);
+      }
+      if (flux) raf = requestAnimationFrame(loop);
+    };
+
+    const set = (p: number) => {
+      progress = p;
+      renderBoard(p, true);
+      renderScene(p);
+      if (flux && !raf) raf = requestAnimationFrame(loop);
+    };
+
+    if (reducedMotion) {
+      root.classList.add('is-static');
+      renderBoard(0.4, false);
+      renderScene(0.82);
+      root.classList.remove('is-done');
+      lock.classList.add('is-in');
+      return;
+    }
+    set(0);
+    ScrollTrigger.create({ trigger: root, start: 'top top', end: 'bottom bottom', onUpdate: (s) => set(s.progress) });
+  });
+</script>
+
+<style>
+  .fl-open { position: relative; height: 480vh; background: #07070b; color: #f5f5f0; isolation: isolate; }
+  .fl-open-sticky { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; display: grid; align-content: center; padding-bottom: 5rem; }
+
+  /* night airport */
+  .fl-open-sky { position: absolute; inset: 0; z-index: -1; background: radial-gradient(90% 60% at 70% 0%, #1b1e33 0%, transparent 60%), radial-gradient(60% 40% at 15% 100%, rgb(255 176 32 / 0.1), transparent 70%), linear-gradient(#0a0a12, #050508 70%); }
+  .fl-glass { position: absolute; inset: 0 0 30%; background: repeating-linear-gradient(90deg, transparent 0 calc(12.5% - 2px), rgb(255 255 255 / 0.035) calc(12.5% - 2px) 12.5%), linear-gradient(transparent 62%, rgb(255 255 255 / 0.04) 62% calc(62% + 2px), transparent 0); mask-image: linear-gradient(#000, transparent); }
+  .fl-runway { position: absolute; left: -10%; right: -10%; bottom: 18%; height: 2px; display: flex; justify-content: space-between; transform: perspective(400px) rotateX(70deg); }
+  .fl-runway i { width: 6px; height: 6px; border-radius: 50%; background: #ffcf70; box-shadow: 0 0 12px 3px rgb(255 190 80 / 0.6); animation: fl-blink 2.4s ease-in-out calc(var(--k) * 0.11s) infinite; }
+  @keyframes fl-blink { 50% { opacity: 0.25; } }
+
+  .fl-open-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: var(--s-8); align-items: center; transition: opacity 0.6s var(--ease-out), transform 0.8s var(--ease-out), filter 0.6s; }
+  .fl-open.is-done .fl-open-grid { opacity: 0.1; transform: scale(0.96); filter: blur(5px); }
+
+  /* split-flap board */
+  .fl-board { position: relative; container-type: inline-size; padding: clamp(10px, 2cqi, 22px); border-radius: 18px; background: linear-gradient(#111118, #0b0b10); box-shadow: 0 0 0 1px #24242e, 0 40px 100px -30px #000, inset 0 1px 0 rgb(255 255 255 / 0.05); }
+  .fl-board-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.2cqi; font-family: var(--font-ui); }
+  .fl-board-title { font-weight: 700; text-transform: uppercase; letter-spacing: 0.24em; font-size: clamp(0.62rem, 2.3cqi, 1rem); color: #ffcf70; }
+  .fl-board-clock { font-weight: 800; font-variant-numeric: tabular-nums; font-size: clamp(0.9rem, 4cqi, 1.8rem); color: #f5f5f0; }
+  .fl-board-cols { display: grid; grid-template-columns: calc(6 / 19 * 100%) calc(4 / 19 * 100%) 1fr; margin: 0 0 0.6cqi calc(3.2cqi + 6px); font: 600 clamp(0.5rem, 1.5cqi, 0.72rem) var(--font-ui); letter-spacing: 0.18em; text-transform: uppercase; color: #a3a3ad; }
+  .fl-brow { display: flex; align-items: center; gap: 6px; margin-bottom: 0.7cqi; }
+  .fl-lamp { flex: none; width: 2cqi; height: 2cqi; min-width: 6px; min-height: 6px; border-radius: 50%; background: #2a2a33; transition: background 0.3s, box-shadow 0.3s; }
+  .fl-lamp[data-tone='ok'] { background: #2ee58a; box-shadow: 0 0 10px #2ee58a; }
+  .fl-lamp[data-tone='late'] { background: #ffb020; box-shadow: 0 0 10px #ffb020; }
+  .fl-lamp[data-tone='cx'] { background: #ff5a5a; box-shadow: 0 0 10px #ff5a5a; }
+  .fl-lamp[data-tone='mute'] { background: #6b6b75; }
+  .fl-cells { flex: 1; display: grid; grid-template-columns: repeat(19, 1fr); gap: 0.45cqi; }
+  .fl-cell { position: relative; aspect-ratio: 0.74; border-radius: 0.7cqi; background: linear-gradient(#24242d 0 50%, #1a1a22 50%); perspective: 120px; display: grid; place-items: center; overflow: hidden; box-shadow: inset 0 -1px 0 rgb(0 0 0 / 0.6); }
+  .fl-cell::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #050507; }
+  .fl-cell i { font-style: normal; font: 800 calc(100cqi / 19 * 0.58) / 1 var(--font-ui); color: #f5f5f0; transform-origin: 50% 50%; white-space: pre; }
+  .fl-cell[data-tone='late'] i { color: #ffb020; }
+  .fl-cell[data-tone='ok'] i { color: #2ee58a; }
+  .fl-cell[data-tone='cx'] i { color: #ff6b6b; }
+  .fl-cell[data-tone='mute'] i { color: #b9b9c2; }
+  .fl-headstart { position: absolute; right: 18px; bottom: -18px; padding: 6px 14px; border-radius: 99px; background: #ffb020; color: #1a1200; font: 800 clamp(0.75rem, 2cqi, 1rem) var(--font-ui); font-variant-numeric: tabular-nums; opacity: 0; transform: translateY(10px) scale(0.9); transition: opacity 0.4s, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .fl-headstart span { font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.8em; margin-right: 0.4em; }
+  .fl-headstart.is-in { opacity: 1; transform: none; }
+
+  /* globe + ring */
+  .fl-globe { position: relative; display: grid; justify-items: center; gap: var(--s-3); opacity: 0.35; transform: scale(0.92); transition: opacity 0.8s var(--ease-out), transform 1s var(--ease-out); }
+  .fl-open.is-scene .fl-globe { opacity: 1; transform: none; }
+  .fl-globe-svg { width: min(100%, 440px); overflow: visible; }
+  .fl-ticks line { stroke: #3a3a46; stroke-width: 1.5; }
+  .fl-gl-label { font: 700 12px var(--font-ui); fill: #f5f5f0; letter-spacing: 0.08em; }
+  .fl-plane { transition: opacity 0.4s; filter: drop-shadow(0 0 6px rgb(255 255 255 / 0.6)); }
+  .fl-readout { display: grid; grid-template-columns: auto auto; gap: 2px var(--s-4); align-items: baseline; font-family: var(--font-ui); }
+  .fl-readout-k { font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: #a3a3ad; }
+  .fl-readout-v { font-weight: 800; font-size: clamp(1.4rem, 1rem + 1.6vw, 2.4rem); font-variant-numeric: tabular-nums; grid-row: 2; }
+  .fl-readout-s { font-weight: 800; font-size: clamp(1rem, 0.8rem + 1vw, 1.5rem); letter-spacing: 0.08em; grid-row: 2; color: #2ee58a; transition: color 0.3s; }
+  .fl-readout-s[data-tone='late'] { color: #ffb020; }
+  .fl-note { position: absolute; left: 50%; top: 0; width: min(320px, 92%); display: grid; grid-template-columns: auto 1fr; gap: 12px; padding: 12px 14px; border-radius: 20px; background: rgb(40 40 50 / 0.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 20px 50px -10px rgb(0 0 0 / 0.7); font: 400 0.85rem/1.35 var(--font-ui); color: #f5f5f0; opacity: 0; transform: translate(-50%, -24px) scale(0.96); transition: opacity 0.4s, transform 0.6s var(--ease-out); }
+  .fl-note b { display: block; font-weight: 700; margin-bottom: 2px; }
+  .fl-note.is-in { opacity: 1; transform: translate(-50%, 0); }
+  .fl-note-ic { width: 34px; height: 34px; border-radius: 9px; background: radial-gradient(circle at 50% 50%, #0b0b0f 40%, transparent 41%), conic-gradient(#ffb020 0 42%, #2a2a35 0); }
+
+  /* lockup */
+  .fl-lock { position: absolute; inset: 0 0 4rem; display: grid; place-content: center; justify-items: center; text-align: center; gap: var(--s-4); pointer-events: none; padding-inline: var(--gutter); }
+  .fl-lock-pre { font: 600 clamp(1rem, 0.8rem + 1vw, 1.6rem) var(--font-ui); color: #c9c9cf; opacity: 0; transform: translateY(16px); transition: opacity 0.5s, transform 0.6s var(--ease-out); }
+  .fl-lock-main { display: grid; gap: clamp(4px, 0.6vw, 10px); justify-items: center; perspective: 800px; }
+  .fl-lock-line { display: flex; gap: clamp(3px, 0.5vw, 8px); }
+  .fl-tile { --w: clamp(30px, 1rem + 5.4vw, 104px); width: var(--w); height: calc(var(--w) * 1.32); display: grid; place-items: center; border-radius: calc(var(--w) * 0.1); background: linear-gradient(#26262f 0 50%, #1b1b23 50%); box-shadow: 0 0 0 1px #2c2c36, 0 20px 40px -10px #000; font: 900 calc(var(--w) * 0.78) / 1 var(--font-display); color: #f5f5f0; position: relative; opacity: 0; transform: rotateX(-100deg); transform-origin: 50% 0; transition: opacity 0.2s calc(var(--j) * 0.045s), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) calc(var(--j) * 0.045s); }
+  .fl-tile::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: #050507; }
+  .fl-tile.is-gap { background: none; box-shadow: none; width: calc(var(--w) * 0.4); }
+  .fl-tile.is-gap::after { display: none; }
+  .fl-tile.is-amber { color: #ffb020; }
+  .fl-lock-post { max-width: 52ch; font-size: var(--fs-sm); color: #a3a3ad; opacity: 0; transition: opacity 0.6s 0.6s; }
+  .fl-lock.is-in .fl-lock-pre, .fl-lock.is-in .fl-tile, .fl-lock.is-in .fl-lock-post { opacity: 1; transform: none; }
+
+  /* marquee */
+  .fl-marquee { position: absolute; left: 0; right: 0; bottom: calc(var(--safe-bottom) - 1.75rem); overflow: hidden; border-block: 1px solid #24242e; background: #0b0b10; padding-block: 0.7rem; }
+  .fl-marquee-track { display: flex; width: max-content; animation: fl-marq 40s linear infinite; font: 800 clamp(0.8rem, 0.7rem + 0.5vw, 1.1rem)/1 var(--font-ui); letter-spacing: 0.06em; white-space: nowrap; }
+  .fl-mq { display: inline-flex; gap: 0.6em; margin-right: 2.4em; }
+  .fl-mq b { color: #f5f5f0; }
+  .fl-mq i { font-style: normal; }
+  .fl-mq-ok { color: #2ee58a; }
+  .fl-mq-late { color: #ffb020; }
+  .fl-mq-cx { color: #ff6b6b; }
+  @keyframes fl-marq { to { transform: translateX(-50%); } }
+
+  /* reduced motion: a static poster */
+  .fl-open.is-static { height: auto; }
+  .fl-open.is-static .fl-open-sticky { position: relative; height: auto; padding-block: var(--s-9) calc(var(--s-9) + 3rem); gap: var(--s-8); }
+  .fl-open.is-static .fl-globe { opacity: 1; transform: none; }
+  .fl-open.is-static .fl-note { position: relative; left: auto; top: auto; transform: none; opacity: 1; }
+  .fl-open.is-static .fl-lock { position: relative; inset: auto; }
+  .fl-open.is-static .fl-marquee { bottom: 1.5rem; }
+  .fl-open.is-static .fl-marquee-track, .fl-open.is-static .fl-runway i { animation: none; }
+
+  @media (max-width: 860px) {
+    .fl-open-sticky { align-content: start; padding-top: max(5rem, 9vh); }
+    .fl-open-grid { grid-template-columns: 1fr; gap: var(--s-4); }
+    .fl-globe { grid-template-columns: auto 1fr; align-items: center; justify-items: start; gap: var(--s-3); }
+    .fl-globe-svg { width: min(60vw, 280px); }
+    .fl-board { padding: 10px 8px; margin-inline: calc(var(--gutter) * -0.5); }
+    .fl-cells { gap: 2px; }
+    .fl-brow { gap: 4px; margin-bottom: 3px; }
+    .fl-cell i { font-size: calc(100cqi / 19 * 0.66); }
+    .fl-readout { grid-template-columns: auto; grid-auto-flow: row; }
+    .fl-readout-v, .fl-readout-s { grid-row: auto; }
+    .fl-note { position: relative; left: auto; top: auto; grid-column: 1 / -1; width: 100%; transform: translateY(12px); }
+    .fl-note.is-in { transform: none; }
+    .fl-board-cols { display: none; }
+  }
+  @media (max-width: 860px) and (max-height: 700px) {
+    .fl-globe-svg { width: min(40vw, 180px); }
+  }
+</style>

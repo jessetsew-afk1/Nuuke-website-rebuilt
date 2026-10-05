@@ -1,0 +1,268 @@
+---
+import Case from '../../layouts/Case.astro';
+import Chapter from '../../components/case/Chapter.astro';
+import Brief from '../../components/case/Brief.astro';
+import Personas from '../../components/case/Personas.astro';
+import JourneyMap from '../../components/case/JourneyMap.astro';
+import FlowMap from '../../components/case/FlowMap.astro';
+import ScreenStack from '../../components/case/ScreenStack.astro';
+import Prototype from '../../components/case/Prototype.astro';
+import DesignSystem from '../../components/case/DesignSystem.astro';
+import Metrics from '../../components/case/Metrics.astro';
+import Hero from '../../components/cases/gentler-streak/Hero.astro';
+import Opening from '../../components/cases/gentler-streak/Opening.astro';
+import Roadmap from '../../components/cases/gentler-streak/Roadmap.astro';
+import CardSort from '../../components/cases/gentler-streak/CardSort.astro';
+import Screens from '../../components/cases/gentler-streak/Screens.astro';
+import WatchLab from '../../components/cases/gentler-streak/WatchLab.astro';
+import A11yLab from '../../components/cases/gentler-streak/A11yLab.astro';
+import { bySlug } from '../../data/projects';
+import { gentlerLayers } from '../../data/cases/gentler-streak';
+
+const p = bySlug('gentler-streak');
+const chapters = [
+  { id: 'manifesto', label: 'Manifesto' },
+  { id: 'brief', label: 'Brief & plan' },
+  { id: 'research', label: 'Personas' },
+  { id: 'journey', label: 'Journey map' },
+  { id: 'ia', label: 'Card sort' },
+  { id: 'flow', label: 'User flow' },
+  { id: 'layers', label: '3D wireframe' },
+  { id: 'prototype', label: 'Prototype' },
+  { id: 'watch', label: 'Watch-first' },
+  { id: 'a11y', label: 'Accessibility' },
+  { id: 'system', label: 'Design system' },
+  { id: 'measure', label: 'Measure' },
+];
+const sources = [
+  { label: 'Gentler Stories — Gentler Streak', url: 'https://gentlerstories.com/gentlerstreak' },
+  { label: 'Gentler Stories — newsroom', url: 'https://gentlerstories.com/newsroom' },
+  { label: 'Apple Developer — Behind the Design: Gentler Streak', url: 'https://developer.apple.com/news/?id=3m0ht22s' },
+  { label: 'Apple Design Awards 2024', url: 'https://developer.apple.com/design/awards/2024/' },
+  { label: 'Sketch blog — Gentler Streak', url: 'https://www.sketch.com/blog/gentler-streak/' },
+  { label: 'Apptisan 025 — Gentler Streak', url: 'https://apptisan.substack.com/p/apptisan-025-gentler-streak' },
+  { label: 'startup.si — Gentler Streak', url: 'https://www.startup.si/en-us/startup-map/startups-scaleups/gentler-streak' },
+  { label: 'App Store — Gentler Streak', url: 'https://apps.apple.com/us/app/gentler-streak-workout-tracker/id1576857102' },
+  { label: 'floow.design — screenshot teardown (third-party colours)', url: 'https://www.floow.design/aso-screens/gentler' },
+  { label: 'Tiimo — Gentler Streak partnership', url: 'https://www.tiimoapp.com/resource-hub/tiimo-gentler-streak-partnership' },
+];
+const meta = [
+  { label: 'Brand', value: 'Gentler Stories, Kranj (Slovenia)' },
+  { label: 'Discipline', value: 'Mobile app · iPhone & Apple Watch' },
+  { label: 'Our role', value: 'IA, research, prototype, accessibility, watch UI' },
+  { label: 'Timeline (concept)', value: 'Six-week design sprint' },
+];
+const personas = [
+  {
+    name: 'Recovering Maja',
+    meta: '34 · back from an overtraining injury',
+    quote: 'I don’t need another push. I need permission to stop.',
+    goals: ['A clear sign when to rest', 'Rebuild load slowly', 'See recovery as progress'],
+    pains: ['Streaks that punish rest days', 'Red warning colours', 'Daily goals that ignore soreness'],
+    color: '#FF7A45',
+  },
+  {
+    name: 'Restarting Ben',
+    meta: '47 · back to exercise after years away',
+    quote: 'Closed rings just remind me what I didn’t do yesterday.',
+    goals: ['Small wins he can repeat', 'Plain language, no jargon', 'Big type he can read mid-walk'],
+    pains: ['Leaderboards', 'Charts he has to decode', 'Guilt-trip notifications'],
+    color: '#F4C430',
+  },
+  {
+    name: 'Cycle-aware Lea',
+    meta: '29 · tracks her cycle and sleep',
+    quote: 'Some weeks my body wants more, some weeks less. My app should know that.',
+    goals: ['Training that adapts to her cycle', 'Sleep in the same picture', 'Privacy she controls'],
+    pains: ['One-size-fits-all plans', 'Logging everything twice', 'Cycle data buried in settings'],
+    color: '#B9A6E8',
+  },
+];
+const stages = [
+  { label: 'Download', doing: 'Installs it after his doctor says “move a bit more”.', feeling: 'Hopeful, a little embarrassed.', score: 0.4, opportunity: 'Onboarding asks how he feels, not what his goal is. No target to fail on day one.' },
+  { label: 'Day 3', doing: 'Runs 5 km to prove a point. Way above his path.', feeling: 'Sore and discouraged.', score: -1.2, opportunity: 'Show the dot above the path without an alarm, and quietly lower tomorrow’s suggestion.' },
+  { label: 'Day 4, 7am', doing: 'Opens the app expecting a broken streak.', feeling: 'Braced for guilt.', score: -1.7, opportunity: 'Readiness says “take it easy”, and “Rest instead” sits right next to the walk.' },
+  { label: 'Rest day', doing: 'Takes the day off. The streak still grows.', feeling: 'Relieved, surprised.', score: 0.9, opportunity: 'Give rest its own calm, celebratory state. It’s an achievement, not a gap.' },
+  { label: 'Week 2', doing: 'Walks four times, all inside his path.', feeling: 'Steady, in control.', score: 1.4, opportunity: 'A weekly recap about consistency, not volume. The watch complication keeps it glanceable.' },
+  { label: 'Day 14', doing: 'Shares his two-week recap with his daughter.', feeling: 'Proud.', score: 1.9, opportunity: 'A shareable card about progress, with no leaderboard and no comparison.' },
+];
+const nodes = [
+  { id: 'welcome', label: 'Welcome', x: 90, y: 90, kind: 'start' as const },
+  { id: 'permissions', label: 'Health permissions', x: 270, y: 90 },
+  { id: 'checkin', label: 'How do you feel?', x: 450, y: 90 },
+  { id: 'today', label: 'Today (home)', x: 640, y: 210, kind: 'key' as const },
+  { id: 'suggest', label: 'Go Gentler', x: 840, y: 90 },
+  { id: 'rest', label: 'Rest day', x: 1010, y: 90, kind: 'end' as const },
+  { id: 'path', label: 'Activity Path', x: 840, y: 210 },
+  { id: 'note', label: 'Heart note', x: 1010, y: 210 },
+  { id: 'workout', label: 'Workout detail', x: 840, y: 330 },
+  { id: 'week', label: 'Weekly trend', x: 450, y: 330 },
+  { id: 'settings', label: 'Settings', x: 270, y: 330 },
+];
+const edges = [
+  { from: 'welcome', to: 'permissions' },
+  { from: 'permissions', to: 'checkin' },
+  { from: 'checkin', to: 'today' },
+  { from: 'today', to: 'suggest', label: 'tap suggestion' },
+  { from: 'suggest', to: 'rest', label: 'rest instead' },
+  { from: 'today', to: 'path' },
+  { from: 'path', to: 'note' },
+  { from: 'today', to: 'workout' },
+  { from: 'today', to: 'week' },
+  { from: 'today', to: 'settings' },
+];
+const tasks = [
+  { label: 'Tell it how you feel this morning', screen: 'checkin' },
+  { label: 'See where you are on your path', screen: 'path' },
+  { label: 'Get today’s gentle suggestion', screen: 'suggest' },
+  { label: 'Review yesterday’s walk', screen: 'workout' },
+  { label: 'Take a guilt-free rest day', screen: 'rest' },
+  { label: 'Look back at your week', screen: 'week' },
+  { label: 'Turn on gentle nudges', screen: 'settings' },
+];
+---
+
+<Case project={p} chapters={chapters} sources={sources} meta={meta}>
+  <Hero slot="hero" project={p} />
+
+  <Opening />
+
+  <Chapter id="brief" n="01" label="Discover · The brief" title="A fitness app that says “rest” out loud.">
+    <Brief
+      story="Gentler Streak is an activity and health tracker for iPhone, iPad and Apple Watch, made by <strong>Gentler Stories</strong>, a small studio in Kranj, Slovenia, co-founded by Katarina Lotrič (CEO), Andrej Mihelič (UI/UX), Jasna Krmelj (CTO) and Luka Orešnik. Instead of fixed goals, it suggests how much to move each day based on <em>readiness</em>. Its orange, heart-shaped mascot, Yorhart, was created with illustrator Sören Selleslagh to stand for “what your heart would be telling you.” The line it lives by: <em>“Move consistently, not constantly.”</em>"
+      facts={[
+        { v: 'Fall 2021', k: 'Gentler Streak launches (Apple, Behind the Design)' },
+        { v: '2022', k: 'App Store Awards: Apple Watch App of the Year' },
+        { v: 'ADA ’24', k: 'Apple Design Award winner, Social Impact' },
+        { v: '8 people', k: 'The Gentler Stories team, per Apple and Apptisan' },
+        { v: '140+', k: 'Activity types, in 10 languages' },
+        { v: 'No VC', k: 'Bootstrapped, per Apptisan' },
+      ]}
+      problems={[
+        { title: 'Readiness without anxiety', text: 'Sleep, heart-rate variability and training load have to become one gentle sentence and one picture, not a score to worry about.' },
+        { title: 'Celebrate rest', text: 'Streak mechanics usually reward volume. Here a rest day has to feel like part of the streak, because it is part of training.' },
+        { title: 'Systemic colour', text: 'Each feature has its own colour, which a third-party teardown says can dilute recognition. We need a palette system anchored on the orange heart.' },
+      ]}
+      goal="One glance, on the phone or the wrist, that says how much to move today, and makes a rest day feel like a win."
+    />
+    <h3 class="t-h4 gs-sub">How we’d build it: eight phases in six weeks</h3>
+    <p class="t-body measure">This page follows the same path we’d take with the Gentler Stories team, from research to launch. Pick a phase to see what happens, what you get and how much of your time it takes.</p>
+    <Roadmap />
+  </Chapter>
+
+  <Chapter id="research" n="02" label="Define · Personas" title="Three people who were told to push harder." intro="Built from the audience Gentler Streak speaks to: Apple Watch owners put off by “push harder” fitness culture, including people returning from injury, burnout or illness, and people who track their cycle.">
+    <Personas personas={personas} />
+  </Chapter>
+
+  <Chapter id="journey" n="03" label="Define · Journey map" title="The day the streak would usually break." intro="Restarting Ben’s first two weeks. Tap each moment to see what he’s doing, how he feels and the design opportunity we found.">
+    <JourneyMap stages={stages} />
+  </Chapter>
+
+  <Chapter id="ia" n="04" label="Structure · Card sort" title="Where would you look for it?" intro="Before drawing screens, we ask people how they group things. Sort thirteen real Gentler Streak features into four tabs, then compare your sort with the information architecture we propose.">
+    <CardSort />
+  </Chapter>
+
+  <Chapter id="flow" n="05" label="Structure · User flow" title="Eleven screens around one morning question." intro="Onboarding happens once. The daily loop is <strong>How do you feel? → Today → a suggestion, or rest</strong>. Tap any screen to open it in the prototype below.">
+    <FlowMap nodes={nodes} edges={edges} width={1100} height={420} />
+  </Chapter>
+
+  <Chapter id="layers" n="06" label="Design · 3D wireframe" title="The Today screen, taken apart." intro="Each screen is built in five layers, from grid to motion. Scroll and the exploded view assembles into the final UI; drag to look around it.">
+    <ScreenStack layers={gentlerLayers} accent={p.accent} />
+  </Chapter>
+
+  <Chapter id="prototype" n="07" label="Prototype & test" title="A morning, a walk and a rest day. Tap through it." intro="This is the prototype we’d put in front of five people per round. Follow the tasks on the left, and switch between <strong>Sketch</strong>, <strong>Wireframe</strong> and <strong>Hi-fi</strong> to see how each screen evolved.">
+    <Prototype title="Gentler Streak · daily loop" start="welcome" tasks={tasks} note="Seven tasks, eleven screens. The heart’s voice appears as plain copy; we don’t redraw the brand’s mascot.">
+      <Screens />
+    </Prototype>
+  </Chapter>
+
+  <Chapter id="watch" n="08" label="Watch · Watch-first" title="Designed for the wrist first, the phone second." intro="Gentler Streak was Apple Watch App of the Year in 2022, so the watch isn’t a port. Tap the complication, start a walk, end it, or choose rest. Press the Digital Crown to go home, and lower your wrist to see the Always-On state.">
+    <WatchLab />
+  </Chapter>
+
+  <Chapter id="a11y" n="09" label="Include · Accessibility pass" title="Gentle has to mean readable, for everyone." intro="Gentler Streak won its Apple Design Award for Social Impact. We hold the design to that: switch on each setting and watch the same screen hold up. The readouts are measured live from the screen.">
+    <A11yLab />
+  </Chapter>
+
+  <Chapter id="system" n="10" label="Ship · Design system" title="One warm anchor. Feature colours as accents.">
+    <DesignSystem
+      colors={[
+        { name: 'Today coral', hex: '#FF7A45', use: 'The anchor: today, primary actions (with ink text)' },
+        { name: 'Ink', hex: '#2B1208', use: 'Text and icons on light surfaces' },
+        { name: 'Cream', hex: '#FFF4EC', use: 'Base background' },
+        { name: 'Path green', hex: '#7ED957', use: 'The Activity Path band' },
+        { name: 'Leaf', hex: '#2F7D32', use: 'Inside-path markers, positive text' },
+        { name: 'Night', hex: '#2E1B4E', use: 'Sleep and rest days' },
+        { name: 'Lilac', hex: '#B9A6E8', use: 'Rest accents on dark' },
+        { name: 'Sun', hex: '#F4C430', use: 'Steps and easy days' },
+        { name: 'Sky', hex: '#8DB4E6', use: 'Guided activities' },
+      ]}
+      type={[
+        { role: 'Display / numbers', sample: 'You’re steady.', spec: 'Montserrat 800 · 36/38 (stand-in for a heavy geometric sans)', style: 'font-family:Montserrat;font-weight:800;font-size:2.4rem;letter-spacing:-0.035em' },
+        { role: 'Title', sample: 'Rest counts.', spec: 'Montserrat 800 · 26/30', style: 'font-family:Montserrat;font-weight:800;font-size:1.6rem;letter-spacing:-0.025em' },
+        { role: 'Body', sample: 'A 20-min walk is perfect today.', spec: 'Inter 400 · 16/24 · sentence case', style: 'font-family:Inter;font-size:1rem' },
+        { role: 'Label', sample: 'READINESS · TUESDAY', spec: 'Inter 600 · 12/16 · +0.12em', style: 'font-family:Inter;font-weight:600;font-size:.75rem;letter-spacing:.12em' },
+      ]}
+      note="Hex values are our working approximation from a third-party teardown of App Store screenshots (floow.design), not official Gentler Streak colours."
+    >
+      <h3 class="t-label gs-ds-h">Components</h3>
+      <div class="gs-ds">
+        <div class="gs-ds-card">
+          <p class="gs-ds-k">Buttons</p>
+          <span class="gs-ds-btn">Start walk</span>
+          <span class="gs-ds-btn gs-ds-btn--rest">Rest instead</span>
+          <p class="t-small">Rest is a first-class action with the same size and weight as moving.</p>
+        </div>
+        <div class="gs-ds-card">
+          <p class="gs-ds-k">Path markers</p>
+          <p class="gs-ds-marks"><span><i class="gs-ds-in"></i>Inside</span><span><i class="gs-ds-up"></i>Above</span><span><i class="gs-ds-down"></i>Below</span></p>
+          <p class="t-small">Shape carries the meaning; colour only reinforces it.</p>
+        </div>
+        <div class="gs-ds-card">
+          <p class="gs-ds-k">Systemic colour</p>
+          <p class="gs-ds-strip" aria-hidden="true"><i style="flex:4;background:#FF7A45"></i><i style="flex:1;background:#2E1B4E"></i><i style="flex:1;background:#F4C430"></i><i style="flex:1;background:#7ED957"></i><i style="flex:1;background:#8DB4E6"></i></p>
+          <p class="t-small">Coral always means “today”. Each feature colour appears once per screen, as an accent, so the brand stays recognisable.</p>
+        </div>
+        <div class="gs-ds-card">
+          <p class="gs-ds-k">Motion</p>
+          <p class="gs-ds-breath" aria-hidden="true"><i></i></p>
+          <p class="t-small">One breath is 5.5 s, sine in-out. Everything calm moves at this pace, and stops with Reduce Motion.</p>
+        </div>
+      </div>
+    </DesignSystem>
+  </Chapter>
+
+  <Chapter id="measure" n="11" label="Ship · Measure" title="How we’d know it worked.">
+    <Metrics
+      metrics={[
+        { name: 'Today, at a glance', hypothesis: 'People can say what today’s suggestion is within five seconds of opening the app, or two seconds from the watch complication.', how: 'Moderated first-click and five-second tests; complication taps vs. app opens.' },
+        { name: 'Rest feels like a win', hypothesis: 'Testers describe the rest-day screen as encouraging, and people who take a suggested rest day come back the next day at least as often as those who skip it.', how: 'Interview coding across test rounds; next-day return rate by cohort after launch.' },
+        { name: 'Findable features', hypothesis: 'The four-tab IA lets people find key features first time in a tree test.', how: 'Tree test on the top eight tasks, then compared with the card-sort clusters.' },
+        { name: 'Accessibility parity', hypothesis: 'Task success with VoiceOver and the largest text sizes matches the default setup.', how: 'Sessions with assistive-technology users; audit at every release.' },
+      ]}
+    />
+  </Chapter>
+</Case>
+
+<style>
+  .gs-sub { margin-top: var(--s-9); margin-bottom: var(--s-3); }
+  .gs-ds-h { margin-bottom: var(--s-3); }
+  .gs-ds { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s-3); }
+  .gs-ds-card { display: grid; gap: var(--s-3); align-content: start; padding: var(--s-5); border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface); }
+  .gs-ds-k { font: 700 var(--fs-sm) var(--font-ui); color: var(--ink); }
+  .gs-ds-btn { display: grid; place-items: center; height: 48px; border-radius: 16px; background: #ff7a45; color: #2b1208; font: 800 0.95rem var(--font-display); }
+  .gs-ds-btn--rest { background: #b9a6e8; color: #1c1033; }
+  .gs-ds-marks { display: flex; gap: var(--s-4); flex-wrap: wrap; color: var(--ink-2); font-size: var(--fs-sm); }
+  .gs-ds-marks span { display: inline-flex; gap: 6px; align-items: center; }
+  .gs-ds-in { width: 12px; height: 12px; border-radius: 50%; background: #7ed957; }
+  .gs-ds-up, .gs-ds-down { width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; }
+  .gs-ds-up { border-bottom: 12px solid #ff7a45; }
+  .gs-ds-down { border-top: 12px solid #b9a6e8; }
+  .gs-ds-strip { display: flex; height: 28px; border-radius: 8px; overflow: hidden; }
+  .gs-ds-breath { height: 56px; display: grid; place-items: center; }
+  .gs-ds-breath i { width: 40px; height: 40px; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #ffd2b8, #ff7a45 55%, #e2551f); animation: gs-ds-breathe 5.5s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+  @keyframes gs-ds-breathe { 50% { transform: scale(1.3); } }
+  @media (max-width: 1000px) { .gs-ds { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .gs-ds { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) { .gs-ds-breath i { animation: none; } }
+</style>

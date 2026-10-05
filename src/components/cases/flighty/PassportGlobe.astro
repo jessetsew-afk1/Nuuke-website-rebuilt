@@ -1,0 +1,140 @@
+---
+// Passport: a sample traveller's year as glowing great-circle arcs on a 3D globe (Three.js,
+// lazy, hardware-GL only). Without a GPU, a build-time SVG globe with the same arcs stands in.
+import { AIRPORTS as A, YEAR_ROUTES, arcPath, graticule, project as proj } from '../../../data/cases/flighty';
+
+const R_MI = 3958.8;
+const D = Math.PI / 180;
+const miles = (a: string, b: string) => {
+  const p = A[a], q = A[b];
+  const h = Math.sin(((q.lat - p.lat) * D) / 2) ** 2 + Math.cos(p.lat * D) * Math.cos(q.lat * D) * Math.sin(((q.lon - p.lon) * D) / 2) ** 2;
+  return Math.round(2 * R_MI * Math.asin(Math.sqrt(h)));
+};
+const routes = YEAR_ROUTES.map(([a, b]) => ({ a, b, mi: miles(a, b) }));
+const total = routes.reduce((s, r) => s + r.mi, 0);
+const codes = [...new Set(YEAR_ROUTES.flat())];
+const longest = [...routes].sort((x, y) => y.mi - x.mi)[0];
+const view = { lat0: 32, lon0: -70, cx: 300, cy: 300, r: 250 };
+const grat = graticule(view, 15);
+const cols = ['#2ee58a', '#ffb020', '#6cb4ff'];
+const payload = JSON.stringify({
+  routes: YEAR_ROUTES.map(([a, b]) => ({ a: [A[a].lat, A[a].lon], b: [A[b].lat, A[b].lon] })),
+  airports: codes.map((c) => [A[c].lat, A[c].lon]),
+});
+---
+
+<div class="fl-pp" data-fl-pp>
+  <div class="fl-pp-stage">
+    <svg class="fl-pp-fallback" viewBox="0 0 600 600" aria-hidden="true">
+      <defs>
+        <radialGradient id="flp-g" cx="38%" cy="32%" r="80%"><stop offset="0" stop-color="#1b1e2e" /><stop offset="1" stop-color="#08080d" /></radialGradient>
+      </defs>
+      <circle cx="300" cy="300" r="268" fill="none" stroke="#6cb4ff" stroke-opacity=".12" stroke-width="18" />
+      <circle cx="300" cy="300" r={view.r} fill="url(#flp-g)" />
+      <path d={grat} fill="none" stroke="#fff" stroke-opacity=".07" />
+      {routes.map((r, i) => <path d={arcPath(A[r.a], A[r.b], view, 0.2)} data-arc={i} fill="none" stroke={cols[i % 3]} stroke-width="2.6" stroke-linecap="round" class="fl-pp-arc" />)}
+      {
+        codes
+          .map((c) => ({ c, p: proj(A[c].lat, A[c].lon, view) }))
+          .filter((x) => x.p.z > 0.05)
+          .map((x) => <circle cx={x.p.x} cy={x.p.y} r="4" fill="#f5f5f0" />)
+      }
+    </svg>
+    <canvas class="fl-pp-canvas" data-fl-pp-canvas aria-label="3D globe of a sample year of flights. Drag to spin."></canvas>
+    <p class="t-small fl-pp-hint">Drag to spin · pick a route to fly to it</p>
+  </div>
+
+  <div class="fl-pp-side">
+    <div class="fl-pp-card">
+      <p class="fl-pp-k">Passport · sample year</p>
+      <dl class="fl-pp-stats">
+        <div><dt>Flights</dt><dd>{routes.length}</dd></div>
+        <div><dt>Miles</dt><dd>{total.toLocaleString('en-US')}</dd></div>
+        <div><dt>Airports</dt><dd>{codes.length}</dd></div>
+        <div><dt>Hours delayed</dt><dd class="fl-pp-amb">6h 35m</dd></div>
+      </dl>
+      <p class="fl-pp-long">Longest: <b>{longest.a} → {longest.b}</b>, {longest.mi.toLocaleString('en-US')} mi</p>
+    </div>
+    <p class="t-label">Routes</p>
+    <div class="fl-pp-routes" role="group" aria-label="Focus a route">
+      {
+        routes.map((r, i) => (
+          <button type="button" data-fl-route={i} aria-pressed="false" style={`--c:${cols[i % 3]}`}>
+            <span>{r.a} → {r.b}</span>
+            <small>{r.mi.toLocaleString('en-US')} mi</small>
+          </button>
+        ))
+      }
+    </div>
+    <p class="t-small">An invented traveller, for illustration. Flighty Passport launched in December 2023; this is our take on making the year-end poster richer and safer to share: routes and totals, never dates or seat numbers.</p>
+  </div>
+  <script type="application/json" data-fl-pp-data set:html={payload} />
+</div>
+
+<script>
+  import { whenNear } from '../../../scripts/motion';
+  import { hasHardwareGL } from '../../../scripts/gl-support';
+  import type { GlobeAPI, GlobeRoute, LatLon } from '../../../scripts/three/flighty';
+
+  document.querySelectorAll<HTMLElement>('[data-fl-pp]').forEach((root) => {
+    const canvas = root.querySelector<HTMLCanvasElement>('[data-fl-pp-canvas]')!;
+    const data = JSON.parse(root.querySelector('[data-fl-pp-data]')!.textContent || '{}') as { routes: GlobeRoute[]; airports: LatLon[] };
+    const btns = [...root.querySelectorAll<HTMLButtonElement>('[data-fl-route]')];
+    const arcs = [...root.querySelectorAll<SVGPathElement>('[data-arc]')];
+    let api: GlobeAPI | null = null;
+    let focused = -1;
+    const mark = (i: number) => {
+      focused = i;
+      btns.forEach((b, j) => b.setAttribute('aria-pressed', String(j === i)));
+      arcs.forEach((a, j) => a.classList.toggle('is-dim', i >= 0 && j !== i));
+    };
+    btns.forEach((b, i) =>
+      b.addEventListener('click', () => {
+        if (api) api.focus(i);
+        else mark(focused === i ? -1 : i);
+      }),
+    );
+    if (!hasHardwareGL()) return;
+    whenNear(root, () =>
+      import('../../../scripts/three/flighty')
+        .then((m) => {
+          api = m.init(canvas, data.routes, data.airports, mark);
+          root.classList.add('is-live');
+        })
+        .catch(() => root.classList.remove('is-live')),
+    );
+  });
+</script>
+
+<style>
+  .fl-pp { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--s-8); align-items: center; }
+  .fl-pp-stage { position: relative; aspect-ratio: 1; width: 100%; max-width: 640px; justify-self: center; border-radius: 50%; background: radial-gradient(closest-side, rgb(108 180 255 / 0.1), transparent); }
+  .fl-pp-fallback, .fl-pp-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .fl-pp-canvas { touch-action: pan-y; cursor: grab; opacity: 0; transition: opacity 1s var(--ease-out); }
+  .fl-pp-canvas:active { cursor: grabbing; }
+  .fl-pp.is-live .fl-pp-canvas { opacity: 1; }
+  .fl-pp-fallback { transition: opacity 0.8s; }
+  .fl-pp.is-live .fl-pp-fallback { opacity: 0; }
+  .fl-pp-arc { transition: opacity 0.4s; }
+  .fl-pp-arc.is-dim { opacity: 0.12; }
+  .fl-pp-hint { position: absolute; left: 50%; bottom: -1.5rem; transform: translateX(-50%); white-space: nowrap; }
+  .fl-pp-side { display: grid; gap: var(--s-4); align-content: start; }
+  .fl-pp-card { padding: var(--s-6); border-radius: var(--r-lg); background: linear-gradient(160deg, #15151d, #0b0b10); border: 1px solid var(--line); display: grid; gap: var(--s-4); }
+  .fl-pp-k { font: 700 0.75rem var(--font-ui); letter-spacing: 0.2em; text-transform: uppercase; color: #ffcf70; }
+  .fl-pp-stats { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
+  .fl-pp-stats dt { font-size: var(--fs-sm); color: var(--muted); }
+  .fl-pp-stats dd { font-family: var(--font-display); font-weight: 900; font-size: var(--fs-2xl); line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .fl-pp-amb { color: #ffb020; }
+  .fl-pp-long { color: var(--ink-2); font-size: var(--fs-sm); }
+  .fl-pp-long b { color: var(--ink); }
+  .fl-pp-routes { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+  .fl-pp-routes button { display: inline-flex; gap: 8px; align-items: baseline; padding: 0.45rem 0.8rem; border-radius: var(--r-pill); border: 1px solid var(--line-strong); font: 700 var(--fs-sm) var(--font-ui); color: var(--ink); transition: background var(--dur-1), border-color var(--dur-1); }
+  .fl-pp-routes button::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--c); align-self: center; }
+  .fl-pp-routes small { font-weight: 500; color: var(--muted); }
+  .fl-pp-routes button:hover { border-color: var(--c); }
+  .fl-pp-routes button[aria-pressed='true'] { background: var(--ink); color: #0b0b0f; border-color: var(--ink); }
+  .fl-pp-routes button[aria-pressed='true'] small { color: #3a3a44; }
+  @media (max-width: 900px) {
+    .fl-pp { grid-template-columns: 1fr; gap: var(--s-7); }
+  }
+</style>

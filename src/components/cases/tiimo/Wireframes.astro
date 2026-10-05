@@ -1,0 +1,258 @@
+---
+// "Wireframes that draw themselves". Scroll and the key screens are pencilled in
+// stroke by stroke, then blocked out in grey, then coloured, with design notes
+// pinned on as they appear. Switch screens with the tabs.
+import { WIRE_SCREENS, TI, type WEl } from '../../../data/cases/tiimo';
+
+const rr = (x: number, y: number, w: number, h: number, r = 0) => {
+  const q = Math.min(r, w / 2, h / 2);
+  return `M${x + q} ${y}H${x + w - q}Q${x + w} ${y} ${x + w} ${y + q}V${y + h - q}Q${x + w} ${y + h} ${x + w - q} ${y + h}H${x + q}Q${x} ${y + h} ${x} ${y + h - q}V${y + q}Q${x} ${y} ${x + q} ${y}Z`;
+};
+const squiggle = (x: number, y: number, w: number) => {
+  let d = `M${x} ${y - 4}`;
+  const n = Math.max(2, Math.round(w / 9));
+  const step = w / n;
+  for (let i = 0; i < n; i++) d += ` q${step / 2} ${i % 2 ? 4 : -4} ${step} 0`;
+  return d;
+};
+const pie = (cx: number, cy: number, r: number, f: number) => {
+  const a = -Math.PI / 2 + f * Math.PI * 2;
+  const x = cx + Math.cos(a) * r;
+  const y = cy + Math.sin(a) * r;
+  return `M${cx} ${cy}L${cx} ${cy - r}A${r} ${r} 0 ${f > 0.5 ? 1 : 0} 1 ${x.toFixed(1)} ${y.toFixed(1)}Z`;
+};
+const sketchPath = (e: WEl) => {
+  switch (e.k) {
+    case 'rect': return rr(e.x, e.y, e.w, e.h, e.r ?? 6);
+    case 'circle': return `M${e.x - e.r} ${e.y}a${e.r} ${e.r} 0 1 0 ${e.r * 2} 0a${e.r} ${e.r} 0 1 0 ${-e.r * 2} 0`;
+    case 'line': return `M${e.x} ${e.y}L${e.x2} ${e.y2}`;
+    case 'text': return squiggle(e.x, e.y, e.w);
+    case 'emoji': return `M${e.x} ${e.y - 6}m-8 0a8 8 0 1 0 16 0a8 8 0 1 0 -16 0`;
+  }
+};
+const steps = ['Sketch', 'Wireframe', 'Colour', 'Notes'];
+---
+
+<div class="ti-wf" data-ti-wf>
+  <div class="ti-wf-sticky">
+    <div class="ti-wf-side">
+      <div class="ti-wf-tabs" role="group" aria-label="Choose a screen">
+        {WIRE_SCREENS.map((s, i) => <button type="button" class="ti-wf-tab" data-ti-wf-tab={i} aria-pressed={i === 0 ? 'true' : 'false'}>{s.name}</button>)}
+      </div>
+      <ol class="ti-wf-steps" role="list" aria-label="Design stage">
+        {steps.map((s) => <li data-ti-wf-step><span class="ti-wf-bar"><i></i></span><span>{s}</span></li>)}
+      </ol>
+      {
+        WIRE_SCREENS.map((s, si) => (
+          <ol class="ti-wf-notes" role="list" data-ti-wf-notes={si} hidden={si !== 0}>
+            {s.notes.map((n) => (
+              <li data-ti-wf-note>
+                <span class="ti-wf-n">{n.n}</span>
+                <span>
+                  <strong>{n.title}</strong>
+                  <span class="ti-wf-note-t">{n.text}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+        ))
+      }
+      <p class="ti-wf-hint t-small">Scroll to draw. Tap a screen above to redraw it.</p>
+    </div>
+
+    <div class="ti-wf-stage">
+      <div class="ti-wf-phone">
+        {
+          WIRE_SCREENS.map((s, si) => (
+            <div class="ti-wf-screen" data-ti-wf-screen={si} hidden={si !== 0}>
+              <svg viewBox="0 0 300 620" aria-hidden="true">
+                <rect width="300" height="620" fill="#FBF8F1" />
+                <rect width="300" height="620" fill={TI.canvas} class="ti-wf-canvas" data-ti-wf-canvas />
+                <g class="ti-wf-wire" data-ti-wf-wire>
+                  {s.els.map((e) =>
+                    e.k === 'rect' ? <rect x={e.x} y={e.y} width={e.w} height={e.h} rx={e.r ?? 6} fill="#ECE9F2" stroke="#B8B2C9" stroke-width="1.5" />
+                    : e.k === 'circle' ? <circle cx={e.x} cy={e.y} r={e.r} fill="#E2DEEA" stroke="#B8B2C9" stroke-width="1.5" />
+                    : e.k === 'line' ? <line x1={e.x} y1={e.y} x2={e.x2} y2={e.y2} stroke="#9C96AE" stroke-width="2" />
+                    : e.k === 'text' ? <rect x={e.x} y={e.y - (e.s ?? 12) * 0.72} width={e.w} height={(e.s ?? 12) * 0.62} rx="3" fill="#CFCAD9" />
+                    : <circle cx={e.x + 8} cy={e.y - 6} r="8" fill="#CFCAD9" />,
+                  )}
+                </g>
+                <g class="ti-wf-col" data-ti-wf-col>
+                  {s.els.map((e) =>
+                    e.k === 'rect' ? <rect x={e.x} y={e.y} width={e.w} height={e.h} rx={e.r ?? 6} fill={e.fill ?? '#fff'} stroke={e.stroke ?? 'none'} stroke-width="1.5" />
+                    : e.k === 'circle' ? (
+                      <g>
+                        <circle cx={e.x} cy={e.y} r={e.r} fill={e.ring ? TI.canvas2 : (e.fill ?? '#fff')} stroke={e.stroke ?? 'none'} stroke-width="2" />
+                        {e.ring && <path d={pie(e.x, e.y, e.r, e.ring)} fill={TI.purple} />}
+                        {e.ring && <circle cx={e.x} cy={e.y} r={e.r * 0.62} fill="#fff" />}
+                      </g>
+                    )
+                    : e.k === 'line' ? <line x1={e.x} y1={e.y} x2={e.x2} y2={e.y2} stroke={e.color ?? TI.ink} stroke-width={e.width ?? 2} stroke-linecap="round" />
+                    : e.k === 'text' ? <text x={e.x} y={e.y} font-size={e.s ?? 12} font-weight={e.weight ?? 500} fill={e.color ?? TI.ink} font-family={(e.s ?? 12) > 20 ? 'Montserrat, sans-serif' : 'Inter, system-ui, sans-serif'}>{e.text}</text>
+                    : <text x={e.x} y={e.y} font-size={e.s ?? 16}>{e.text}</text>,
+                  )}
+                </g>
+                <g class="ti-wf-sketch" data-ti-wf-sketch fill="none" stroke="#3A3550" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" filter="url(#ti-wf-pencil)">
+                  {s.els.map((e) => <path d={sketchPath(e)} pathLength="1" />)}
+                </g>
+              </svg>
+              {s.notes.map((n) => <span class="ti-wf-pin" data-ti-wf-pin style={`left:${n.x}%;top:${n.y}%`}>{n.n}</span>)}
+            </div>
+          ))
+        }
+      </div>
+      <p class="ti-wf-cap" aria-live="polite"><span data-ti-wf-cap>Sketch</span></p>
+    </div>
+  </div>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="ti-wf-pencil" x="-2%" y="-2%" width="104%" height="104%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="7" />
+      <feDisplacementMap in="SourceGraphic" scale="2.6" />
+    </filter>
+  </svg>
+</div>
+
+<script>
+  import { gsap, reducedMotion } from '../../../scripts/motion';
+  const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
+  const seg = (p: number, a: number, b: number) => clamp01((p - a) / (b - a));
+  const CAPS = ['Day 1 · pencil sketches agree the flow', 'Week 1 · grey boxes fix hierarchy and copy length', 'Week 2 · colour, type and real content', 'Week 2 · annotated for developers and testers'];
+
+  document.querySelectorAll<HTMLElement>('[data-ti-wf]').forEach((root) => {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-ti-wf-tab]')];
+    const screens = [...root.querySelectorAll<HTMLElement>('[data-ti-wf-screen]')];
+    const noteLists = [...root.querySelectorAll<HTMLElement>('[data-ti-wf-notes]')];
+    const stepEls = [...root.querySelectorAll<HTMLElement>('[data-ti-wf-step]')];
+    const cap = root.querySelector<HTMLElement>('[data-ti-wf-cap]')!;
+    const model = screens.map((s, i) => ({
+      sketch: [...s.querySelectorAll<SVGPathElement>('[data-ti-wf-sketch] path')],
+      sketchG: s.querySelector<SVGGElement>('[data-ti-wf-sketch]')!,
+      wire: [...s.querySelector('[data-ti-wf-wire]')!.children] as SVGElement[],
+      col: [...s.querySelector('[data-ti-wf-col]')!.children] as SVGElement[],
+      canvas: s.querySelector<SVGRectElement>('[data-ti-wf-canvas]')!,
+      pins: [...s.querySelectorAll<HTMLElement>('[data-ti-wf-pin]')],
+      notes: [...noteLists[i].querySelectorAll<HTMLElement>('[data-ti-wf-note]')],
+    }));
+    let active = 0;
+    const st = { p: 0, replay: 1 };
+    let lastCap = -1;
+
+    const render = () => {
+      const p = st.p * st.replay;
+      const m = model[active];
+      const n = m.sketch.length;
+      // 1. Pencil strokes draw in, one after another.
+      m.sketch.forEach((el, i) => {
+        const a = (i / n) * 0.22;
+        el.style.strokeDashoffset = String(1 - seg(p, a, a + 0.1));
+      });
+      m.sketchG.style.opacity = String(1 - 0.75 * seg(p, 0.36, 0.5) - 0.25 * seg(p, 0.62, 0.74));
+      // 2. Grey boxes block in.
+      m.wire.forEach((el, i) => (el.style.opacity = String(seg(p, 0.3 + (i / n) * 0.16, 0.36 + (i / n) * 0.16))));
+      // 3. Colour and content arrive.
+      m.canvas.style.opacity = String(seg(p, 0.56, 0.66));
+      m.col.forEach((el, i) => (el.style.opacity = String(seg(p, 0.58 + (i / n) * 0.14, 0.64 + (i / n) * 0.14))));
+      // 4. Notes pin on.
+      const notesOn = Math.floor(seg(p, 0.76, 0.96) * m.pins.length + (p >= 0.96 ? 1 : 0));
+      m.pins.forEach((pin, i) => pin.classList.toggle('is-in', i < notesOn));
+      m.notes.forEach((no, i) => {
+        no.classList.toggle('is-in', i < notesOn);
+        no.classList.toggle('is-current', i === notesOn - 1);
+      });
+      const stage = p < 0.3 ? 0 : p < 0.56 ? 1 : p < 0.76 ? 2 : 3;
+      const fills = [seg(p, 0, 0.3), seg(p, 0.3, 0.56), seg(p, 0.56, 0.76), seg(p, 0.76, 0.96)];
+      stepEls.forEach((s, i) => {
+        s.classList.toggle('is-on', i === stage);
+        s.querySelector<HTMLElement>('i')!.style.transform = `scaleX(${fills[i].toFixed(3)})`;
+      });
+      if (stage !== lastCap) {
+        cap.textContent = CAPS[stage];
+        lastCap = stage;
+      }
+    };
+
+    const select = (i: number) => {
+      if (i === active) return;
+      active = i;
+      tabs.forEach((t, j) => t.setAttribute('aria-pressed', String(j === i)));
+      screens.forEach((s, j) => (s.hidden = j !== i));
+      noteLists.forEach((l, j) => (l.hidden = j !== i));
+      lastCap = -1;
+      if (reducedMotion) return render();
+      gsap.fromTo(st, { replay: 0 }, { replay: 1, duration: 2.2, ease: 'power2.inOut', onUpdate: render });
+    };
+    tabs.forEach((t, i) => t.addEventListener('click', () => select(i)));
+
+    if (reducedMotion) {
+      root.classList.add('is-static');
+      st.p = 1;
+      render();
+      return;
+    }
+    render();
+    gsap.to(st, {
+      p: 1,
+      ease: 'none',
+      onUpdate: render,
+      scrollTrigger: { trigger: root, start: 'top top', end: 'bottom bottom', scrub: 0.8 },
+    });
+  });
+</script>
+
+<style>
+  .ti-wf { position: relative; height: 340vh; }
+  .ti-wf-sticky { position: sticky; top: 0; height: 100vh; height: 100svh; display: grid; grid-template-columns: minmax(280px, 0.9fr) 1.1fr; gap: var(--s-8); align-items: center; padding: calc(var(--nav-h) + 1rem) 0 calc(var(--safe-bottom) - 1.5rem); }
+  .ti-wf-side { display: grid; gap: var(--s-5); align-content: center; }
+  .ti-wf-tabs { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+  .ti-wf-tab { padding: 0.55rem 1rem; border-radius: var(--r-pill); border: 1px solid var(--line-strong); font: 600 var(--fs-sm)/1 var(--font-ui); color: var(--ink-2); transition: background var(--dur-1), color var(--dur-1), border-color var(--dur-1); }
+  .ti-wf-tab:hover { color: var(--ink); border-color: var(--a); }
+  .ti-wf-tab[aria-pressed='true'] { background: var(--a); border-color: var(--a); color: #140f24; }
+  .ti-wf-steps { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s-2); font: 600 var(--fs-label)/1.2 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .ti-wf-steps li { display: grid; gap: 0.45rem; transition: color var(--dur-2); }
+  .ti-wf-steps li.is-on { color: var(--ink); }
+  .ti-wf-bar { height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
+  .ti-wf-bar i { display: block; height: 100%; background: var(--a); transform-origin: left; transform: scaleX(0); }
+  .ti-wf-notes { list-style: none; padding: 0; display: grid; gap: var(--s-2); }
+  .ti-wf-notes li { display: grid; grid-template-columns: auto 1fr; gap: var(--s-3); padding: var(--s-3) var(--s-4); border-radius: var(--r-md); border: 1px solid var(--line); color: var(--muted); transform: translateX(8px); transition: color var(--dur-2), transform var(--dur-2) var(--ease-out), border-color var(--dur-2), background var(--dur-2); }
+  .ti-wf-notes li.is-in { transform: none; }
+  .ti-wf-notes li:not(.is-in) strong, .ti-wf-notes li:not(.is-in) .ti-wf-note-t { color: var(--muted); }
+  .ti-wf-notes li:not(.is-in) .ti-wf-n { background: var(--surface-2); color: var(--ink-2); }
+  .ti-wf-notes[hidden], .ti-wf-screen[hidden] { display: none; }
+  .ti-wf-notes li.is-current { border-color: var(--a); background: color-mix(in srgb, var(--a) 9%, transparent); }
+  .ti-wf-notes strong { display: block; color: var(--ink); font-size: var(--fs-base); }
+  .ti-wf-note-t { color: var(--ink-2); font-size: var(--fs-sm); line-height: 1.5; }
+  .ti-wf-n { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--a); color: #140f24; font: 800 0.8rem/1 var(--font-ui); }
+
+  .ti-wf-stage { display: grid; justify-items: center; gap: var(--s-3); height: 100%; align-content: center; min-height: 0; }
+  .ti-wf-phone { position: relative; height: min(100%, 680px); max-height: calc(100svh - var(--nav-h) - var(--safe-bottom) - 3rem); aspect-ratio: 300 / 620; padding: 10px; border-radius: 46px; background: linear-gradient(150deg, #2a2440, #120e20 50%, #2d2645); box-shadow: 0 50px 100px -40px rgb(0 0 0 / 0.9), 0 0 80px -20px color-mix(in srgb, var(--a) 40%, transparent); }
+  .ti-wf-screen { position: relative; width: 100%; height: 100%; border-radius: 37px; overflow: hidden; }
+  .ti-wf-screen svg { display: block; width: 100%; height: 100%; }
+  .ti-wf-sketch path { stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .ti-wf-wire > *, .ti-wf-col > *, .ti-wf-canvas { opacity: 0; }
+  .ti-wf-pin { position: absolute; width: 24px; height: 24px; margin: -12px 0 0 -12px; border-radius: 50%; display: grid; place-items: center; background: #5b3fd1; color: #fff; font: 800 0.75rem/1 var(--font-ui); box-shadow: 0 0 0 4px rgb(255 255 255 / 0.85), 0 6px 16px -4px rgb(40 20 100 / 0.6); transform: scale(0); transition: transform 0.6s cubic-bezier(0.34, 1.5, 0.64, 1); }
+  .ti-wf-pin.is-in { transform: scale(1); }
+  .ti-wf-cap { font: 600 var(--fs-label)/1.3 var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); text-align: center; }
+
+  .ti-wf.is-static { height: auto; }
+  .ti-wf.is-static .ti-wf-sticky { position: relative; height: auto; min-height: 0; }
+  .ti-wf.is-static .ti-wf-phone { height: 640px; }
+
+  @media (max-width: 900px) {
+    .ti-wf { height: 300vh; }
+    .ti-wf-sticky { grid-template-columns: 1fr; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: var(--s-3); padding-bottom: calc(var(--safe-bottom) - 1.2rem); }
+    .ti-wf-side { display: contents; }
+    .ti-wf-tabs { order: 0; justify-content: center; }
+    .ti-wf-tab { padding: 0.5rem 0.8rem; font-size: 0.8rem; }
+    .ti-wf-steps { order: 1; }
+    .ti-wf-stage { order: 2; min-height: 0; }
+    .ti-wf-phone { height: 100%; max-height: none; padding: 7px; border-radius: 34px; }
+    .ti-wf-screen { border-radius: 28px; }
+    .ti-wf-notes { order: 3; min-height: 5.6rem; align-content: start; }
+    .ti-wf-notes li { display: none; }
+    .ti-wf-notes li.is-current { display: grid; }
+    .ti-wf-hint { display: none; }
+    .ti-wf-cap { font-size: 0.68rem; }
+    .ti-wf.is-static .ti-wf-phone { height: 520px; }
+    .ti-wf.is-static .ti-wf-notes li { display: grid; }
+  }
+</style>

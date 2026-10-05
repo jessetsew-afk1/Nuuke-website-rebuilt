@@ -1,0 +1,429 @@
+---
+// Usability test replay. A scripted session plays back on a phone mock: taps build a heatmap,
+// the path draws between them, and the tester's think-aloud runs underneath. Scrub it, switch
+// task, then flip Before/After to see the redesigned screen tested on the same task.
+// All numbers are illustrative (scripted for this concept), never presented as results.
+import { REPLAY_TASKS } from '../../../data/cases/flighty';
+const payload = JSON.stringify(REPLAY_TASKS);
+const t0 = REPLAY_TASKS[0];
+---
+
+<div class="fl-tr" data-fl-tr data-variant="before" data-task={t0.id}>
+  <div class="fl-tr-stage">
+    <div class="fl-tr-phone">
+      <div class="fl-tr-screen" data-fl-tr-screen>
+        <!-- v1: the screen we tested first -->
+        <div class="fl-tr-scr fl-tr-v1" aria-hidden="true">
+          <div class="v-top" style="top:6%"><span>‹ Flights</span><span class="v-dots">•••</span></div>
+          <div class="v-blk" style="top:14%"><p class="v-big">ORD → SFO</p><p class="v-s">FL 214 · Wed 8 Oct</p></div>
+          <span class="v1-chip" style="top:28.5%">Delayed</span>
+          <div class="v-blk v-2col" style="top:36%"><p><small>Departs</small><br />14:53</p><p><small>Arrives</small><br />17:26</p></div>
+          <div class="v-blk v-tiles" style="top:47%"><p><small>Gate</small><br />C4</p><p><small>Aircraft</small><br />A320</p></div>
+          <div class="v-blk v-list" style="top:62%"><p>Gate changed</p><p>Flight updated</p></div>
+          <div class="v-blk v-row" style="top:79.5%">Share flight</div>
+          <div class="v-tabs" style="top:90%"><span>Overview</span><span>Details</span><span>Map</span></div>
+          <div class="v-ov v-ov-details" style="top:45%;bottom:11%" data-ov="details">
+            <p class="v-s">Details</p>
+            <p class="v-row v-hit" style="margin-top:6%">Reason code: late inbound aircraft</p>
+            <p class="v-s">Aircraft · A320 · N214FL</p>
+          </div>
+          <div class="v-ov v-ov-sheet" style="top:63%" data-ov="menu">
+            <p class="v-mi">Seat map</p><p class="v-mi v-hit">Inbound aircraft</p><p class="v-mi">Share flight</p><p class="v-mi v-mi--c">Cancel</p>
+          </div>
+          <div class="v-ov v-ov-sheet" style="top:55%" data-ov="share">
+            <p class="v-s">Share FL 214</p><p class="v-icons"><i></i><i></i><i></i><i></i></p><p class="v-mi v-mi--c">Close</p>
+          </div>
+        </div>
+        <!-- v2: after the findings -->
+        <div class="fl-tr-scr fl-tr-v2" aria-hidden="true">
+          <div class="v-top" style="top:6%"><span>‹ Flights</span><span class="v-dots">•••</span></div>
+          <div class="v2-gate" style="top:19%"><small>Gate change</small><span><s>B12</s> → <b>C4</b></span><small>9 min walk</small></div>
+          <div class="v2-status" style="top:31%">Delayed 48 min · <u>Why? ›</u></div>
+          <div class="v-blk" style="top:40%"><p class="v-big">ORD → SFO</p><p class="v-s">FL 214 · Wed 8 Oct</p></div>
+          <div class="v-blk v-2col" style="top:50%"><p><small>Departs</small><br /><s>14:05</s> <b class="v2-amb">14:53</b></p><p><small>Arrives</small><br /><s>16:38</s> <b class="v2-amb">17:26</b></p></div>
+          <div class="v-blk v-list" style="top:66%"><p>Live timeline ›</p><p>Where’s my plane? ›</p></div>
+          <div class="v-tabs" style="top:90%"><span>Flights</span><span>Friends</span><span>Passport</span></div>
+          <div class="v-ov v-ov-sheet v2-sheet" style="top:42%" data-ov="sheet">
+            <p class="v-grab"></p>
+            <p class="v-s">Why it’s late</p>
+            <p class="v-big v-big--s">Your plane is 48 min late in Denver</p>
+            <p class="v-s">An air-traffic-control ground delay is holding it at DEN.</p>
+            <p class="v-row v-hit v2-inb">✈ Your plane · in Denver · leaves 12:03 ›</p>
+            <p class="v-mi v-mi--c">Got it</p>
+          </div>
+        </div>
+        <canvas class="fl-tr-heat" data-fl-heat aria-hidden="true"></canvas>
+        <svg class="fl-tr-path" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline data-fl-path points="" /></svg>
+        <div class="fl-tr-marks" data-fl-marks aria-hidden="true"></div>
+        <span class="fl-tr-finger" data-fl-finger aria-hidden="true"></span>
+        <p class="fl-tr-done" data-fl-done aria-hidden="true">Task complete</p>
+      </div>
+    </div>
+    <div class="fl-tr-controls">
+      <button type="button" class="fl-tr-play" data-fl-play aria-label="Play session replay"><span data-fl-play-ic>▶</span></button>
+      <div class="fl-tr-scrub">
+        <div class="fl-tr-ticks" data-fl-ticks aria-hidden="true"></div>
+        <input type="range" min="0" max={t0.before.dur} step="0.1" value="0" data-fl-range aria-label="Session time in seconds" />
+      </div>
+      <span class="fl-tr-clock t-num" data-fl-clock>0:00</span>
+    </div>
+    <p class="fl-tr-say" aria-live="polite"><span class="fl-tr-who">Tester P3 · scripted think-aloud</span><span data-fl-say>Press play, or drag the scrubber.</span></p>
+  </div>
+
+  <div class="fl-tr-side">
+    <div class="fl-tr-seg" role="group" aria-label="Design version">
+      <button type="button" data-fl-var="before" aria-pressed="true">Before · v1</button>
+      <button type="button" data-fl-var="after" aria-pressed="false">After · v2</button>
+    </div>
+    <p class="t-label">Task</p>
+    <div class="fl-tr-tasks" role="group" aria-label="Test task">
+      {
+        REPLAY_TASKS.map((t, i) => (
+          <button type="button" data-fl-task={t.id} aria-pressed={i === 0 ? 'true' : 'false'}>
+            <span class="t-num">T{i + 1}</span> {t.label}
+          </button>
+        ))
+      }
+    </div>
+    <dl class="fl-tr-stats">
+      <div><dt>Task success</dt><dd data-fl-stat="success">{t0.before.success}</dd></div>
+      <div><dt>Median time</dt><dd data-fl-stat="median">{t0.before.median}</dd></div>
+      <div><dt>Misclicks</dt><dd data-fl-stat="misses">{t0.before.misses}</dd></div>
+    </dl>
+    <p class="t-small fl-tr-legal">Illustrative numbers. They show how we’d run and read a 5-person moderated test. The session is scripted for this concept, not recorded from real users.</p>
+    <ol class="fl-tr-finds" role="list">
+      {
+        REPLAY_TASKS.map((t, i) => (
+          <li class:list={['fl-tr-find', { 'is-on': i === 0 }]} data-fl-find={t.id}>
+            <span class="t-label">Finding 0{i + 1}</span>
+            <p class="fl-tr-f">{t.finding}</p>
+            <p class="fl-tr-c"><b>Design change</b>{t.change}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+  <script type="application/json" data-fl-tr-data set:html={payload} />
+</div>
+
+<script>
+  import type { ReplayTask, Tap } from '../../../data/cases/flighty';
+  const PAL = [
+    [0, [40, 80, 255, 0]],
+    [0.25, [40, 140, 255, 150]],
+    [0.5, [46, 229, 138, 190]],
+    [0.75, [255, 200, 40, 215]],
+    [1, [255, 70, 70, 235]],
+  ] as const;
+  const lut = new Uint8ClampedArray(256 * 4);
+  for (let i = 0; i < 256; i++) {
+    const v = i / 255;
+    let k = 0;
+    while (k < PAL.length - 2 && v > PAL[k + 1][0]) k++;
+    const [a, ca] = PAL[k];
+    const [b, cb] = PAL[k + 1];
+    const f = (v - a) / (b - a);
+    for (let c = 0; c < 4; c++) lut[i * 4 + c] = ca[c] + (cb[c] - ca[c]) * f;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-fl-tr]').forEach((root) => {
+    const tasks = JSON.parse(root.querySelector('[data-fl-tr-data]')!.textContent || '[]') as ReplayTask[];
+    const screen = root.querySelector<HTMLElement>('[data-fl-tr-screen]')!;
+    const canvas = root.querySelector<HTMLCanvasElement>('[data-fl-heat]')!;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+    const path = root.querySelector<SVGPolylineElement>('[data-fl-path]')!;
+    const marks = root.querySelector<HTMLElement>('[data-fl-marks]')!;
+    const finger = root.querySelector<HTMLElement>('[data-fl-finger]')!;
+    const done = root.querySelector<HTMLElement>('[data-fl-done]')!;
+    const range = root.querySelector<HTMLInputElement>('[data-fl-range]')!;
+    const ticks = root.querySelector<HTMLElement>('[data-fl-ticks]')!;
+    const clock = root.querySelector<HTMLElement>('[data-fl-clock]')!;
+    const say = root.querySelector<HTMLElement>('[data-fl-say]')!;
+    const playBtn = root.querySelector<HTMLButtonElement>('[data-fl-play]')!;
+    const playIc = root.querySelector<HTMLElement>('[data-fl-play-ic]')!;
+    const varBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-fl-var]')];
+    const taskBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-fl-task]')];
+    const finds = [...root.querySelectorAll<HTMLElement>('[data-fl-find]')];
+    const stats = Object.fromEntries([...root.querySelectorAll<HTMLElement>('[data-fl-stat]')].map((el) => [el.dataset.flStat!, el]));
+    const overlays = [...root.querySelectorAll<HTMLElement>('[data-ov]')];
+
+    let task = tasks[0];
+    let variant: 'before' | 'after' = 'before';
+    let t = 0;
+    let playing = false;
+    let raf = 0;
+    let last = 0;
+    let lastSig = '';
+
+    const v = () => task[variant];
+    const fmt = (s: number) => `0:${String(Math.floor(s)).padStart(2, '0')}`;
+
+    const sizeCanvas = () => {
+      const r = screen.getBoundingClientRect();
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      canvas.width = Math.max(1, Math.round(r.width * dpr * 0.5));
+      canvas.height = Math.max(1, Math.round(r.height * dpr * 0.5));
+      lastSig = '';
+    };
+
+    const heat = (taps: Tap[]) => {
+      const W = canvas.width;
+      const H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+      const blob = (x: number, y: number, w: number) => {
+        const r = W * 0.15;
+        const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+        g.addColorStop(0, `rgba(0,0,0,${w})`);
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(x - r, y - r, r * 2, r * 2);
+      };
+      for (const p of taps) {
+        const grow = Math.min(1, (t - p.t) / 0.35);
+        if (p.kind === 'swipe') for (let k = 0; k < 6; k++) blob(p.x * W, (p.y - k * 0.035) * H, 0.18 * grow);
+        else blob(p.x * W, p.y * H, (p.kind === 'miss' ? 0.75 : 0.6) * grow);
+      }
+      const img = ctx.getImageData(0, 0, W, H);
+      const d = img.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const a = d[i + 3];
+        if (!a) continue;
+        const j = Math.min(255, a) * 4;
+        d[i] = lut[j];
+        d[i + 1] = lut[j + 1];
+        d[i + 2] = lut[j + 2];
+        d[i + 3] = lut[j + 3];
+      }
+      ctx.putImageData(img, 0, 0);
+    };
+
+    const render = () => {
+      const V = v();
+      const seen = V.taps.filter((p) => p.t <= t);
+      const sig = `${task.id}|${variant}|${seen.length}|${seen.length && t - seen[seen.length - 1].t < 0.4 ? t.toFixed(2) : ''}`;
+      if (sig !== lastSig) {
+        lastSig = sig;
+        heat(seen);
+        path.setAttribute('points', seen.map((p) => `${p.x * 100},${p.y * 100}`).join(' '));
+        marks.replaceChildren(
+          ...seen.map((p, i) => {
+            const m = document.createElement('span');
+            m.className = `fl-tr-mark is-${p.kind || 'tap'}`;
+            m.style.left = `${p.x * 100}%`;
+            m.style.top = `${p.y * 100}%`;
+            m.textContent = String(i + 1);
+            return m;
+          }),
+        );
+        const shown = [...seen].reverse().find((p) => p.show !== undefined)?.show || '';
+        overlays.forEach((o) => o.classList.toggle('is-on', o.dataset.ov === shown && o.closest(`.fl-tr-v${variant === 'before' ? 1 : 2}`) !== null));
+        const lastTap = seen[seen.length - 1];
+        say.textContent = lastTap ? `${fmt(lastTap.t)} · ${lastTap.note}` : 'Reads the screen…';
+        const ok = seen.find((p) => p.kind === 'ok');
+        done.classList.toggle('is-on', !!ok);
+        done.textContent = ok ? `Task complete · ${ok.t.toFixed(1)} s` : '';
+      }
+      // finger glides toward the next tap
+      const next = V.taps.find((p) => p.t > t);
+      const prev = [...V.taps].reverse().find((p) => p.t <= t);
+      let fx = prev?.x ?? 0.5;
+      let fy = prev?.y ?? 0.62;
+      if (next) {
+        const k = Math.min(1, Math.max(0, 1 - (next.t - t) / 0.7));
+        const e = k * k * (3 - 2 * k);
+        fx += (next.x - fx) * e;
+        fy += (next.y - fy) * e;
+      }
+      finger.style.left = `${fx * 100}%`;
+      finger.style.top = `${fy * 100}%`;
+      finger.classList.toggle('is-press', !!prev && t - prev.t < 0.25);
+      range.value = String(t);
+      clock.textContent = fmt(t);
+    };
+
+    const setStats = () => {
+      const V = v();
+      stats.success.textContent = V.success;
+      stats.median.textContent = V.median;
+      stats.misses.textContent = String(V.misses);
+    };
+
+    const buildTicks = () => {
+      const V = v();
+      range.max = String(V.dur);
+      ticks.replaceChildren(
+        ...V.taps.map((p) => {
+          const s = document.createElement('i');
+          s.className = `is-${p.kind || 'tap'}`;
+          s.style.left = `${(p.t / V.dur) * 100}%`;
+          return s;
+        }),
+      );
+    };
+
+    const stop = () => {
+      playing = false;
+      cancelAnimationFrame(raf);
+      playIc.textContent = '▶';
+      playBtn.setAttribute('aria-label', 'Play session replay');
+    };
+    const loop = (now: number) => {
+      const dt = Math.min(0.1, (now - last) / 1000);
+      last = now;
+      t = Math.min(v().dur, t + dt * 1.4);
+      render();
+      if (t >= v().dur) return stop();
+      raf = requestAnimationFrame(loop);
+    };
+    const play = () => {
+      if (t >= v().dur - 0.05) t = 0;
+      playing = true;
+      playIc.textContent = '❚❚';
+      playBtn.setAttribute('aria-label', 'Pause session replay');
+      last = performance.now();
+      raf = requestAnimationFrame(loop);
+    };
+    playBtn.addEventListener('click', () => (playing ? stop() : play()));
+    range.addEventListener('input', () => {
+      stop();
+      t = +range.value;
+      render();
+    });
+
+    const reset = (autoplay: boolean) => {
+      stop();
+      t = 0;
+      root.dataset.variant = variant;
+      root.dataset.task = task.id;
+      buildTicks();
+      setStats();
+      lastSig = '';
+      render();
+      if (autoplay) play();
+    };
+    varBtns.forEach((b) =>
+      b.addEventListener('click', () => {
+        variant = b.dataset.flVar as 'before' | 'after';
+        varBtns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        reset(true);
+      }),
+    );
+    const pickTask = (id: string) => {
+      task = tasks.find((x) => x.id === id) || tasks[0];
+      taskBtns.forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.flTask === id)));
+      finds.forEach((f) => f.classList.toggle('is-on', f.dataset.flFind === id));
+      reset(true);
+    };
+    taskBtns.forEach((b) => b.addEventListener('click', () => pickTask(b.dataset.flTask!)));
+
+    sizeCanvas();
+    new ResizeObserver(() => {
+      sizeCanvas();
+      render();
+    }).observe(screen);
+    reset(false);
+
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const io = new IntersectionObserver((en) => {
+        if (en.some((e) => e.isIntersecting)) {
+          io.disconnect();
+          play();
+        }
+      }, { threshold: 0.5 });
+      io.observe(screen);
+    } else {
+      t = v().dur;
+      render();
+    }
+  });
+</script>
+
+<style>
+  .fl-tr { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s-8); align-items: start; padding: var(--s-6); border-radius: calc(var(--r-lg) + 8px); border: 1px solid var(--line); background: var(--bg-2); }
+  .fl-tr-stage { display: grid; gap: var(--s-4); justify-items: center; width: 300px; }
+  .fl-tr-phone { width: 284px; padding: 10px; border-radius: 44px; background: linear-gradient(145deg, #3a3a42, #121216 40%, #2a2a30); box-shadow: 0 30px 80px -20px #000; }
+  .fl-tr-screen { position: relative; aspect-ratio: 264 / 560; border-radius: 34px; overflow: hidden; background: #0b0b0f; font-family: -apple-system, system-ui, var(--font-ui); color: #f5f5f0; font-variant-numeric: tabular-nums; }
+  .fl-tr-scr { position: absolute; inset: 0; display: none; }
+  [data-variant='before'] .fl-tr-v1, [data-variant='after'] .fl-tr-v2 { display: block; }
+  .fl-tr-scr > * { position: absolute; left: 8%; right: 8%; }
+  .v-top { display: flex; justify-content: space-between; font-size: 12px; color: #c9c9d2; }
+  .v-dots { letter-spacing: 1px; }
+  .v-big { font-weight: 800; font-size: 26px; line-height: 1.05; }
+  .v-big--s { font-size: 17px; }
+  .v-s { font-size: 11px; color: #a9a9b4; }
+  .v-blk small { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #a9a9b4; }
+  .v-2col, .v-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 16px; font-weight: 700; }
+  .v-tiles p { padding: 8px 10px; border-radius: 12px; background: #17171f; font-size: 14px; }
+  .v-2col s { font-size: 11px; color: #9a9aa5; font-weight: 500; }
+  .v-list { display: grid; gap: 6px; font-size: 12px; }
+  .v-list p, .v-row { padding: 9px 10px; border-radius: 10px; background: #17171f; font-size: 12px; }
+  .v-tabs { display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid #22222c; left: 0 !important; right: 0 !important; font-size: 11px; color: #a9a9b4; }
+  .v1-chip { left: 8% !important; right: auto !important; padding: 3px 10px; border-radius: 99px; background: #3a3020; color: #ffcf70; font-size: 11px; font-weight: 700; }
+  .v2-gate { display: grid; grid-template-columns: 1fr auto; align-items: center; padding: 8px 12px; border-radius: 14px; background: #ffb020; color: #1a1200; font-weight: 700; }
+  .v2-gate small { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .v2-gate span { grid-row: span 2; grid-column: 2; font-size: 20px; font-weight: 900; }
+  .v2-gate s { font-size: 13px; font-weight: 600; opacity: 0.9; }
+  .v2-status { padding: 8px 12px; border-radius: 12px; background: #2a2414; color: #ffcf70; font-size: 12px; font-weight: 700; }
+  .v2-amb { color: #ffb020; }
+  .v-ov { left: 0 !important; right: 0 !important; bottom: 0; padding: 12px 8% 0; background: #1b1b24; border-radius: 22px 22px 0 0; display: grid; align-content: start; gap: 8px; opacity: 0; transform: translateY(14%); transition: opacity 0.3s, transform 0.4s var(--ease-out); box-shadow: 0 -20px 40px rgb(0 0 0 / 0.6); }
+  .v-ov-details { border-radius: 0; background: #121219; }
+  .v-ov.is-on { opacity: 1; transform: none; }
+  .v-mi { padding: 9px 12px; border-radius: 10px; background: #262631; font-size: 12px; }
+  .v-mi--c { text-align: center; font-weight: 700; }
+  .v-icons { display: flex; gap: 10px; }
+  .v-icons i { width: 36px; height: 36px; border-radius: 10px; background: #2e2e3a; }
+  .v-grab { width: 34px; height: 4px; border-radius: 2px; background: #3a3a48; justify-self: center; }
+  .v2-inb { background: #2a2414; color: #ffcf70; font-weight: 700; }
+
+  .fl-tr-heat { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: screen; z-index: 3; }
+  .fl-tr-path { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; }
+  .fl-tr-path polyline { fill: none; stroke: #fff; stroke-width: 1.5; stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; opacity: 0.85; }
+  .fl-tr-marks { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+  .fl-tr-marks :global(.fl-tr-mark) { position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; display: grid; place-items: center; font: 800 10px var(--font-ui); background: #f5f5f0; color: #0b0b0f; box-shadow: 0 0 0 2px #0b0b0f; }
+  .fl-tr-marks :global(.fl-tr-mark.is-miss) { background: #ff6b6b; }
+  .fl-tr-marks :global(.fl-tr-mark.is-ok) { background: #2ee58a; }
+  .fl-tr-marks :global(.fl-tr-mark.is-swipe) { background: #6cb4ff; }
+  .fl-tr-finger { position: absolute; z-index: 6; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; background: rgb(255 255 255 / 0.35); border: 2px solid #fff; pointer-events: none; transition: transform 0.15s; }
+  .fl-tr-finger.is-press { transform: scale(0.7); background: rgb(255 255 255 / 0.7); }
+  .fl-tr-done { position: absolute; z-index: 7; left: 50%; top: 3%; transform: translate(-50%, -10px); padding: 5px 12px; border-radius: 99px; background: #2ee58a; color: #03170c; font: 800 11px var(--font-ui); white-space: nowrap; opacity: 0; transition: opacity 0.3s, transform 0.4s var(--ease-out); }
+  .fl-tr-done.is-on { opacity: 1; transform: translate(-50%, 0); }
+
+  .fl-tr-controls { display: grid; grid-template-columns: auto 1fr auto; gap: var(--s-3); align-items: center; width: 100%; }
+  .fl-tr-play { width: 44px; height: 44px; border-radius: 50%; background: var(--a); color: #1a1200; font-size: 14px; font-weight: 900; display: grid; place-items: center; }
+  .fl-tr-scrub { position: relative; height: 32px; display: grid; align-items: center; }
+  .fl-tr-scrub input { width: 100%; accent-color: var(--a); position: relative; z-index: 1; background: transparent; }
+  .fl-tr-ticks { position: absolute; left: 8px; right: 8px; top: 0; height: 8px; }
+  .fl-tr-ticks :global(i) { position: absolute; top: 0; width: 3px; height: 8px; margin-left: -1.5px; border-radius: 2px; background: #f5f5f0; }
+  .fl-tr-ticks :global(i.is-miss) { background: #ff6b6b; }
+  .fl-tr-ticks :global(i.is-ok) { background: #2ee58a; }
+  .fl-tr-ticks :global(i.is-swipe) { background: #6cb4ff; }
+  .fl-tr-clock { font-size: var(--fs-sm); color: var(--ink-2); min-width: 3ch; }
+  .fl-tr-say { width: 100%; min-height: 4.4em; display: grid; gap: 2px; padding: var(--s-3) var(--s-4); border-radius: var(--r-md); background: var(--surface); font-size: var(--fs-sm); color: var(--ink); }
+  .fl-tr-who { font: 600 0.7rem var(--font-ui); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+
+  .fl-tr-side { display: grid; gap: var(--s-4); align-content: start; }
+  .fl-tr-seg { display: inline-flex; justify-self: start; padding: 4px; border-radius: var(--r-pill); background: var(--surface-2); border: 1px solid var(--line); }
+  .fl-tr-seg button { padding: 0.55rem 1.1rem; border-radius: var(--r-pill); font: 600 var(--fs-sm) var(--font-ui); color: var(--ink-2); transition: background var(--dur-1), color var(--dur-1); }
+  .fl-tr-seg button[aria-pressed='true'] { background: var(--a); color: #1a1200; }
+  .fl-tr-tasks { display: grid; gap: var(--s-2); }
+  .fl-tr-tasks button { text-align: left; padding: 0.7rem 0.9rem; border-radius: var(--r-md); border: 1px solid var(--line); color: var(--ink-2); font-size: var(--fs-sm); transition: border-color var(--dur-1), background var(--dur-1), color var(--dur-1); }
+  .fl-tr-tasks button .t-num { color: var(--a); font-weight: 700; margin-right: 6px; }
+  .fl-tr-tasks button[aria-pressed='true'] { border-color: var(--a); color: var(--ink); background: color-mix(in srgb, var(--a) 10%, transparent); }
+  .fl-tr-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); }
+  .fl-tr-stats div { padding: var(--s-4); border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line); }
+  .fl-tr-stats dt { font: 600 0.7rem var(--font-ui); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .fl-tr-stats dd { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-xl); font-variant-numeric: tabular-nums; margin-top: 4px; }
+  [data-variant='after'] .fl-tr-stats dd { color: #2ee58a; }
+  .fl-tr-finds { list-style: none; padding: 0; display: grid; gap: var(--s-3); }
+  .fl-tr-find { padding: var(--s-4) var(--s-5); border-radius: var(--r-md); border: 1px dashed var(--line-strong); display: grid; gap: var(--s-2); transition: border-color var(--dur-2), background var(--dur-2); }
+  .fl-tr-find.is-on { border: 1px solid var(--a); background: color-mix(in srgb, var(--a) 7%, transparent); }
+  .fl-tr-f { color: var(--ink-2); font-size: var(--fs-sm); }
+  .fl-tr-c { color: var(--ink); font-size: var(--fs-sm); }
+  .fl-tr-c b { display: block; font: 700 0.7rem var(--font-ui); letter-spacing: 0.12em; text-transform: uppercase; color: var(--a); margin-bottom: 2px; }
+
+  @media (max-width: 860px) {
+    .fl-tr { grid-template-columns: minmax(0, 1fr); padding: var(--s-4); gap: var(--s-6); }
+    .fl-tr-stage { justify-self: center; width: min(300px, 100%); }
+    .fl-tr-stats dd { font-size: var(--fs-lg); }
+  }
+</style>

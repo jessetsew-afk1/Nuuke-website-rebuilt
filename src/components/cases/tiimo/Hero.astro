@@ -1,0 +1,131 @@
+---
+// Hero art: a calm "Today" phone among floating pastel blocks. The blocks are
+// Three.js on capable GPUs and CSS everywhere else. Original NUUKE artwork.
+import { DAY, TI } from '../../../data/cases/tiimo';
+const shown = DAY.slice(0, 6);
+const hours = [44, 40, 86, 40, 34, 52];
+const css = [
+  { x: 4, y: 12, w: 26, h: 9, c: TI.lilac, r: -14, d: 0 },
+  { x: 74, y: 6, w: 20, h: 20, c: TI.pink, r: 0, d: 1.2, round: true },
+  { x: 80, y: 70, w: 22, h: 8, c: TI.mint, r: 12, d: 0.6 },
+  { x: 2, y: 74, w: 14, h: 14, c: TI.butter, r: 0, d: 1.8, round: true },
+  { x: 64, y: 88, w: 16, h: 6, c: TI.peach, r: -8, d: 2.4 },
+  { x: 14, y: 44, w: 10, h: 10, c: TI.sky, r: 20, d: 0.9 },
+];
+---
+
+<div class="ti-hero" data-ti-hero aria-hidden="true">
+  <canvas class="ti-hero-canvas" data-ti-hero-canvas></canvas>
+  <div class="ti-hero-css">
+    {css.map((b) => <span class:list={['ti-hb', { 'is-round': b.round }]} style={`left:${b.x}%;top:${b.y}%;width:${b.w}%;height:0;padding-bottom:${b.h}%;--c:${b.c};--r:${b.r}deg;animation-delay:-${b.d}s`} />)}
+  </div>
+
+  <div class="ti-h-phone">
+    <div class="ti-h-screen">
+      <div class="ti-h-island"></div>
+      <p class="ti-h-kicker">TUESDAY 14</p>
+      <p class="ti-h-title">Today</p>
+      <div class="ti-h-week">
+        {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <span class:list={{ 'is-on': i === 1 }}>{d}<b>{13 + i}</b></span>)}
+      </div>
+      <div class="ti-h-list">
+        {
+          shown.map((b, i) => (
+            <div class:list={['ti-h-block', { 'is-now': i === 2 }]} style={`--c:${TI[b.c]};height:${hours[i]}px`}>
+              <span class="ti-h-e">{b.emoji}</span>
+              <span class="ti-h-t">{b.t}</span>
+              {i === 2 && <span class="ti-h-mini" />}
+            </div>
+          ))
+        }
+        <div class="ti-h-now"></div>
+      </div>
+      <div class="ti-h-fab">+</div>
+    </div>
+  </div>
+
+  <div class="ti-h-card ti-h-card--dump">
+    <p class="ti-h-card-k">Brain dump</p>
+    <p><s>email Sam</s></p>
+    <p><s>dentist?!</s></p>
+    <p>clean kitchen</p>
+  </div>
+  <div class="ti-h-card ti-h-card--disc">
+    <span class="ti-h-disc"></span>
+    <b>15:30</b>
+    <small>left of 25 min</small>
+  </div>
+  <div class="ti-h-card ti-h-card--ai">✨ Clean kitchen → <b>4 small steps</b></div>
+</div>
+
+<script>
+  import { whenNear } from '../../../scripts/motion';
+  import { hasHardwareGL } from '../../../scripts/gl-support';
+  document.querySelectorAll<HTMLElement>('[data-ti-hero]').forEach((root) => {
+    const canvas = root.querySelector<HTMLCanvasElement>('[data-ti-hero-canvas]')!;
+    if (!hasHardwareGL()) return;
+    whenNear(root, () =>
+      import('../../../scripts/three/tiimo-hero')
+        .then((m) => m.init(canvas))
+        .then(() => root.classList.add('has-3d'))
+        .catch(() => root.classList.remove('has-3d')),
+    );
+  });
+</script>
+
+<style>
+  .ti-hero { position: relative; width: 100%; max-width: 620px; margin-inline: auto; aspect-ratio: 1 / 1.02; }
+  .ti-hero::before { content: ''; position: absolute; inset: 6%; border-radius: 50%; background: radial-gradient(closest-side, rgb(169 139 255 / 0.4), rgb(255 179 199 / 0.12) 60%, transparent); }
+  .ti-hero-canvas { position: absolute; inset: -8%; width: 116%; height: 116%; opacity: 0; transition: opacity 1.2s var(--ease-out); pointer-events: none; }
+  .ti-hero.has-3d .ti-hero-canvas { opacity: 1; }
+  .ti-hero.has-3d .ti-hero-css { opacity: 0; }
+  .ti-hero-css { position: absolute; inset: 0; transition: opacity 0.8s; }
+  .ti-hb { position: absolute; border-radius: 18px; background: linear-gradient(160deg, #fff 0%, var(--c) 45%); box-shadow: 0 24px 40px -22px rgb(60 40 120 / 0.6), inset 0 -6px 0 rgb(0 0 0 / 0.05); rotate: var(--r); animation: ti-float 7s ease-in-out infinite; }
+  .ti-hb.is-round { border-radius: 50%; }
+  @keyframes ti-float { 50% { translate: 0 -14px; } }
+
+  .ti-h-phone { position: absolute; left: 50%; top: 50%; width: 47%; aspect-ratio: 9 / 19; translate: -50% -50%; rotate: 3deg; padding: 2.2%; border-radius: 13% / 6.2%; background: linear-gradient(150deg, #2a2440, #120e20 50%, #2d2645); box-shadow: 0 50px 90px -30px rgb(30 15 70 / 0.8), 0 0 0 1px rgb(255 255 255 / 0.08); animation: ti-float 9s ease-in-out infinite; container-type: inline-size; }
+  .ti-h-screen { position: relative; height: 100%; border-radius: 11% / 5.2%; overflow: hidden; background: #f7f3ff; padding: 18cqw 6cqw 0; color: #1f1a33; font-family: Inter, system-ui, sans-serif; }
+  .ti-h-island { position: absolute; left: 50%; top: 3.4cqw; width: 28cqw; height: 8cqw; margin-left: -14cqw; border-radius: 9cqw; background: #120e20; }
+  .ti-h-kicker { font-size: 3.6cqw; font-weight: 700; letter-spacing: 0.16em; color: #625a7c; }
+  .ti-h-title { font: 800 10cqw/1.1 Montserrat, sans-serif; letter-spacing: -0.03em; }
+  .ti-h-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1.6cqw; margin: 3cqw 0 4cqw; }
+  .ti-h-week span { display: grid; justify-items: center; padding: 1.6cqw 0; border-radius: 3.4cqw; background: #fff; font-size: 3cqw; color: #625a7c; }
+  .ti-h-week b { font-size: 3.8cqw; color: #1f1a33; }
+  .ti-h-week .is-on { background: #1f1a33; color: #dccfff; }
+  .ti-h-week .is-on b { color: #fff; }
+  .ti-h-list { position: relative; display: grid; gap: 2cqw; padding-left: 12cqw; }
+  .ti-h-block { position: relative; display: flex; align-items: center; gap: 2.6cqw; padding: 0 3.4cqw; border-radius: 4.6cqw; background: var(--c); height: auto !important; min-height: 11cqw; }
+  .ti-h-block.is-now { min-height: 22cqw; box-shadow: 0 0 0 0.7cqw #5b3fd1; }
+  .ti-h-e { font-size: 4.6cqw; }
+  .ti-h-t { font-size: 3.7cqw; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ti-h-mini { position: absolute; right: 3cqw; top: 50%; width: 10cqw; height: 10cqw; margin-top: -5cqw; border-radius: 50%; background: conic-gradient(#5b3fd1 0 var(--ti-hm, 70%), #fff 0); animation: ti-drain 12s linear infinite; }
+  @property --ti-hm { syntax: '<percentage>'; inherits: false; initial-value: 70%; }
+  @keyframes ti-drain { from { --ti-hm: 92%; } to { --ti-hm: 8%; } }
+  .ti-h-now { position: absolute; left: 4cqw; right: -2cqw; top: 0; height: 0.6cqw; background: #5b3fd1; border-radius: 1cqw; animation: ti-now 16s ease-in-out infinite alternate; }
+  .ti-h-now::before { content: ''; position: absolute; left: -1.2cqw; top: -1.2cqw; width: 3cqw; height: 3cqw; border-radius: 50%; background: #5b3fd1; }
+  @keyframes ti-now { from { top: 30%; } to { top: 54%; } }
+  .ti-h-fab { position: absolute; right: 6cqw; bottom: 6cqw; width: 15cqw; height: 15cqw; border-radius: 50%; display: grid; place-items: center; background: #a98bff; color: #1f1a33; font-size: 9cqw; font-weight: 500; box-shadow: 0 3cqw 6cqw -2cqw rgb(91 63 209 / 0.6); }
+
+  .ti-h-card { position: absolute; padding: 0.8rem 1rem; border-radius: 18px; background: #fff; color: #1f1a33; font-family: var(--font-ui); box-shadow: 0 24px 50px -24px rgb(30 15 70 / 0.65); animation: ti-float 8s ease-in-out infinite; }
+  .ti-h-card--dump { left: 0; top: 18%; rotate: -6deg; font-size: 0.82rem; display: grid; gap: 0.15rem; animation-delay: -2s; }
+  .ti-h-card--dump s { color: #625a7c; }
+  .ti-h-card-k { font-weight: 800; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: #5b3fd1; }
+  .ti-h-card--disc { right: 0; top: 46%; display: grid; justify-items: center; gap: 0.2rem; rotate: 5deg; animation-delay: -4s; }
+  .ti-h-disc { width: 64px; height: 64px; border-radius: 50%; background: radial-gradient(circle, #fff 0 34%, transparent 35%), conic-gradient(#a98bff 0 var(--ti-hm, 62%), #eee7fc 0); animation: ti-drain 20s linear infinite; }
+  .ti-h-card--disc b { font: 800 1.1rem/1 var(--font-display); }
+  .ti-h-card--disc small { font-size: 0.7rem; color: #4d4566; }
+  .ti-h-card--ai { left: 8%; bottom: 7%; font-size: 0.85rem; background: #dccfff; rotate: -3deg; animation-delay: -1s; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ti-hb, .ti-h-phone, .ti-h-card, .ti-h-mini, .ti-h-disc, .ti-h-now { animation: none; }
+    .ti-h-now { top: 40%; }
+  }
+  @media (max-width: 600px) {
+    .ti-h-card { padding: 0.55rem 0.75rem; border-radius: 14px; }
+    .ti-h-card--dump { font-size: 0.72rem; top: 10%; }
+    .ti-h-card--disc { top: 50%; }
+    .ti-h-disc { width: 46px; height: 46px; }
+    .ti-h-card--ai { font-size: 0.72rem; left: 2%; bottom: 4%; }
+  }
+</style>
