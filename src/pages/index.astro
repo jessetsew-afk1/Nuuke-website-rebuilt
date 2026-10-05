@@ -535,8 +535,9 @@ const stages = [
   /* ---------- 1. Hero ---------- */
   .h-hero { min-height: 100svh; display: grid; align-content: center; gap: var(--s-4); padding-block: 6rem 7rem; }
   .h-q + .h-sub { margin-top: var(--s-2); }
-  .h-q { font-family: var(--font-display); font-weight: 900; font-size: clamp(3.5rem, 1rem + 12vw, 13rem); line-height: 0.86; letter-spacing: -0.06em; display: grid; max-width: 60%; }
-  .h-w { display: block; overflow: hidden; padding-bottom: 0.04em; }
+  .h-q { font-family: var(--font-display); font-weight: 900; font-size: clamp(3.5rem, min(1rem + 12vw, 24svh), 13rem); line-height: 0.86; letter-spacing: -0.06em; display: grid; max-width: 62%; }
+  .h-q .h-w--brand { width: max-content; max-width: none; }
+  .h-w { display: block; overflow: hidden; padding-bottom: 0.04em; padding-right: 0.08em; white-space: nowrap; }
   .h-w--brand { color: var(--accent); }
   .h-sub { font-size: var(--fs-xl); color: var(--ink-2); }
   .h-cue { width: 22px; height: 36px; border: 1.5px solid var(--line-strong); border-radius: 12px; position: relative; margin-top: var(--s-5); }

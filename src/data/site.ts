@@ -9,8 +9,7 @@ export const site = {
   phone: '+1 (307) 655-6344',
   phoneHref: 'tel:+13076556344',
   email: 'hello@nuuke.us',
-  // TODO(owner): confirm the address to publish. The old footer said Casper, WY; Google lists Sheridan, WY.
-  address: '30 N Gould St Ste R, Sheridan, WY 82801',
+  address: '100 N Center St, Casper, WY 82601',
   footerLine: 'Good work speaks. Ours doesn’t shut up.',
   reviews: [
     { name: 'Bark', href: 'https://www.bark.com/en/us/company/nuuke/wJ9GnR/?show_reviews=true&review_source=share_link' },

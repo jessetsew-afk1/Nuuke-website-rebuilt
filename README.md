@@ -57,7 +57,6 @@ brand's public story, clearly labelled on every page, with sources listed. No re
 
 ## Open items for the owner
 
-- Confirm the address to publish (`src/data/site.ts`; Casper vs Sheridan, WY).
 - Add Clutch / Trustpilot profile links if they exist (`site.reviews`).
 - Add awards to `src/pages/about.astro` once each is confirmed with a link.
 - Hook the contact form to an endpoint (see above).

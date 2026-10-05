@@ -1,5 +1,5 @@
 // NUUKE score engine.
-// One orchestral track (public/audio/score.mp3, 2:26, normalised to about -18 LUFS) played through Web Audio:
+// One track per page (public/audio/score.mp3 or ambient.mp3, normalised to about -18 LUFS) played through Web Audio:
 //   deck A/B (for crossfades) → low-pass filter → dry + reverb → master → duck → out.
 // Scroll drives "intensity": the filter opens, the room tightens and the level rises,
 // so the strings sit softly behind the page at the top and come forward as you go deeper.
@@ -8,12 +8,21 @@
 // score underneath them with `duck()`.
 // Browsers only allow sound after a tap/click/key, so `enable()` must run inside one.
 
-const SRC = '/audio/score.mp3';
-const LOOP_IN = 16; // the strings are in by here; the opening bars are only for the first play
-const LOOP_OUT = 134; // before the fade-out at 136 s
-const CLIMAX = 92; // the swell into the strongest passage (96 to 102 s)
+// The homepage journey (body[data-score="custom"]) plays the orchestral score;
+// every other page plays a calmer ambient track. Each keeps its own playback position.
+const TRACKS = {
+  // Violins, 2:26: strings are in by 16 s, fade-out starts at 136 s, strongest passage 96 to 102 s.
+  score: { src: '/audio/score.mp3', loopIn: 16, loopOut: 134, climax: 92 },
+  // Ambient, 2:33: full texture from 24 s, breakdown at 120 s, fade-out from 146 s.
+  ambient: { src: '/audio/ambient.mp3', loopIn: 24, loopOut: 144, climax: 24 },
+};
+const TRACK = typeof document !== 'undefined' && document.body?.dataset.score === 'custom' ? TRACKS.score : TRACKS.ambient;
+const SRC = TRACK.src;
+const LOOP_IN = TRACK.loopIn;
+const LOOP_OUT = TRACK.loopOut;
+const CLIMAX = TRACK.climax;
 const KEY_PREF = 'nuuke:sound';
-const KEY_TIME = 'nuuke:sound-t';
+const KEY_TIME = TRACK === TRACKS.score ? 'nuuke:sound-t' : 'nuuke:sound-t-ambient';
 
 type Deck = { el: HTMLAudioElement; gain: GainNode };
 
