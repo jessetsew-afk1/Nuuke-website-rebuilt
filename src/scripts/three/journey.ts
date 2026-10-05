@@ -735,7 +735,7 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
         boost = Math.max(boost, charge * 0.5);
         if (warpT >= 1.25) {
           warpDropped = true;
-          flash = 0.85;
+          flash = 0.7;
           sfx.warpDrop();
           warpDrop?.();
           warpDrop = null;
@@ -976,7 +976,7 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
     }
   });
 
-  if (hjDebug) (window as unknown as { __hj: unknown }).__hj = () => ({ mode, film, curOpacity, finale, warpT, seq, fov: camera.fov, bfov: backdropFov, facing, rotZ, cam: camera.position.toArray(), rocket: cur.toArray(), scale: curScale, sunVis: fu.uSunVis.value, sunRaw: sunRawDbg, sun: fu.uSun.value.toArray(), fps: fpsNow, smoke: smoke.alive, look: look.toArray(), sv, flash, shakeAmp, starFlow, rigErr: rigPos.distanceTo(rigPosT), camLook: camLook.toArray(), dir: camera.getWorldDirection(new THREE.Vector3()).toArray() });
+  if (hjDebug) (window as unknown as { __hj: unknown }).__hj = () => ({ mode, film, curOpacity, finale, warpT, seq, fov: camera.fov, bfov: backdropFov, scr: (project(rocket.group.position, v2b), [Math.round(v2b.x), Math.round(v2b.y)]), px: Math.round(curScale * ROCKET_H * pxPerUnit()), facing, rotZ, cam: camera.position.toArray(), rocket: cur.toArray(), scale: curScale, sunVis: fu.uSunVis.value, sunRaw: sunRawDbg, sun: fu.uSun.value.toArray(), fps: fpsNow, smoke: smoke.alive, look: look.toArray(), sv, flash, shakeAmp, starFlow, rigErr: rigPos.distanceTo(rigPosT), camLook: camLook.toArray(), dir: camera.getWorldDirection(new THREE.Vector3()).toArray() });
 
   return {
     setLoad: (p) => (load = p),
