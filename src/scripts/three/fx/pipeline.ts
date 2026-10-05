@@ -15,7 +15,7 @@ const BLUR_Y = new THREE.Vector2(0, 1);
 // quality tier: its blur radii are in bloom texels, so a fixed height keeps the glow the same
 // size (as a fraction of the screen) and the same strength everywhere. Before, a large or
 // high-DPR window got a tighter, hotter glow than a small one.
-const BLOOM_H = 900;
+const BLOOM_H = 720;
 
 // Bright-pass that also downsamples properly: four bilinear taps (a 4x4 texel footprint)
 // instead of one, so small highlights (stars, sparks, sub-pixel glints) feed the bloom

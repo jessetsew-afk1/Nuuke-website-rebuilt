@@ -56,7 +56,7 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
   const step = async (label = '') => {
     // ?perf: each chunk's main-thread time shows up as a performance measure ("ss <label>")
     if (timing) performance.measure(`ss ${label}`, { start: chunkT, end: performance.now() });
-    holdGovernor(1500);
+    holdGovernor(400);
     await idle();
     chunkT = performance.now();
   };

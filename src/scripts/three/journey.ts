@@ -78,7 +78,7 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
   const sunSpace = new THREE.Vector3();
   const sunDir = SUN_DUSK.clone();
 
-  const dome = makeDome();
+  const dome = makeDome(renderer);
   scene.add(dome.mesh);
   const STARS_N = lite ? 1100 : 2600;
   const DUST_N = lite ? 46 : 110;

@@ -132,7 +132,6 @@ function initGovernor(gl: WebGLRenderingContext | WebGL2RenderingContext) {
 /** Pause verdicts for a while, e.g. while a scene is being built in idle-time chunks. */
 export function holdGovernor(ms: number) {
   gov.holdUntil = Math.max(gov.holdUntil, performance.now() + ms);
-  gov.n = 0;
 }
 
 /** Feed one rendered-frame interval (only between two consecutive rendered ticks). */
@@ -353,6 +352,9 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
   // No GPU (software rasteriser) or the visitor prefers less motion → static frames only.
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches || isSoftwareGL(renderer.getContext());
   initGovernor(renderer.getContext());
+  // Shader error checks read the program log right after linking, which makes the main thread
+  // wait for every link; only on request (?glcheck).
+  renderer.debug.checkShaderErrors = qsFlag('glcheck');
   const applyPR = (q: Quality) => Math.min(window.devicePixelRatio || 1, q.maxPR);
   renderer.setPixelRatio(applyPR(quality()));
   renderer.outputColorSpace = THREE.SRGBColorSpace;

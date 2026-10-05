@@ -11,53 +11,95 @@ void main() {
   vec4 p = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   gl_Position = p.xyww;
 }`;
-const DOME_FRAG = /* glsl */ `
+// The deep-space nebula is eight octaves of 3D noise per pixel: far too much work to repeat
+// for every pixel of every frame on everyday GPUs. It is baked once into an equirectangular
+// texture (stored as sqrt for smooth gradients in 8 bits) and the dome just samples it.
+const NEBULA_BAKE = /* glsl */ `
 ${SIMPLEX3}
-${HASH}
-uniform float uAlt;      // 0 = ground at dusk, 1 = space
-uniform vec3 uSunDir;
-uniform float uSunBoost;
-uniform float uTime;
-uniform float uFlash;
-varying vec3 vDir;
+varying vec2 vUv;
 void main() {
-  vec3 d = normalize(vDir);
-  float e = d.y;
-  // Dusk atmosphere
-  vec3 zenith = vec3(0.005, 0.01, 0.035);
-  vec3 mid = vec3(0.022, 0.05, 0.14);
-  vec3 glowBand = vec3(0.32, 0.2, 0.3);
-  vec3 hor = vec3(0.85, 0.34, 0.12);
-  vec3 ground = vec3(0.012, 0.011, 0.016);
-  vec3 atm = mix(hor, glowBand, smoothstep(0.0, 0.07, e));
-  atm = mix(atm, mid, smoothstep(0.05, 0.3, e));
-  atm = mix(atm, zenith, smoothstep(0.3, 0.9, e));
-  float haze = exp(-abs(e) * 30.0);
-  atm = e < 0.0 ? mix(ground, hor * 0.45, haze) : atm;
-  float s = max(dot(d, normalize(uSunDir)), 0.0);
-  atm += vec3(1.0, 0.42, 0.15) * (pow(s, 6.0) * 0.35 + pow(s, 60.0) * 0.5) * (1.0 - smoothstep(0.0, 0.35, e));
-  atm += vec3(2.4, 1.2, 0.55) * pow(s, 1400.0) * 2.5;
-  // As we climb, the sky thins to violet then black
-  vec3 thin = mix(vec3(0.02, 0.02, 0.07), vec3(0.08, 0.05, 0.18), exp(-abs(e - 0.0) * 6.0));
-  atm = mix(atm, thin, smoothstep(0.35, 0.8, uAlt));
-  // Deep space with a nebula
+  float lon = (vUv.x - 0.5) * 6.28318530718;
+  float lat = (vUv.y - 0.5) * 3.14159265359;
+  vec3 d = vec3(cos(lat) * cos(lon), sin(lat), cos(lat) * sin(lon));
   vec3 sp = vec3(0.004, 0.004, 0.01);
-  float n1 = fbm5(d * 2.2 + vec3(0.0, 0.0, uTime * 0.004));
+  float n1 = fbm5(d * 2.2);
   float n2 = fbm3(d * 5.0 + 3.1);
   float band = exp(-pow(dot(d, normalize(vec3(0.3, 0.8, -0.5))) * 2.6, 2.0));
   float neb = smoothstep(-0.15, 0.6, n1) * (0.35 + band * 0.9);
   sp += vec3(0.16, 0.035, 0.12) * neb * neb * 0.55;
   sp += vec3(0.04, 0.07, 0.2) * smoothstep(0.0, 0.7, n2) * band * 0.35;
   sp += vec3(0.26, 0.05, 0.16) * pow(max(n1 * n2, 0.0), 1.5) * band * 0.6;
-  // The sun from space: white core, a soft warm halo
-  sp += (vec3(1.6, 1.45, 1.3) * pow(s, 2400.0) * 9.0 + vec3(1.6, 1.25, 0.9) * pow(s, 120.0) * 0.1 + vec3(1.5, 1.05, 0.7) * pow(s, 14.0) * 0.007) * uSunBoost;
-  vec3 c = mix(atm, sp, smoothstep(0.55, 1.0, uAlt));
+  gl_FragColor = vec4(sqrt(clamp(sp, 0.0, 1.0)), 1.0);
+}`;
+
+const DOME_FRAG = /* glsl */ `
+${HASH}
+uniform float uAlt;      // 0 = ground at dusk, 1 = space
+uniform vec3 uSunDir;
+uniform float uSunBoost;
+uniform float uTime;
+uniform float uFlash;
+uniform sampler2D tNebula;
+varying vec3 vDir;
+void main() {
+  vec3 d = normalize(vDir);
+  float e = d.y;
+  float s = max(dot(d, normalize(uSunDir)), 0.0);
+  float spaceK = smoothstep(0.55, 1.0, uAlt);
+  vec3 atm = vec3(0.0);
+  if (spaceK < 1.0) {
+    // Dusk atmosphere
+    vec3 zenith = vec3(0.005, 0.01, 0.035);
+    vec3 mid = vec3(0.022, 0.05, 0.14);
+    vec3 glowBand = vec3(0.32, 0.2, 0.3);
+    vec3 hor = vec3(0.85, 0.34, 0.12);
+    vec3 ground = vec3(0.012, 0.011, 0.016);
+    atm = mix(hor, glowBand, smoothstep(0.0, 0.07, e));
+    atm = mix(atm, mid, smoothstep(0.05, 0.3, e));
+    atm = mix(atm, zenith, smoothstep(0.3, 0.9, e));
+    float haze = exp(-abs(e) * 30.0);
+    atm = e < 0.0 ? mix(ground, hor * 0.45, haze) : atm;
+    atm += vec3(1.0, 0.42, 0.15) * (pow(s, 6.0) * 0.35 + pow(s, 60.0) * 0.5) * (1.0 - smoothstep(0.0, 0.35, e));
+    atm += vec3(2.4, 1.2, 0.55) * pow(s, 1400.0) * 2.5;
+    // As we climb, the sky thins to violet then black
+    vec3 thin = mix(vec3(0.02, 0.02, 0.07), vec3(0.08, 0.05, 0.18), exp(-abs(e - 0.0) * 6.0));
+    atm = mix(atm, thin, smoothstep(0.35, 0.8, uAlt));
+  }
+  vec3 sp = vec3(0.0);
+  if (spaceK > 0.0) {
+    // Deep space with a nebula (baked), and the sun: white core, a soft warm halo
+    vec2 uv = vec2(atan(d.z, d.x) / 6.28318530718 + 0.5, asin(clamp(e, -1.0, 1.0)) / 3.14159265359 + 0.5);
+    vec3 nb = texture2D(tNebula, uv).rgb;
+    sp = nb * nb;
+    sp += (vec3(1.6, 1.45, 1.3) * pow(s, 2400.0) * 9.0 + vec3(1.6, 1.25, 0.9) * pow(s, 120.0) * 0.1 + vec3(1.5, 1.05, 0.7) * pow(s, 14.0) * 0.007) * uSunBoost;
+  }
+  vec3 c = mix(atm, sp, spaceK);
   c += vec3(1.0) * uFlash;
   c += (hash12(gl_FragCoord.xy + uTime) - 0.5) / 255.0;
   gl_FragColor = vec4(c, 1.0);
 }`;
 
-export function makeDome() {
+export function makeDome(renderer: THREE.WebGLRenderer) {
+  // Bake the nebula once (2048 x 1024, no mipmaps so the longitude seam stays invisible).
+  const nebula = new THREE.WebGLRenderTarget(2048, 1024, { depthBuffer: false, generateMipmaps: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, wrapS: THREE.RepeatWrapping });
+  const bakeMat = new THREE.ShaderMaterial({
+    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: NEBULA_BAKE,
+    depthTest: false,
+    depthWrite: false,
+  });
+  const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), bakeMat);
+  quad.frustumCulled = false;
+  const bakeScene = new THREE.Scene().add(quad);
+  const prev = renderer.getRenderTarget();
+  const tm = renderer.toneMapping;
+  renderer.setRenderTarget(nebula);
+  renderer.render(bakeScene, new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1));
+  renderer.setRenderTarget(prev);
+  renderer.toneMapping = tm;
+  bakeMat.dispose();
+  quad.geometry.dispose();
+
   const mat = new THREE.ShaderMaterial({
     vertexShader: DOME_VERT,
     fragmentShader: DOME_FRAG,
@@ -70,12 +112,13 @@ export function makeDome() {
       uSunBoost: { value: 1 },
       uTime: { value: 0 },
       uFlash: { value: 0 },
+      tNebula: { value: nebula.texture },
     },
   });
   const mesh = new THREE.Mesh(new THREE.SphereGeometry(10, 48, 24), mat);
   mesh.frustumCulled = false;
   mesh.renderOrder = -100;
-  return { mesh, mat };
+  return { mesh, mat, dispose: () => (nebula.dispose(), mat.dispose(), mesh.geometry.dispose()) };
 }
 
 // ---------- Stars: wrap in a box around the camera, streak along their motion ----------
