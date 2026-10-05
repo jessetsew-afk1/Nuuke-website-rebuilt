@@ -115,7 +115,7 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
   });
 
   // The little rocket ferries between worlds.
-  const rocket = makeRocket();
+  const rocket = makeRocket({ small: true });
   rocket.group.scale.setScalar(0.12);
   scene.add(rocket.group);
 

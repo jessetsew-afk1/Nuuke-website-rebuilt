@@ -100,6 +100,8 @@ export function initStarfield(canvas: HTMLCanvasElement | null) {
   };
   const loop = () => {
     if (!running) return;
+    // The homepage journey draws its own space; stop this loop once it takes over.
+    if (document.documentElement.classList.contains('hj-gl')) return;
     draw();
     requestAnimationFrame(loop);
   };

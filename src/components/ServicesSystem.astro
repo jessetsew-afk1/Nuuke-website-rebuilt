@@ -66,6 +66,32 @@ const lines = [
     }
   </div>
 </section>
+<script is:inline>
+  // Decide static vs 3D before first paint so the layout doesn't jump (mirrors hasHardwareGL()).
+  (function () {
+    var root = document.currentScript && document.currentScript.previousElementSibling;
+    if (!root) return;
+    var hw = /[?&]gl=force\b/.test(location.search);
+    if (!hw) {
+      try {
+        var c = document.createElement('canvas');
+        var gl = c.getContext('webgl2') || c.getContext('webgl');
+        if (gl) {
+          var ext = gl.getExtension('WEBGL_debug_renderer_info');
+          var name = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : '';
+          var lose = gl.getExtension('WEBGL_lose_context');
+          if (lose) lose.loseContext();
+          hw = !/swiftshader|llvmpipe|softpipe|software|basic render/i.test(name);
+        }
+      } catch (e) {}
+    }
+    if (!hw || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      root.classList.add('is-static');
+      var fb = root.querySelector('[data-ss-fallback]');
+      if (fb) fb.hidden = false;
+    }
+  })();
+</script>
 
 <script>
   import { ScrollTrigger, reducedMotion, lenis, whenNear } from '../scripts/motion';
