@@ -5,10 +5,10 @@
 //
 // Graph: voices → bus → high-pass 28 Hz → glue compressor → limiter → out → speakers
 //                 ↘ room send → convolver ↗
-// The bus sits under the score as background: limiter ceiling around -9 dBFS, typical
+// The bus sits under the score as background: limiter ceiling around -12 dBFS, typical
 // effects 6 to 12 dB under the music, the flight bed far below that.
 
-import { getContext, isOn, onChange, duck } from './audio';
+import { getContext, isOn, isStarting, onChange, duck } from './audio';
 
 type Ctx = BaseAudioContext;
 type Bus = {
@@ -146,6 +146,16 @@ function ready(): Bus | null {
   return bus;
 }
 
+/**
+ * Calls made in the same click that turns sound on arrive before the score has started
+ * (enable() is async). Hold those briefly and play them, late by `late` seconds, once it is on.
+ */
+const queued: { run: (late: number) => void; at: number }[] = [];
+function later(run: (late: number) => void) {
+  if (isOn() || !isStarting() || document.hidden || queued.length > 4) return;
+  queued.push({ run, at: performance.now() });
+}
+
 /** Rate limit per effect; returns false when `key` fired less than `gap` s ago. */
 function gate(b: Bus, key: string, gap: number) {
   const t = b.c.currentTime;
@@ -248,7 +258,8 @@ const clamp = (v: number, a: number, z: number) => Math.min(z, Math.max(a, v));
 /** Ignition: engine catches and rumbles up over `seconds`; music ducks underneath. */
 export function ignition(seconds = 2.2): void {
   const b = ready();
-  if (!b || !gate(b, 'ignition', 1.2)) return;
+  if (!b) return later((late) => ignition(Math.max(0.6, (Number(seconds) || 2.2) - late)));
+  if (!gate(b, 'ignition', 1.2)) return;
   const v = voice(b, -4);
   const D = clamp(Number(seconds) || 2.2, 0.6, 8);
   const t = b.c.currentTime + 0.02;
@@ -305,7 +316,8 @@ export function ignition(seconds = 2.2): void {
 /** The moment the rocket leaves the pad: a roar that tails off as it climbs. */
 export function liftoff(): void {
   const b = ready();
-  if (!b || !gate(b, 'liftoff', 2)) return;
+  if (!b) return later(() => liftoff());
+  if (!gate(b, 'liftoff', 2)) return;
   const v = voice(b, -3);
   const t = b.c.currentTime + 0.02;
   const D = 4.8;
@@ -432,10 +444,16 @@ export function setThrust(v: number): void {
 }
 
 onChange((on) => {
+  const held = queued.splice(0);
   if (on) {
     const b = ready();
     if (b) b.out.gain.setTargetAtTime(LEVEL, b.c.currentTime, 0.3);
     applyThrust(true);
+    const now = performance.now();
+    for (const q of held) {
+      const late = (now - q.at) / 1000;
+      if (late < 2.5) q.run(late);
+    }
   } else if (bus) {
     bus.out.gain.setTargetAtTime(0, bus.c.currentTime, 0.2);
     dropBed();

@@ -29,6 +29,7 @@ let duckLevel = 1;
 let duckEnd = 0;
 let intensity = 0.15;
 let enabled = false;
+let starting = false;
 let fading = false;
 const listeners = new Set<(on: boolean) => void>();
 
@@ -50,6 +51,8 @@ const store = {
 /** Did the visitor choose sound earlier (this browser)? */
 export const prefersSound = () => store.get(KEY_PREF) === 'on';
 export const isOn = () => enabled;
+/** True while enable() is waiting for the context and the first play() to start. */
+export const isStarting = () => starting;
 export const onChange = (fn: (on: boolean) => void) => (listeners.add(fn), () => listeners.delete(fn));
 const emit = () => listeners.forEach((f) => f(enabled));
 
@@ -103,7 +106,7 @@ function build() {
 }
 
 // Background level: about 3 dB under the first cut of the score (0.22..0.52).
-const level = () => 0.155 + 0.215 * Math.pow(intensity, 0.8);
+const level = () => 0.2 + 0.24 * Math.pow(intensity, 0.8);
 
 /** Push the current intensity into the audio graph. */
 function apply(now = false) {
@@ -180,6 +183,15 @@ export function cueClimax() {
 
 /** Start the score. Call from a click/tap/key handler. */
 export async function enable(from?: number) {
+  starting = true;
+  try {
+    await boot(from);
+  } finally {
+    starting = false;
+  }
+}
+
+async function boot(from?: number) {
   if (!ctx) build();
   await ctx!.resume();
   const start = from ?? Number(store.get(KEY_TIME, sessionStorage) || 0);
