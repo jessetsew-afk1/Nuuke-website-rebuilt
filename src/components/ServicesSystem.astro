@@ -149,7 +149,7 @@ const lines = [
   .ss-panels { position: absolute; left: var(--gutter); top: 50%; transform: translateY(-50%); width: min(520px, calc(100% - 2 * var(--gutter))); min-height: 360px; }
   .ss-panel { position: absolute; inset: 0 0 auto; display: grid; gap: var(--s-4); opacity: 0; transform: translateY(24px); filter: blur(6px); transition: opacity 0.7s var(--ease-out), transform 0.9s var(--ease-out), filter 0.7s; pointer-events: none; }
   .ss-panel.is-on { opacity: 1; transform: none; filter: none; pointer-events: auto; }
-  .ss-title { font-family: var(--font-display); font-weight: 900; font-size: var(--fs-4xl); line-height: 0.92; letter-spacing: -0.05em; }
+  .ss-title { font-family: var(--font-display); font-weight: 900; font-size: min(var(--fs-4xl), 6.25rem, 11svh); line-height: 0.92; letter-spacing: -0.05em; }
   .ss-idx .t-num { color: var(--c); font-weight: 700; margin-right: var(--s-2); }
   .ss-name { font-family: var(--font-display); font-weight: 900; font-size: var(--fs-3xl); line-height: 0.98; letter-spacing: -0.045em; color: var(--ink); text-shadow: 0 0 40px color-mix(in srgb, var(--c) 45%, transparent); }
   .ss-line { color: var(--ink); font-size: var(--fs-lg); border-left: 3px solid var(--c); padding-left: var(--s-4); }
