@@ -1,0 +1,525 @@
+---
+// Cinematic opening: one loaf, one street, 34 minutes. A pinned, warm dusk street
+// in Olio's 2023 palette. As you scroll, a loaf is listed on the doorstep of No. 12,
+// alert waves ripple out and neighbours' windows light up, someone at No. 26 asks,
+// the waves stop, the clock ticks 17:30 → 18:04 and the loaf crosses the side street
+// to its new home. Then the lockup lands and the marquee rolls.
+// Original SVG/CSS illustration (no Olio artwork). The timings follow our
+// illustrative speed simulation in chapter 04, not measured data.
+type Word = { w: string; k?: 'hl' | 'coral' | 'pill' | 'loaf' };
+const lines: Word[][] = [
+  [{ w: 'Food' }, { w: 'doesn’t' }, { w: 'get' }, { w: 'wasted' }],
+  [{ w: 'because' }, { w: 'nobody' }, { w: 'wants' }, { w: 'it.' }],
+  [{ w: 'It' }, { w: 'gets' }, { w: 'wasted' }, { w: 'because' }],
+  [{ w: 'nobody' }, { w: 'knows', k: 'hl' }, { w: 'it’s' }, { w: 'there.' }],
+  [{ w: 'A' }, { w: 'spare' }, { w: 'loaf', k: 'loaf' }, { w: 'at' }, { w: 'No. 12,' }],
+  [{ w: 'an' }, { w: 'empty' }, { w: 'bread' }, { w: 'bin' }, { w: 'at' }, { w: 'No. 26.' }],
+  [{ w: 'The' }, { w: 'distance?' }, { w: 'One street.', k: 'pill' }],
+  [{ w: 'The' }, { w: 'deadline?' }, { w: 'Tonight.', k: 'coral' }],
+];
+const sentence = lines.map((l) => l.map((x) => x.w).join(' ')).join(' ');
+let n = 0;
+
+// ---- The street (viewBox 2000 × 460). Houses stand on y = 380. ----
+const GROUND = 380;
+const FACADES = ['#FFE9CC', '#FF8A75', '#EDE6FF', '#FFD23F', '#FFB38A', '#C9B6FF', '#FFF3E2'];
+const DOORS = ['#6E3BD9', '#22163B', '#FF6B5B', '#3B2A73'];
+type House = { no: number; x: number; w: number; h: number; roof: 'gable' | 'flat'; chimney: boolean; face: string; door: string; doorX: number };
+const houses: House[] = [];
+const block = (x0: number, count: number, w: number, firstNo: number, offset: number) => {
+  for (let i = 0; i < count; i++) {
+    const k = i + offset;
+    const x = x0 + i * w;
+    const face = FACADES[k % FACADES.length];
+    let door = DOORS[(k * 3) % DOORS.length];
+    if (door === face) door = '#22163B';
+    houses.push({ no: firstNo + i * 2, x, w, h: 214 + ((k * 37) % 40), roof: k % 3 === 1 ? 'flat' : 'gable', chimney: k % 2 === 0, face, door, doorX: x + w * 0.7 });
+  }
+};
+block(40, 7, 134, 6, 0);
+block(1190, 6, 130, 20, 3);
+const giver = houses.find((h) => h.no === 12)!;
+const taker = houses.find((h) => h.no === 26)!;
+const G = { x: giver.doorX, y: 340 };
+const C = { x: taker.doorX, y: 340 };
+const dist = (x: number, y: number) => Math.round(Math.hypot(x - G.x, y - G.y));
+type Win = { x: number; y: number; w: number; h: number; d: number; home: boolean; taker: boolean };
+const wins: Win[] = [];
+for (const h of houses) {
+  const top = GROUND - h.h;
+  const pane = (x: number, y: number, w: number, hh: number) => wins.push({ x, y, w, h: hh, d: dist(x + w / 2, y + hh / 2), home: h === giver, taker: h === taker });
+  pane(h.x + h.w * 0.24 - 16, top + 30, 32, 46);
+  pane(h.x + h.w * 0.7 - 16, top + 30, 32, 46);
+  pane(h.x + h.w * 0.28 - 22, GROUND - 112, 44, 56);
+}
+const bells = houses.filter((h) => h !== giver).map((h) => ({ x: h.doorX, y: GROUND - h.h - (h.roof === 'gable' ? 70 : 34), d: dist(h.doorX, 340), taker: h === taker }));
+const stripes = Array.from({ length: 8 }, (_, i) => 990 + i * 25);
+const lamps = [300, 860, 1340, 1930];
+const far = Array.from({ length: 30 }, (_, i) => ({ x: i * 70 - 10, w: 60 + ((i * 13) % 20), h: 40 + ((i * 29) % 46) }));
+const payload = JSON.stringify({ G, C, W: 2000 });
+const lockL1 = 'shared in'.split('');
+const lockL2 = '34 minutes'.split('');
+const marquee = 'SHARE MORE ✶ WASTE LESS ✶ NOTHING OF VALUE GOES TO WASTE ✶ ONE LOAF, ONE STREET, 34 MINUTES ✶ ';
+---
+
+<div class="ol-op" data-ol-op data-cfg={payload}>
+  <div class="ol-op-sticky">
+    <div class="ol-op-sky" aria-hidden="true"></div>
+    <div class="ol-op-dusk" data-ol-dusk aria-hidden="true"></div>
+
+    <div class="ol-op-grid container">
+      <div class="ol-op-copy">
+        <p class="t-label ol-op-kicker">17:30 · a Tuesday on a London street</p>
+        <p class="ol-op-text">
+          <span class="visually-hidden">{sentence}</span>
+          {
+            lines.map((line) => (
+              <span class="ol-op-line" aria-hidden="true">
+                {line.map((x) => (
+                  <span class:list={['ol-op-w', x.k && `ol-op-w--${x.k}`]} style={`--i:${n++}`}>
+                    {x.k === 'loaf' && (
+                      <svg class="ol-op-w-loaf" viewBox="-30 -30 60 34" aria-hidden="true">
+                        <path d="M-26 0 C -28 -16 -15 -27 0 -27 C 15 -27 28 -16 26 0 Z" fill="#E9A25C" stroke="#22163B" stroke-width="3" />
+                        <path d="M-12 -12 l6 -8 M0 -13 l6 -8 M12 -12 l6 -8" stroke="#FFE3B3" stroke-width="3" stroke-linecap="round" />
+                      </svg>
+                    )}
+                    {x.w}
+                  </span>
+                ))}{' '}
+              </span>
+            ))
+          }
+        </p>
+      </div>
+      <div class="ol-op-counter" aria-hidden="true">
+        <div class="ol-op-tiles">
+          <span data-ol-dg>1</span><span data-ol-dg>7</span><i>:</i><span data-ol-dg>3</span><span data-ol-dg>0</span>
+        </div>
+        <p class="ol-op-status"><i></i><span data-ol-status>Listed · AI-ify wrote it</span></p>
+        <div class="ol-op-bar"><span data-ol-bar></span></div>
+      </div>
+    </div>
+
+    <div class="ol-op-street" data-ol-street aria-hidden="true">
+      <svg class="ol-op-svg" data-ol-svg viewBox="0 0 2000 460">
+        <defs>
+          <radialGradient id="ol-op-sunglow"><stop offset="0" stop-color="#FFD23F" stop-opacity=".75" /><stop offset="1" stop-color="#FF8A6B" stop-opacity="0" /></radialGradient>
+          <radialGradient id="ol-op-lamp"><stop offset="0" stop-color="#FFD23F" stop-opacity=".6" /><stop offset="1" stop-color="#FFD23F" stop-opacity="0" /></radialGradient>
+        </defs>
+        <g class="ol-op-sun" data-ol-sun>
+          <circle cx="1084" cy="190" r="170" fill="url(#ol-op-sunglow)" />
+          <circle cx="1084" cy="190" r="66" fill="#FFD23F" />
+        </g>
+        <g fill="#5A2FC0">{far.map((f) => <rect x={f.x} y={GROUND - 120 - f.h} width={f.w} height={f.h + 130} rx="4" />)}</g>
+        <!-- side street receding between the blocks -->
+        <polygon points="1050,262 1120,262 1190,406 978,406" fill="#3B2A73" />
+        <path d="M1085 272 V290 M1085 310 V334 M1085 356 V386" stroke="#FFE9CC" stroke-width="4" stroke-linecap="round" opacity=".7" />
+        <!-- pavement + road -->
+        <rect x="0" y={GROUND} width="2000" height="26" fill="#FFE9CC" />
+        <rect x="0" y={GROUND + 24} width="2000" height="6" fill="#D9C7F7" />
+        <rect x="0" y={GROUND + 30} width="2000" height="60" fill="#3B2A73" />
+        <path d={`M20 ${GROUND + 56} H2000`} stroke="#FFE9CC" stroke-width="5" stroke-dasharray="46 34" opacity=".8" />
+        <rect x="978" y={GROUND} width="212" height="30" fill="#3B2A73" />
+        {stripes.map((x) => <rect x={x} y={GROUND + 1} width="14" height="28" fill="#FFF3E2" />)}
+
+        <!-- houses -->
+        {
+          houses.map((h) => {
+            const top = GROUND - h.h;
+            return (
+              <g class="ol-op-house">
+                {h.chimney && (
+                  <g>
+                    <rect x={h.x + h.w * 0.12} y={top - (h.roof === 'gable' ? 52 : 40)} width="20" height="44" fill="#C2573F" stroke="#22163B" stroke-width="3" />
+                    <rect x={h.x + h.w * 0.12 + 3} y={top - (h.roof === 'gable' ? 62 : 50)} width="6" height="12" fill="#FF8A75" stroke="#22163B" stroke-width="2" />
+                    <rect x={h.x + h.w * 0.12 + 11} y={top - (h.roof === 'gable' ? 60 : 48)} width="6" height="10" fill="#FF8A75" stroke="#22163B" stroke-width="2" />
+                  </g>
+                )}
+                {h.roof === 'gable' ? (
+                  <polygon points={`${h.x - 4},${top + 2} ${h.x + h.w / 2},${top - 46} ${h.x + h.w + 4},${top + 2}`} fill="#3B2A73" stroke="#22163B" stroke-width="3" stroke-linejoin="round" />
+                ) : (
+                  <rect x={h.x - 2} y={top - 14} width={h.w + 4} height="18" fill="#3B2A73" stroke="#22163B" stroke-width="3" />
+                )}
+                <rect x={h.x} y={top} width={h.w} height={h.h} fill={h.face} stroke="#22163B" stroke-width="3" />
+                <rect x={h.x} y={GROUND - 128} width={h.w} height="6" fill="#22163B" opacity=".12" />
+                <g class:list={['ol-op-door', { 'ol-op-door--taker': h === taker }]}>
+                  <rect x={h.doorX - 22} y={GROUND - 82} width="44" height="82" fill="#FFF3E2" stroke="#22163B" stroke-width="3" />
+                  <rect class="ol-op-door-in" x={h.doorX - 17} y={GROUND - 72} width="34" height="66" fill="#FFD23F" />
+                  <rect class="ol-op-door-leaf" x={h.doorX - 17} y={GROUND - 72} width="34" height="66" fill={h.door} stroke="#22163B" stroke-width="2.5" />
+                  <circle cx={h.doorX + 9} cy={GROUND - 38} r="2.6" fill="#FFD23F" />
+                  <path d={`M${h.doorX - 17} ${GROUND - 72} a17 15 0 0 1 34 0 Z`} fill="#2E2066" stroke="#22163B" stroke-width="2.5" />
+                  <text x={h.doorX} y={GROUND - 74} text-anchor="middle" class="ol-op-no">{h.no}</text>
+                </g>
+                <rect x={h.doorX - 28} y={GROUND - 6} width="56" height="6" fill="#D9C7F7" stroke="#22163B" stroke-width="2" />
+              </g>
+            );
+          })
+        }
+        {
+          wins.map((w) => (
+            <g class:list={['ol-op-win', { 'is-home': w.home, 'ol-op-win--taker': w.taker }]} data-d={w.d}>
+              <rect class="ol-op-halo" x={w.x - 10} y={w.y - 10} width={w.w + 20} height={w.h + 20} rx="12" />
+              <rect class="ol-op-pane" x={w.x} y={w.y} width={w.w} height={w.h} rx="3" stroke="#22163B" stroke-width="3" />
+              <path d={`M${w.x + w.w / 2} ${w.y} V${w.y + w.h} M${w.x} ${w.y + w.h / 2} H${w.x + w.w}`} stroke="#FFF3E2" stroke-width="3" />
+            </g>
+          ))
+        }
+
+        <!-- lamps + beacons -->
+        {
+          lamps.map((x) => (
+            <g class="ol-op-lamp">
+              <circle class="ol-op-lamp-glow" cx={x} cy={GROUND - 128} r="70" fill="url(#ol-op-lamp)" />
+              <rect x={x - 3} y={GROUND - 124} width="6" height="124" fill="#22163B" />
+              <path d={`M${x - 14} ${GROUND - 120} h28 l-6 -16 h-16 Z`} fill="#22163B" />
+              <rect class="ol-op-lamp-bulb" x={x - 9} y={GROUND - 120} width="18" height="6" rx="2" />
+            </g>
+          ))
+        }
+        {
+          [968, 1200].map((x) => (
+            <g>
+              {Array.from({ length: 6 }, (_, i) => <rect x={x - 3} y={GROUND - 84 + i * 14} width="6" height="14" fill={i % 2 ? '#FFF3E2' : '#22163B'} />)}
+              <circle class="ol-op-beacon" cx={x} cy={GROUND - 92} r="11" stroke="#22163B" stroke-width="2.5" />
+            </g>
+          ))
+        }
+
+        <!-- alert waves from No. 12 -->
+        <g class="ol-op-waves">
+          <g data-ol-wave="1">
+            {[1, 0.72, 0.44].map((k) => <ellipse cx={G.x} cy={GROUND - 8} rx="0" ry="0" data-k={k} />)}
+          </g>
+          <g data-ol-wave="2">
+            {[1, 0.72, 0.44].map((k) => <ellipse cx={G.x} cy={GROUND - 8} rx="0" ry="0" data-k={k} />)}
+          </g>
+        </g>
+        {
+          bells.map((b) => (
+            <g class:list={['ol-op-bell', { 'ol-op-bell--taker': b.taker }]} data-d={b.d} transform={`translate(${b.x} ${b.y})`}>
+              <g class="ol-op-bell-in">
+                <path d="M0 22 L-6 14 H6 Z" fill="#22163B" />
+                <circle r="17" class="ol-op-bell-bg" stroke="#22163B" stroke-width="3" />
+                <path class="ol-op-bell-ic" d="M-7 5 C -7 -2 -6 -8 0 -8 C 6 -8 7 -2 7 5 L 9 7 H -9 Z M -2 9 a2 2 0 0 0 4 0" fill="#22163B" />
+                <path class="ol-op-heart" d="M0 8 C -12 -1 -9 -10 -3 -9 C -1 -9 0 -7 0 -6 C 0 -7 1 -9 3 -9 C 9 -10 12 -1 0 8 Z" fill="#FFF3E2" />
+              </g>
+            </g>
+          ))
+        }
+
+        <!-- the loaf -->
+        <line class="ol-op-trail" data-ol-trail x1={G.x} y1={GROUND + 16} x2={G.x} y2={GROUND + 16} />
+        <g class="ol-op-loaf" data-ol-loaf transform={`translate(${G.x} ${GROUND - 2})`}>
+          <g class="ol-op-loaf-pop">
+            <ellipse cx="0" cy="2" rx="26" ry="5" fill="#22163B" opacity=".2" />
+            <path d="M-28 0 C -30 -18 -16 -30 0 -30 C 16 -30 30 -18 28 0 Z" fill="#E9A25C" stroke="#22163B" stroke-width="3.5" />
+            <path d="M-13 -13 l7 -9 M0 -15 l7 -9 M13 -13 l7 -9" stroke="#FFE3B3" stroke-width="3.5" stroke-linecap="round" />
+            <g class="ol-op-tag"><rect x="12" y="-52" width="44" height="22" rx="11" fill="#6E3BD9" stroke="#22163B" stroke-width="2.5" /><text x="34" y="-37" text-anchor="middle" class="ol-op-tag-t">Free</text></g>
+          </g>
+        </g>
+        <g class="ol-op-hearts" transform={`translate(${C.x} ${GROUND - 100})`}>
+          {[-26, 0, 24].map((x, i) => <path style={`--h:${i}`} transform={`translate(${x} 0)`} d="M0 8 C -12 -1 -9 -10 -3 -9 C -1 -9 0 -7 0 -6 C 0 -7 1 -9 3 -9 C 9 -10 12 -1 0 8 Z" fill="#FF6B5B" stroke="#22163B" stroke-width="2" />)}
+        </g>
+      </svg>
+    </div>
+    <div class="ol-op-road" aria-hidden="true"></div>
+
+    <div class="ol-op-lockup" data-ol-lockup aria-hidden="true">
+      <span class="ol-op-lock-pre">17:30 listed · 18:04 collected</span>
+      <span class="ol-op-lock-main">
+        <span class="ol-op-lock-row">{lockL1.map((c, i) => <span style={`--j:${i}`}>{c === ' ' ? ' ' : c}</span>)}</span>
+        <span class="ol-op-lock-row">{lockL2.map((c, i) => <span class:list={[{ 'ol-op-lock-n': i < 2 }]} style={`--j:${i + 4}`}>{c === ' ' ? ' ' : c}</span>)}</span>
+      </span>
+      <span class="ol-op-lock-note">Timings from our illustrative speed simulation, not measured data.</span>
+    </div>
+    <p class="visually-hidden">Lockup: listed at 17:30, collected at 18:04. Shared in 34 minutes. Timings from our illustrative speed simulation, not measured data.</p>
+
+    <div class="ol-op-marquee" aria-hidden="true">
+      <div class="ol-op-marquee-track">
+        {Array.from({ length: 2 }, () => <span>{marquee}</span>)}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { gsap, reducedMotion } from '../../../scripts/motion';
+
+  const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
+  const seg = (p: number, a: number, b: number) => clamp01((p - a) / (b - a));
+  const smooth = (t: number) => t * t * (3 - 2 * t);
+  const easeOut = (t: number) => 1 - Math.pow(1 - t, 2.2);
+  // Scroll progress → minutes after 17:30 (piecewise, following the sim's beats).
+  const MIN: [number, number][] = [[0.1, 0], [0.14, 1], [0.26, 3], [0.37, 4], [0.44, 6], [0.62, 28], [0.82, 34]];
+  const minutesAt = (p: number) => {
+    if (p <= MIN[0][0]) return 0;
+    for (let i = 1; i < MIN.length; i++) {
+      const [p1, m1] = MIN[i];
+      const [p0, m0] = MIN[i - 1];
+      if (p <= p1) return m0 + (m1 - m0) * ((p - p0) / (p1 - p0));
+    }
+    return 34;
+  };
+  const STATUS: [number, string][] = [[0, 'Listed · AI-ify wrote it'], [1, 'Wave 1 · closest neighbours'], [3, 'Wave 2 · the circle widens'], [4, 'Requested by No. 26'], [6, 'Reserved · waves stop'], [7, 'Pickup arranged'], [28, 'On its way'], [34, 'New home']];
+
+  document.querySelectorAll<HTMLElement>('[data-ol-op]').forEach((root) => {
+    const cfg = JSON.parse(root.dataset.cfg || '{}') as { G: { x: number; y: number }; C: { x: number; y: number }; W: number };
+    const q = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const words = [...root.querySelectorAll<HTMLElement>('.ol-op-w')];
+    const wins = [...root.querySelectorAll<SVGGElement>('.ol-op-win')].map((el) => ({ el, d: +(el.dataset.d || 0), on: false }));
+    const bells = [...root.querySelectorAll<SVGGElement>('.ol-op-bell')].map((el) => ({ el, d: +(el.dataset.d || 0), on: false }));
+    const waves = [1, 2].map((k) => [...root.querySelectorAll<SVGEllipseElement>(`[data-ol-wave="${k}"] ellipse`)].map((c) => ({ c, k: +(c.dataset.k || 1) })));
+    const waveG = [...root.querySelectorAll<SVGGElement>('[data-ol-wave]')];
+    const digits = [...root.querySelectorAll<HTMLElement>('[data-ol-dg]')];
+    const status = q<HTMLElement>('[data-ol-status]');
+    const bar = q<HTMLElement>('[data-ol-bar]');
+    const loaf = q<SVGGElement>('[data-ol-loaf]');
+    const trail = q<SVGLineElement>('[data-ol-trail]');
+    const sun = q<SVGGElement>('[data-ol-sun]');
+    const dusk = q<HTMLElement>('[data-ol-dusk]');
+    const svg = q<SVGSVGElement>('[data-ol-svg]');
+    const lock = q<HTMLElement>('[data-ol-lockup]');
+    const { G, C, W } = cfg;
+    const GROUND = 380;
+
+    let svgW = 1;
+    let vw = 1;
+    const measure = () => {
+      svgW = svg.getBoundingClientRect().width;
+      vw = root.clientWidth;
+    };
+    let lastLit = -1;
+    let lastClock = '';
+    let lastStatus = '';
+
+    const render = (p: number) => {
+      const lit = Math.round(seg(p, 0.03, 0.6) * words.length);
+      if (lit !== lastLit) {
+        words.forEach((w, i) => w.classList.toggle('is-lit', i < lit));
+        lastLit = lit;
+      }
+      // Sky + sun go down as the minutes pass.
+      dusk.style.opacity = (0.7 * smooth(seg(p, 0.08, 0.86))).toFixed(3);
+      sun.style.transform = `translateY(${(150 * smooth(seg(p, 0, 0.86))).toFixed(1)}px)`;
+
+      // Alert waves: wave 1 (closest), wave 2 (wider), and they stop once reserved.
+      const w1 = easeOut(seg(p, 0.12, 0.24));
+      const w2 = easeOut(seg(p, 0.24, 0.37));
+      const reach = Math.max(w1 * 560, w2 * 1250);
+      const rad = [w1 * 560, w2 * 1250];
+      waves.forEach((set, i) =>
+        set.forEach(({ c, k }) => {
+          const r = Math.max(0, rad[i] * k);
+          c.setAttribute('rx', r.toFixed(1));
+          c.setAttribute('ry', (r * 0.4).toFixed(1));
+        }),
+      );
+      waveG[0].style.opacity = p < 0.12 ? '0' : (1 - seg(p, 0.22, 0.3)).toFixed(3);
+      waveG[1].style.opacity = p < 0.24 ? '0' : (1 - seg(p, 0.38, 0.45)).toFixed(3);
+      for (const w of wins) {
+        const on = w.d <= reach;
+        if (on !== w.on) {
+          w.el.classList.toggle('is-lit', on);
+          w.on = on;
+        }
+      }
+      for (const b of bells) {
+        const on = b.d <= reach;
+        if (on !== b.on) {
+          b.el.classList.toggle('is-on', on);
+          b.on = on;
+        }
+      }
+      root.classList.toggle('is-listed', p >= 0.07);
+      root.classList.toggle('is-lamps', p >= 0.16);
+      root.classList.toggle('is-req', p >= 0.37);
+      root.classList.toggle('is-res', p >= 0.43);
+
+      // The loaf waits on the step, then crosses the street (17:58 → 18:04).
+      const t = smooth(seg(p, 0.62, 0.82));
+      const lx = G.x + (C.x - G.x) * t;
+      const hop = t > 0 && t < 1 ? Math.abs(Math.sin(t * Math.PI * 16)) * 16 : 0;
+      const tilt = t > 0 && t < 1 ? Math.sin(t * Math.PI * 32) * 6 : 0;
+      loaf.setAttribute('transform', `translate(${lx.toFixed(1)} ${(GROUND - 2 - hop).toFixed(1)}) rotate(${tilt.toFixed(1)})`);
+      trail.setAttribute('x2', lx.toFixed(1));
+      root.classList.toggle('is-home', p >= 0.82);
+
+      // Camera: ride the wave out, hold on No. 26, swing back, then follow the loaf.
+      let focus = G.x;
+      if (p < 0.38) focus = G.x + (C.x - G.x) * smooth(seg(p, 0.14, 0.38));
+      else if (p < 0.44) focus = C.x;
+      else if (p < 0.62) focus = C.x + (G.x - C.x) * smooth(seg(p, 0.44, 0.54));
+      else focus = lx;
+      const scale = svgW / W;
+      const pan = svgW <= vw ? (vw - svgW) / 2 : Math.min(0, Math.max(vw - svgW, vw / 2 - focus * scale));
+      svg.style.transform = `translate3d(${pan.toFixed(1)}px, 0, 0)`;
+
+      // Minute counter 17:30 → 18:04.
+      const m = Math.floor(minutesAt(p) + 1e-6);
+      const total = 17 * 60 + 30 + m;
+      const clock = `${String(Math.floor(total / 60)).padStart(2, '0')}${String(total % 60).padStart(2, '0')}`;
+      if (clock !== lastClock) {
+        digits.forEach((d, i) => {
+          if (d.textContent !== clock[i]) {
+            d.textContent = clock[i];
+            d.classList.remove('is-tick');
+            void d.offsetWidth;
+            d.classList.add('is-tick');
+          }
+        });
+        lastClock = clock;
+      }
+      bar.style.transform = `scaleX(${(m / 34).toFixed(3)})`;
+      let label = STATUS[0][1];
+      for (const [mm, l] of STATUS) if (m >= mm) label = l;
+      if (label !== lastStatus) {
+        status.textContent = label;
+        lastStatus = label;
+      }
+
+      const done = p > 0.86;
+      root.classList.toggle('is-done', done);
+      lock.classList.toggle('is-in', done);
+    };
+
+    measure();
+    if (reducedMotion) {
+      root.classList.add('is-static');
+      requestAnimationFrame(() => {
+        measure();
+        render(1);
+        svg.style.transform = '';
+      });
+      return;
+    }
+    render(0);
+    const state = { p: 0 };
+    gsap.to(state, {
+      p: 1,
+      ease: 'none',
+      onUpdate: () => render(state.p),
+      scrollTrigger: { trigger: root, start: 'top top', end: 'bottom bottom', scrub: 0.7, onRefresh: () => (measure(), render(state.p)) },
+    });
+    window.addEventListener('resize', () => (measure(), render(state.p)), { passive: true });
+  });
+</script>
+
+<style>
+  .ol-op { position: relative; height: 460vh; background: #4a20a8; color: #fff3e2; isolation: isolate; }
+  .ol-op-sticky { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
+  .ol-op-sky { position: absolute; inset: 0; background: radial-gradient(60% 40% at 54% 72%, #ffb38a 0%, rgb(255 138 107 / 0.5) 35%, transparent 70%), linear-gradient(180deg, #3f1a99 0%, #5a2bc4 34%, #8a45cf 56%, #e2679a 74%, #ff9a6b 90%); }
+  .ol-op-dusk { position: absolute; inset: 0; opacity: 0; background: linear-gradient(180deg, #1f0b5c 0%, rgb(42 17 112 / 0.85) 45%, rgb(42 17 112 / 0.2) 80%); pointer-events: none; }
+
+  /* Copy + counter */
+  .ol-op-grid { position: relative; z-index: 2; display: grid; grid-template-columns: 1fr auto; gap: var(--s-7); align-items: start; padding-top: clamp(4.5rem, 10svh, 7rem); transition: opacity 0.6s var(--ease-out), transform 0.8s var(--ease-out), filter 0.6s; }
+  .ol-op.is-done .ol-op-grid { opacity: 0.1; transform: scale(0.96); filter: blur(4px); }
+  .ol-op-copy { display: grid; gap: var(--s-4); }
+  .ol-op-kicker { color: #ffd23f; }
+  .ol-op-text { font-family: var(--font-display); font-weight: 900; font-size: clamp(1.3rem, min(0.7rem + 2.1vw, 4.4svh), 2.55rem); line-height: 1.08; letter-spacing: -0.035em; max-width: 24ch; }
+  .ol-op-line { display: block; }
+  .ol-op-w { display: inline-block; position: relative; margin-right: 0.22em; color: #fff3e2; opacity: 0.22; transform: translateY(0.14em); filter: blur(2px); transition: opacity 0.4s, transform 0.55s var(--ease-out), filter 0.4s, color 0.4s; }
+  .ol-op-w.is-lit { opacity: 1; transform: none; filter: none; }
+  .ol-op-w--hl.is-lit { color: #ffd23f; }
+  .ol-op-w--coral.is-lit { color: #ffb3a8; }
+  .ol-op-w--pill { padding: 0 0.3em; border-radius: 0.5em; }
+  .ol-op-w--pill.is-lit { background: #ffd23f; color: #22163b; }
+  .ol-op-w--loaf { padding-left: 1.55em; }
+  .ol-op-w-loaf { position: absolute; left: 0; top: 0.14em; width: 1.35em; height: 0.8em; overflow: visible; transform: scale(0.4) rotate(-20deg); transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .ol-op-w--loaf.is-lit .ol-op-w-loaf { transform: none; animation: ol-op-wobble 1.6s ease-in-out infinite 0.6s; }
+  @keyframes ol-op-wobble { 50% { transform: rotate(-7deg) translateY(-2px); } }
+
+  .ol-op-counter { display: grid; gap: var(--s-3); justify-items: end; }
+  .ol-op-tiles { display: flex; gap: 6px; align-items: center; font-family: var(--font-display); font-weight: 900; font-size: clamp(2.2rem, 1.2rem + 3vw, 4.4rem); line-height: 1; font-feature-settings: 'tnum' 1; }
+  .ol-op-tiles span { display: grid; place-items: center; width: 0.82em; padding-block: 0.12em; border-radius: 0.16em; background: #fff3e2; color: #22163b; box-shadow: 0 0.08em 0 #22163b; }
+  .ol-op-tiles span.is-tick { animation: ol-op-tick 0.35s var(--ease-out); }
+  @keyframes ol-op-tick { from { transform: translateY(-0.18em) scale(0.92); background: #ffd23f; } }
+  .ol-op-tiles i { font-style: normal; color: #ffd23f; padding-inline: 2px; }
+  .ol-op-status { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: #22163b; color: #fff3e2; font: 600 0.82rem/1.1 var(--font-ui); white-space: nowrap; }
+  .ol-op-status i { width: 9px; height: 9px; border-radius: 50%; background: #ff6b5b; box-shadow: 0 0 0 3px rgb(255 107 91 / 0.3); animation: ol-op-blink 1.4s ease-in-out infinite; }
+  @keyframes ol-op-blink { 50% { opacity: 0.35; } }
+  .ol-op-bar { width: 100%; min-width: 180px; height: 6px; border-radius: 6px; background: rgb(34 22 59 / 0.55); overflow: hidden; }
+  .ol-op-bar span { display: block; height: 100%; background: linear-gradient(90deg, #ffd23f, #ff6b5b); transform-origin: left; transform: scaleX(0); }
+
+  /* Street */
+  .ol-op-street { position: absolute; left: 0; right: 0; bottom: calc(var(--nav-h) + 1.25rem); height: clamp(230px, 42svh, 420px); z-index: 1; }
+  .ol-op-svg { display: block; height: 100%; width: auto; max-width: none; aspect-ratio: 2000 / 460; overflow: hidden; will-change: transform; }
+  .ol-op-road { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--nav-h) + 1.25rem + 1px); background: #3b2a73; z-index: 1; }
+  .ol-op-no { font: 700 13px var(--font-ui); fill: #fff3e2; }
+  .ol-op-pane { fill: #2e2066; transition: fill 0.4s; }
+  .ol-op-halo { fill: #ffd23f; opacity: 0; transition: opacity 0.5s; }
+  .ol-op-win.is-lit .ol-op-pane, .ol-op-win.is-home .ol-op-pane { fill: #ffd23f; }
+  .ol-op-win.is-lit .ol-op-halo, .ol-op-win.is-home .ol-op-halo { opacity: 0.35; }
+  .ol-op.is-req .ol-op-win--taker .ol-op-pane { fill: #ff8a75; }
+  .ol-op.is-req .ol-op-win--taker .ol-op-halo { fill: #ff6b5b; opacity: 0.45; }
+  .ol-op-lamp-glow { opacity: 0; transition: opacity 0.8s; }
+  .ol-op-lamp-bulb { fill: #6f5aa8; transition: fill 0.5s; }
+  .ol-op.is-lamps .ol-op-lamp-glow { opacity: 1; }
+  .ol-op.is-lamps .ol-op-lamp-bulb { fill: #ffd23f; }
+  .ol-op-beacon { fill: #ff9a3d; animation: ol-op-beacon 1.2s steps(1) infinite; }
+  @keyframes ol-op-beacon { 50% { fill: #ffd23f; } }
+
+  .ol-op-waves ellipse { fill: rgb(255 210 63 / 0.06); stroke: #ffd23f; stroke-width: 3; }
+  .ol-op-bell-in { transform: scale(0); transform-box: fill-box; transform-origin: 50% 100%; transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .ol-op-bell.is-on .ol-op-bell-in { transform: scale(1); }
+  .ol-op-bell-bg { fill: #ffd23f; transition: fill 0.3s; }
+  .ol-op-heart { opacity: 0; }
+  .ol-op.is-req .ol-op-bell--taker .ol-op-bell-bg { fill: #ff6b5b; }
+  .ol-op.is-req .ol-op-bell--taker .ol-op-bell-ic { opacity: 0; }
+  .ol-op.is-req .ol-op-bell--taker .ol-op-heart { opacity: 1; }
+  .ol-op.is-req .ol-op-bell--taker .ol-op-bell-in { animation: ol-op-bounce 0.9s ease-in-out infinite; }
+  @keyframes ol-op-bounce { 50% { transform: translateY(-8px); } }
+  .ol-op.is-res .ol-op-bell:not(.ol-op-bell--taker) .ol-op-bell-in { transform: scale(0); }
+
+  .ol-op-loaf-pop { transform: scale(0); transform-box: fill-box; transform-origin: 50% 100%; transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .ol-op.is-listed .ol-op-loaf-pop { transform: scale(1.25); }
+  .ol-op-tag-t { font: 800 12px var(--font-ui); fill: #fff; }
+  .ol-op-trail { stroke: #ffd23f; stroke-width: 5; stroke-linecap: round; stroke-dasharray: 1 14; }
+  .ol-op-door-leaf { transform-box: fill-box; transform-origin: 0 50%; transition: transform 0.7s var(--ease-out); }
+  .ol-op.is-home .ol-op-door--taker .ol-op-door-leaf { transform: scaleX(0.2); }
+  .ol-op-hearts path { opacity: 0; }
+  .ol-op.is-home .ol-op-hearts path { animation: ol-op-heart 2.4s ease-out infinite; animation-delay: calc(var(--h) * 0.5s); }
+  @keyframes ol-op-heart { 0% { opacity: 0; transform: translate(var(--hx, 0), 10px) scale(0.6); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--hx, 0), -60px) scale(1.1); } }
+  .ol-op-hearts path:nth-child(1) { --hx: -26px; }
+  .ol-op-hearts path:nth-child(3) { --hx: 24px; }
+
+  /* Lockup */
+  .ol-op-lockup { position: absolute; left: 0; right: 0; top: 0; bottom: 44%; z-index: 3; display: grid; place-content: center; justify-items: center; gap: var(--s-3); padding: 3rem var(--gutter) 0; text-align: center; pointer-events: none; }
+  .ol-op-lock-pre { padding: 6px 14px; border-radius: 999px; background: #ffd23f; color: #22163b; font: 700 0.8rem/1 var(--font-ui); letter-spacing: 0.06em; text-transform: uppercase; opacity: 0; transform: translateY(16px); transition: opacity 0.5s, transform 0.6s var(--ease-out); }
+  .ol-op-lock-main { display: grid; justify-items: center; font-family: var(--font-display); font-weight: 900; font-size: clamp(2.6rem, 0.4rem + 8.6vw, 9rem); line-height: 0.88; letter-spacing: -0.055em; color: #fff3e2; text-shadow: 0.045em 0.05em 0 #22163b; white-space: nowrap; }
+  .ol-op-lock-row { display: flex; }
+  .ol-op-lock-row span { display: inline-block; opacity: 0; transform: translateY(0.55em) rotate(calc((var(--j) - 6) * 5deg)) scale(0.6); transition: opacity 0.4s calc(var(--j) * 0.035s), transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) calc(var(--j) * 0.035s); }
+  .ol-op-lock-row .ol-op-lock-n { color: #ffd23f; }
+  .ol-op-lock-note { padding: 4px 12px; border-radius: 999px; background: #22163b; color: #fff3e2; font: 500 0.75rem/1.3 var(--font-ui); opacity: 0; transition: opacity 0.5s 0.6s; }
+  .ol-op-lockup.is-in .ol-op-lock-pre, .ol-op-lockup.is-in .ol-op-lock-row span, .ol-op-lockup.is-in .ol-op-lock-note { opacity: 1; transform: none; }
+
+  /* Marquee */
+  .ol-op-marquee { position: absolute; left: 0; right: 0; bottom: calc(var(--safe-bottom) - 1.6rem); z-index: 2; overflow: hidden; background: #ffd23f; color: #22163b; padding-block: 0.7rem; opacity: 0; transform: translateY(220%) rotate(-1.5deg) scaleX(1.05); transition: transform 0.9s var(--ease-out), opacity 0.5s; border-block: 2px solid #22163b; }
+  .ol-op.is-done .ol-op-marquee { opacity: 1; transform: rotate(-1.5deg) scaleX(1.05); }
+  .ol-op-marquee-track { display: flex; width: max-content; animation: ol-op-marq 30s linear infinite; font: 900 clamp(0.9rem, 0.7rem + 0.8vw, 1.3rem)/1 var(--font-display); letter-spacing: 0.04em; white-space: nowrap; }
+  @keyframes ol-op-marq { to { transform: translateX(-50%); } }
+
+  /* Reduced motion: a static, fully lit poster. */
+  .ol-op.is-static { height: auto; }
+  .ol-op.is-static .ol-op-sticky { position: relative; height: auto; display: flex; flex-direction: column; padding-bottom: calc(var(--s-9) + 1rem); }
+  .ol-op.is-static .ol-op-grid { opacity: 1; transform: none; filter: none; }
+  .ol-op.is-static .ol-op-lockup { position: relative; inset: auto; order: 3; margin-top: var(--s-7); padding-top: 0; }
+  .ol-op.is-static .ol-op-street { position: relative; inset: auto; order: 4; height: auto; margin-top: var(--s-7); }
+  .ol-op.is-static .ol-op-svg { width: 100%; max-width: 100%; height: auto; transform: none !important; }
+  .ol-op.is-static .ol-op-marquee { opacity: 1; transform: rotate(-1.5deg) scaleX(1.05); }
+  .ol-op.is-static .ol-op-marquee-track, .ol-op.is-static .ol-op-beacon, .ol-op.is-static .ol-op-hearts path, .ol-op.is-static .ol-op-bell-in, .ol-op.is-static .ol-op-status i, .ol-op.is-static .ol-op-w-loaf { animation: none !important; }
+  .ol-op.is-static .ol-op-hearts path { opacity: 1; }
+  .ol-op.is-static .ol-op-waves { display: none; }
+
+  @media (max-width: 760px) {
+    .ol-op-grid { grid-template-columns: 1fr; gap: var(--s-4); padding-top: 4.25rem; }
+    .ol-op-counter { order: -1; justify-items: start; grid-template-columns: auto 1fr; align-items: center; column-gap: var(--s-3); }
+    .ol-op-tiles { font-size: 1.7rem; gap: 3px; }
+    .ol-op-bar { grid-column: 1 / -1; }
+    .ol-op-status { font-size: 0.74rem; }
+    .ol-op-kicker { font-size: 0.68rem; }
+    .ol-op-text { font-size: clamp(1.2rem, min(5.9vw, 3.2svh), 1.65rem); }
+    .ol-op-street { height: clamp(220px, 36svh, 320px); }
+    .ol-op-lockup { bottom: 40%; }
+    .ol-op-lock-main { font-size: clamp(2.6rem, 14.5vw, 5rem); }
+  }
+</style>

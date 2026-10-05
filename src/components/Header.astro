@@ -1,9 +1,11 @@
 ---
+import SoundToggle from './SoundToggle.astro';
 // Centred logo. Slides away while scrolling down and returns on scroll up,
 // so it never sits on top of headings (a bug on the old site).
 ---
 
 <header class="site-header" data-header>
+  <SoundToggle />
   <a href="/" class="logo" aria-label="NUUKE home">
     <img src="/brand/logo-white.webp" alt="NUUKE" width="401" height="90" fetchpriority="high" />
   </a>

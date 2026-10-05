@@ -1,0 +1,95 @@
+---
+// The NUUKE mascot: a retro rocket, drawn in code (cream hull, pink nose and fins,
+// porthole, flickering exhaust). Used as the hero's static / no-GPU fallback.
+interface Props {
+  uid: string;
+  class?: string;
+  flame?: boolean;
+}
+const { uid, class: cls, flame = true } = Astro.props;
+const id = (s: string) => `ab-r-${uid}-${s}`;
+const body = 'M120 18 C 168 70 182 170 176 300 C 174 340 166 372 156 392 L 84 392 C 74 372 66 340 64 300 C 58 170 72 70 120 18 Z';
+---
+
+<svg class:list={['ab-rocket', cls]} viewBox="0 0 240 540" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id={id('hull')} x1="0" x2="1">
+      <stop offset="0" stop-color="#b9ada1" />
+      <stop offset="0.32" stop-color="#fffaf3" />
+      <stop offset="0.62" stop-color="#efe5d9" />
+      <stop offset="1" stop-color="#a99b8e" />
+    </linearGradient>
+    <linearGradient id={id('pink')} x1="0" x2="1">
+      <stop offset="0" stop-color="#b8155c" />
+      <stop offset="0.35" stop-color="#ff4f9d" />
+      <stop offset="0.7" stop-color="#ff2e88" />
+      <stop offset="1" stop-color="#9c0f4c" />
+    </linearGradient>
+    <linearGradient id={id('fin')} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff4f9d" />
+      <stop offset="1" stop-color="#a3104f" />
+    </linearGradient>
+    <radialGradient id={id('glass')} cx="0.38" cy="0.35" r="0.75">
+      <stop offset="0" stop-color="#7d63ff" />
+      <stop offset="0.45" stop-color="#2a1f6e" />
+      <stop offset="1" stop-color="#0b0a22" />
+    </radialGradient>
+    <linearGradient id={id('flame')} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffb3d5" />
+      <stop offset="0.35" stop-color="#ff2e88" />
+      <stop offset="1" stop-color="#ff2e88" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id={id('core')} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" />
+      <stop offset="0.5" stop-color="#ffe0a3" />
+      <stop offset="1" stop-color="#ffb547" stop-opacity="0" />
+    </linearGradient>
+    <clipPath id={id('clip')}><path d={body} /></clipPath>
+  </defs>
+
+  {
+    flame && (
+      <g class="ab-rocket-flame">
+        <path d="M80 418 C 76 470 108 506 120 540 C 132 506 164 470 160 418 Z" fill={`url(#${id('flame')})`} />
+        <path d="M98 418 C 98 456 114 480 120 504 C 126 480 142 456 142 418 Z" fill={`url(#${id('core')})`} />
+      </g>
+    )
+  }
+
+  <!-- fins behind the hull -->
+  <path d="M74 262 C 36 290 16 350 18 432 Q 46 404 86 392 Z" fill={`url(#${id('fin')})`} />
+  <path d="M166 262 C 204 290 224 350 222 432 Q 194 404 154 392 Z" fill={`url(#${id('fin')})`} />
+
+  <!-- nozzle -->
+  <path d="M90 388 L 150 388 L 162 422 L 78 422 Z" fill="#2c2c35" />
+  <path d="M90 388 L 104 388 L 98 422 L 78 422 Z" fill="#4a4a56" />
+
+  <!-- hull -->
+  <path d={body} fill={`url(#${id('hull')})`} />
+  <g clip-path={`url(#${id('clip')})`}>
+    <rect x="40" y="0" width="160" height="112" fill={`url(#${id('pink')})`} />
+    <rect x="40" y="106" width="160" height="10" fill="#1d1d26" />
+    <rect x="40" y="336" width="160" height="7" fill="#1d1d26" />
+    <!-- soft specular streak -->
+    <rect x="92" y="0" width="10" height="400" fill="#fff" opacity="0.45" />
+  </g>
+  {[78, 99, 120, 141, 162].map((x) => <circle cx={x} cy="128" r="2.6" fill="#8e8277" />)}
+
+  <!-- porthole -->
+  <circle cx="120" cy="200" r="38" fill="#1d1d26" />
+  <circle cx="120" cy="200" r="33" fill="#d8cdbf" />
+  <circle cx="120" cy="200" r="27" fill={`url(#${id('glass')})`} />
+  <path d="M104 190 A 18 18 0 0 1 124 178" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.75" />
+
+  <!-- centre fin, edge-on -->
+  <path d="M115 346 L 125 346 L 128 448 Q 120 454 112 448 Z" fill={`url(#${id('fin')})`} />
+</svg>
+
+<style>
+  .ab-rocket { width: 100%; height: auto; overflow: visible; }
+  .ab-rocket-flame { transform-origin: 120px 418px; transform-box: view-box; animation: ab-flame 0.18s ease-in-out infinite alternate; }
+  @keyframes ab-flame {
+    from { transform: scale(0.94, 0.9); }
+    to { transform: scale(1.04, 1.12); }
+  }
+</style>

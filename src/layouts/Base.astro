@@ -14,9 +14,11 @@ interface Props {
   /** Hide the big footer (e.g. on the 404 page). */
   bare?: boolean;
   jsonLd?: Record<string, unknown>;
+  /** 'page' = score follows scroll depth; 'custom' = the page drives the score itself. */
+  score?: 'page' | 'custom';
 }
 
-const { title, description = site.description, image = '/og.jpg', accent, bare = false, jsonLd } = Astro.props;
+const { title, description = site.description, image = '/og.jpg', accent, bare = false, jsonLd, score = 'page' } = Astro.props;
 const fullTitle = title === site.name ? `${site.name} — ${site.tagline}` : `${title} — ${site.name}`;
 const cleanPath = Astro.url.pathname.replace(/(\/index)?\.html$/, '').replace(/\/$/, '') || '/';
 const canonical = new URL(cleanPath, site.url).href;
@@ -63,7 +65,7 @@ const org = {
     </script>
     <slot name="head" />
   </head>
-  <body>
+  <body data-score={score}>
     <a class="skip-link" href="#main">Skip to content</a>
     <canvas id="starfield" aria-hidden="true"></canvas>
     <Header />
@@ -76,8 +78,13 @@ const org = {
     <script>
       import { initMotion } from '../scripts/motion';
       import { initStarfield } from '../scripts/starfield';
+      import { resumeOnFirstGesture, followScroll } from '../scripts/audio';
       initStarfield(document.getElementById('starfield') as HTMLCanvasElement);
       initMotion();
+      if (document.body.dataset.score !== 'custom') {
+        resumeOnFirstGesture();
+        followScroll(0.22, 0.8);
+      }
     </script>
   </body>
 </html>

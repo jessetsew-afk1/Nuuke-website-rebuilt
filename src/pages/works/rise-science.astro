@@ -11,6 +11,8 @@ import DesignSystem from '../../components/case/DesignSystem.astro';
 import Metrics from '../../components/case/Metrics.astro';
 import { bySlug } from '../../data/projects';
 import { riseLayers } from '../../data/cases/rise';
+import RiseHero from '../../components/cases/rise/Hero.astro';
+import RiseOpening from '../../components/cases/rise/Opening.astro';
 
 const p = bySlug('rise-science');
 const chapters = [
@@ -83,6 +85,9 @@ const bars = [4.1, 3.8, 3.9, 3.5, 3.6, 3.2, 3.4, 3.0, 3.3, 3.1, 2.9, 3.4, 3.3, 3
 ---
 
 <Case project={p} chapters={chapters} sources={sources} meta={meta}>
+  <RiseHero slot="hero" />
+  <RiseOpening />
+
   <Chapter id="brief" n="01" label="The brief" title="An energy app that people read in two seconds.">
     <Brief
       story="Rise Science grew out of sleep coaching for pro teams like the Chicago Bulls, then launched the RISE app in 2021. It sells <strong>energy</strong>, not sleep scores: it models two levers — <em>sleep debt</em> and <em>circadian rhythm</em> — to show when you’ll peak and dip each day."

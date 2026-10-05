@@ -1,0 +1,240 @@
+---
+// Opener: kinetic type over "the crowd" (a lattice of identical dots that sway in
+// unison). The rocket — 3D on a real GPU, SVG otherwise — parts the crowd.
+// Letters scatter away from the pointer; scrolling launches the rocket.
+import Rocket from './Rocket.astro';
+
+const lines = [
+  { t: 'Building', k: 'a' },
+  { t: 'brands that', k: 'b' },
+  { t: 'don’t', k: 'c' },
+  { t: 'blend in.', k: 'd' },
+];
+---
+
+<section class="ab-hero" data-ab-hero aria-labelledby="ab-hero-title">
+  <canvas class="ab-hero-crowd" data-ab-crowd aria-hidden="true"></canvas>
+  <canvas class="ab-hero-gl" data-ab-gl aria-hidden="true"></canvas>
+
+  <div class="ab-hero-hud" aria-hidden="true">
+    <span class="ab-hud-c ab-hud-tl"></span><span class="ab-hud-c ab-hud-tr"></span><span class="ab-hud-c ab-hud-bl"></span><span class="ab-hud-c ab-hud-br"></span>
+  </div>
+
+  <div class="ab-hero-rocket" data-ab-rocket>
+    <div class="ab-hero-svg" data-ab-svg><Rocket uid="hero" /></div>
+  </div>
+
+  <div class="ab-hero-inner container">
+    <p class="t-label ab-hero-kicker" data-reveal><span class="ab-dot" aria-hidden="true"></span> About NUUKE · Crew manifest</p>
+    <h1 id="ab-hero-title" class="ab-hero-title" data-ab-title>
+      <span class="visually-hidden">Building brands that don’t blend in.</span>
+      {
+        lines.map((l) => (
+          <span class={`ab-hl ab-hl--${l.k}`} aria-hidden="true" data-ab-line>
+            {[...l.t].map((c) => (c === ' ' ? <span class="ab-sp"> </span> : <span class="ab-ch">{c}</span>))}
+          </span>
+        ))
+      }
+    </h1>
+    <div class="ab-hero-foot">
+      <p class="t-lead ab-hero-sub" data-reveal style="--delay:.5s">
+        Meet the crew behind NUUKE’s mobile apps, immersive 3D, animation, marketing and applied&nbsp;AI.
+      </p>
+      <p class="ab-hero-hint t-label" data-reveal style="--delay:.7s" aria-hidden="true">
+        <span class="ab-hint-desk">Move your cursor through the crowd</span><span class="ab-hint-touch">Tap anywhere to send a ripple</span>
+      </p>
+    </div>
+  </div>
+  <a class="ab-hero-cue" href="#ab-manifesto" data-reveal style="--delay:.9s">
+    <span class="ab-cue-line" aria-hidden="true"></span>
+    Scroll to launch
+  </a>
+</section>
+
+<script>
+  import { gsap, ScrollTrigger, reducedMotion } from '../../scripts/motion';
+  import { hasHardwareGL } from '../../scripts/gl-support';
+  import { initCrowd } from '../../scripts/about-crowd';
+
+  const hero = document.querySelector<HTMLElement>('[data-ab-hero]');
+  if (hero) {
+    const anchor = hero.querySelector<HTMLElement>('[data-ab-rocket]')!;
+    const crowd = hero.querySelector<HTMLCanvasElement>('[data-ab-crowd]')!;
+    const gl = hero.querySelector<HTMLCanvasElement>('[data-ab-gl]')!;
+    const svg = hero.querySelector<HTMLElement>('[data-ab-svg]')!;
+    initCrowd(crowd, hero, anchor, reducedMotion);
+
+    let setLaunch: (p: number) => void = () => {};
+    if (hasHardwareGL()) {
+      const start = () =>
+        import('../../scripts/about-rocket')
+          .then((m) => {
+            const api = m.initRocket(gl, anchor, () => hero.classList.add('is-3d'));
+            setLaunch = api.setLaunch;
+          })
+          .catch(() => {});
+      'requestIdleCallback' in window ? requestIdleCallback(start, { timeout: 1200 }) : setTimeout(start, 300);
+    }
+
+    const chars = [...hero.querySelectorAll<HTMLElement>('.ab-ch')];
+    if (!reducedMotion) {
+      // Letters arrive from deep space.
+      gsap.fromTo(
+        chars,
+        { yPercent: () => gsap.utils.random(-160, 160), xPercent: () => gsap.utils.random(-80, 80), rotation: () => gsap.utils.random(-70, 70), scale: () => gsap.utils.random(0.2, 1.8), opacity: 0, filter: 'blur(10px)' },
+        { yPercent: 0, xPercent: 0, rotation: 0, scale: 1, opacity: 1, filter: 'blur(0px)', duration: 1.6, ease: 'expo.out', stagger: { each: 0.03, from: 'random' }, delay: 0.1 },
+      );
+      gsap.from(svg, { yPercent: 40, opacity: 0, duration: 1.8, ease: 'expo.out', delay: 0.3 });
+
+      // Letters shy away from the pointer (desktop only).
+      if (window.matchMedia('(hover: hover)').matches) {
+        const qs = chars.map((c) => ({ x: gsap.quickTo(c, 'x', { duration: 0.6, ease: 'power3.out' }), y: gsap.quickTo(c, 'y', { duration: 0.6, ease: 'power3.out' }) }));
+        let centres: { x: number; y: number }[] = [];
+        const measure = () => {
+          const hr = hero.getBoundingClientRect();
+          centres = chars.map((c) => {
+            const r = c.getBoundingClientRect();
+            return { x: r.left - hr.left + r.width / 2 - (gsap.getProperty(c, 'x') as number), y: r.top - hr.top + r.height / 2 - (gsap.getProperty(c, 'y') as number) };
+          });
+        };
+        let measured = false;
+        hero.addEventListener('pointermove', (e) => {
+          if (!measured) {
+            measure();
+            measured = true;
+          }
+          const hr = hero.getBoundingClientRect();
+          const px = e.clientX - hr.left;
+          const py = e.clientY - hr.top;
+          centres.forEach((c, i) => {
+            const dx = c.x - px;
+            const dy = c.y - py;
+            const d = Math.hypot(dx, dy) || 1;
+            const f = Math.max(0, 1 - d / 170);
+            qs[i].x((dx / d) * f * f * 46);
+            qs[i].y((dy / d) * f * f * 46);
+          });
+        });
+        hero.addEventListener('pointerleave', () => qs.forEach((q) => (q.x(0), q.y(0))));
+        window.addEventListener('resize', () => (measured = false));
+        window.addEventListener('scroll', () => (measured = false), { passive: true });
+      }
+
+      // Scroll away: lines drift apart, the rocket launches.
+      const lineEls = hero.querySelectorAll<HTMLElement>('[data-ab-line]');
+      lineEls.forEach((l, i) => {
+        gsap.to(l, { xPercent: i % 2 ? 14 : -10, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
+      });
+      gsap.to(anchor, {
+        yPercent: -95,
+        ease: 'power2.in',
+        scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true, onUpdate: (s) => setLaunch(s.progress) },
+      });
+    }
+    ScrollTrigger.refresh();
+  }
+</script>
+
+<style>
+  .ab-hero {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    padding-block: calc(var(--s-9) + 1rem) var(--s-9);
+    overflow: hidden;
+    isolation: isolate;
+    background: radial-gradient(60% 55% at 72% 46%, rgb(255 46 136 / 0.12), transparent 70%);
+  }
+  .ab-hero-crowd, .ab-hero-gl { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .ab-hero-crowd { z-index: -2; }
+  .ab-hero-gl { z-index: -1; opacity: 0; transition: opacity 1s var(--ease-out); }
+  .ab-hero:global(.is-3d) .ab-hero-gl { opacity: 1; }
+  .ab-hero:global(.is-3d) .ab-hero-svg { visibility: hidden; }
+
+  .ab-hero-hud { position: absolute; inset: calc(var(--s-8) + 0.5rem) var(--gutter) var(--s-6); pointer-events: none; z-index: -1; }
+  .ab-hud-c { position: absolute; width: 22px; height: 22px; border: 0 solid rgb(255 255 255 / 0.35); }
+  .ab-hud-tl { left: 0; top: 0; border-width: 1px 0 0 1px; }
+  .ab-hud-tr { right: 0; top: 0; border-width: 1px 1px 0 0; }
+  .ab-hud-bl { left: 0; bottom: 0; border-width: 0 0 1px 1px; }
+  .ab-hud-br { right: 0; bottom: 0; border-width: 0 1px 1px 0; }
+
+  .ab-hero-rocket {
+    position: absolute;
+    z-index: -1;
+    right: 9%;
+    top: 14%;
+    height: 70%;
+    aspect-ratio: 240 / 540;
+    pointer-events: none;
+  }
+  .ab-hero-svg { width: 100%; height: 100%; transform: rotate(18deg); transform-origin: 50% 45%; transition: opacity 0.8s; filter: drop-shadow(0 0 40px rgb(255 46 136 / 0.35)); }
+  .ab-hero-svg :global(svg) { animation: ab-bob 4.5s ease-in-out infinite; }
+  @keyframes ab-bob { 50% { transform: translateY(-14px) rotate(-2deg); } }
+
+  .ab-hero-inner { position: relative; }
+  .ab-hero-kicker { display: inline-flex; align-items: center; gap: var(--s-2); color: var(--ink-2); }
+  .ab-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); animation: ab-blink 1.6s ease-in-out infinite; }
+  @keyframes ab-blink { 50% { opacity: 0.35; } }
+
+  .ab-hero-title {
+    margin-top: var(--s-5);
+    font-size: clamp(2.6rem, 0.4rem + 8vw, 8rem);
+    line-height: 0.88;
+    letter-spacing: -0.055em;
+    text-transform: uppercase;
+    display: grid;
+  }
+  .ab-hl { display: block; white-space: nowrap; will-change: transform; }
+  .ab-hl--b { padding-left: 0.9em; }
+  .ab-hl--c { padding-left: 0.1em; }
+  .ab-hl--d { padding-left: 1.4em; color: var(--accent); text-shadow: 0 0 60px rgb(255 46 136 / 0.45); }
+  .ab-ch { display: inline-block; will-change: transform; }
+  .ab-sp { display: inline-block; width: 0.28em; }
+
+  .ab-hero-foot { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--s-4) var(--s-7); margin-top: var(--s-7); }
+  .ab-hero-sub { max-width: 34ch; }
+  .ab-hero-hint { color: var(--ink-2); }
+  .ab-hint-touch { display: none; }
+  @media (hover: none) {
+    .ab-hint-desk { display: none; }
+    .ab-hint-touch { display: inline; }
+  }
+
+  .ab-hero-cue {
+    position: absolute;
+    left: 50%;
+    bottom: var(--s-5);
+    translate: -50% 0;
+    display: grid;
+    justify-items: center;
+    gap: var(--s-2);
+    font-family: var(--font-ui);
+    font-size: var(--fs-label);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--ink-2);
+    padding: var(--s-2) var(--s-3);
+  }
+  .ab-cue-line { width: 1px; height: 38px; background: linear-gradient(var(--accent), transparent); animation: ab-cue 2s var(--ease-in-out) infinite; transform-origin: top; }
+  @keyframes ab-cue { 0% { transform: scaleY(0); } 50% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }
+
+  @media (max-width: 900px) {
+    .ab-hero-rocket { right: 2%; top: auto; bottom: 16%; height: 46%; }
+  }
+  @media (max-width: 640px) {
+    .ab-hero { align-content: start; padding-top: calc(var(--s-9) + 0.5rem); }
+    .ab-hero-title { font-size: clamp(2.1rem, 11.2vw, 3.6rem); }
+    .ab-hl--b { padding-left: 0.3em; }
+    .ab-hl--d { padding-left: 0.5em; }
+    .ab-hero-rocket { right: 3%; bottom: 13%; height: 38%; }
+    .ab-hero-foot { margin-top: var(--s-6); }
+    .ab-hero-sub { max-width: 21ch; font-size: var(--fs-base); }
+    .ab-hero-hint { max-width: 14ch; }
+    .ab-hero-cue { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ab-hero-svg :global(svg), .ab-dot, .ab-cue-line { animation: none; }
+  }
+</style>

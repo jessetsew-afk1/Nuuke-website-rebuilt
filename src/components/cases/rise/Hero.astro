@@ -1,0 +1,204 @@
+---
+// Hero art: a phone lock screen at dawn, floating inside a 24-hour dial.
+// The sun climbs over the wallpaper hills, the energy widget shows the day ahead,
+// and two calm nudges slide in. Original NUUKE illustration, no brand artwork.
+import { curveD, xAt, yAt, energyAt, VB_W, VB_H } from './energy';
+
+const NOW = 6 + 42 / 60;
+const nowPt = { x: (xAt(NOW) / VB_W) * 100, y: (yAt(energyAt(NOW)) / VB_H) * 100 };
+// 24h dial: angle 0 = midnight at the top.
+const ang = (h: number) => (h / 24) * Math.PI * 2;
+const pt = (h: number, r: number) => [Math.sin(ang(h)) * r, -Math.cos(ang(h)) * r];
+const arc = (a: number, b: number, r: number) => {
+  const [x1, y1] = pt(a, r);
+  const [x2, y2] = pt(b, r);
+  const large = ((b - a + 24) % 24) > 12 ? 1 : 0;
+  return `M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 ${large} 1 ${x2.toFixed(1)} ${y2.toFixed(1)}`;
+};
+let seed = 5;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const stars = Array.from({ length: 26 }, () => ({ x: rnd() * 100, y: rnd() * 42, r: 0.4 + rnd() * 0.9 }));
+---
+
+<div class="rs-hero" data-rs-hero role="img" aria-label="Illustration: a phone lock screen at dawn, 6:42 on Tuesday. A RISE energy widget shows the day ahead with the morning peak at 10:23, and two gentle nudges suggest morning light and report sleep debt down to 2 hours 40. The phone floats inside a 24-hour dial.">
+  <div class="rs-hero-scene" data-rs-hero-scene>
+    <svg class="rs-hero-dial" viewBox="-300 -300 600 600" aria-hidden="true">
+      <defs>
+        <linearGradient id="rs-hero-day" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#ffd9b8" />
+          <stop offset="1" stop-color="#ff8f7a" />
+        </linearGradient>
+      </defs>
+      <circle r="284" fill="none" stroke="#ffffff" stroke-opacity=".08" stroke-width="1" />
+      <circle r="252" fill="none" stroke="#ffffff" stroke-opacity=".1" stroke-width="22" />
+      <path d={arc(21.5, 6.7, 252)} fill="none" stroke="#7b61ff" stroke-width="22" stroke-linecap="round" stroke-opacity=".75" />
+      <path d={arc(6.7, 21.5, 252)} fill="none" stroke="url(#rs-hero-day)" stroke-width="22" stroke-linecap="round" class="rs-hero-dayarc" pathLength="1" />
+      {
+        Array.from({ length: 96 }, (_, i) => {
+          const h = i / 4;
+          const [x1, y1] = pt(h, 226);
+          const [x2, y2] = pt(h, i % 4 === 0 ? 212 : 220);
+          return <line x1={x1.toFixed(1)} y1={y1.toFixed(1)} x2={x2.toFixed(1)} y2={y2.toFixed(1)} stroke="#e9e2ff" stroke-opacity={i % 4 === 0 ? 0.55 : 0.2} stroke-width={i % 24 === 0 ? 3 : 1.5} />;
+        })
+      }
+      {
+        [0, 6, 12, 18].map((h) => {
+          const [x, y] = pt(h, 192);
+          return (
+            <text x={x.toFixed(1)} y={(y + 6).toFixed(1)} text-anchor="middle" class="rs-hero-dial-n">
+              {String(h).padStart(2, '0')}
+            </text>
+          );
+        })
+      }
+      <g class="rs-hero-orbit">
+        <circle cx={pt(6.7, 252)[0]} cy={pt(6.7, 252)[1]} r="20" fill="#fff4e4" />
+        <circle cx={pt(6.7, 252)[0]} cy={pt(6.7, 252)[1]} r="34" fill="#ffb27a" fill-opacity=".25" />
+      </g>
+    </svg>
+    <div class="rs-hero-glow" aria-hidden="true"></div>
+
+    <div class="rs-hero-phone">
+      <div class="rs-hero-screen">
+        <div class="rs-hero-wall" aria-hidden="true">
+          <svg class="rs-hero-stars" viewBox="0 0 100 100" preserveAspectRatio="none">
+            {stars.map((s) => <circle cx={s.x.toFixed(1)} cy={s.y.toFixed(1)} r={s.r.toFixed(2)} />)}
+          </svg>
+          <span class="rs-hero-sun"></span>
+          <svg class="rs-hero-hills" viewBox="0 0 100 40" preserveAspectRatio="none">
+            <path d="M0 16 C 16 8 30 14 46 10 S 78 14 100 8 V40 H0Z" fill="#6a3f86" />
+            <path d="M0 26 C 20 18 40 26 60 21 S 86 22 100 18 V40 H0Z" fill="#3a2563" />
+            <path d="M0 34 C 26 28 54 34 100 29 V40 H0Z" fill="#1b1438" />
+          </svg>
+        </div>
+        <div class="rs-hero-ui">
+          <span class="rs-hero-island"></span>
+          <p class="rs-hero-date">Tuesday 1 October</p>
+          <p class="rs-hero-time">6:42</p>
+          <div class="rs-hero-widget">
+            <div class="rs-hero-wrow"><span class="rs-hero-wk">Energy</span><span class="rs-hero-wv">Peak at 10:23</span></div>
+            <div class="rs-hero-curve">
+              <svg viewBox={`0 0 ${VB_W} ${VB_H}`} preserveAspectRatio="none">
+                <path d={curveD(0.2)} fill="none" stroke="#ffb27a" stroke-width="3" stroke-linecap="round" vector-effect="non-scaling-stroke" class="rs-hero-line" pathLength="1" />
+              </svg>
+              <i class="rs-hero-now" style={`--x:${nowPt.x.toFixed(2)}%;--y:${nowPt.y.toFixed(2)}%`}></i>
+            </div>
+            <div class="rs-hero-wfoot"><span>Groggy till 8:12</span><span>Dip 14:48</span></div>
+          </div>
+          <div class="rs-hero-notes">
+            <div class="rs-hero-note rs-hero-note--1">
+              <span class="rs-hero-ni">☀</span>
+              <span><b>Morning light</b>Step outside for 10 min. It helps you shake off grogginess.</span>
+            </div>
+            <div class="rs-hero-note rs-hero-note--2">
+              <span class="rs-hero-ni rs-hero-ni--v">◐</span>
+              <span><b>Sleep debt 2h 40m</b>Down 40m from yesterday. Nice.</span>
+            </div>
+          </div>
+          <div class="rs-hero-foot"><span></span><span></span></div>
+          <span class="rs-hero-bar"></span>
+        </div>
+        <span class="rs-hero-sheen" aria-hidden="true"></span>
+      </div>
+    </div>
+
+    <span class="rs-hero-chip rs-hero-chip--1"><b>8h 10m</b> sleep need</span>
+    <span class="rs-hero-chip rs-hero-chip--2"><b>21:30</b> melatonin window</span>
+  </div>
+</div>
+
+<script>
+  import { reducedMotion } from '../../../scripts/motion';
+  document.querySelectorAll<HTMLElement>('[data-rs-hero]').forEach((root) => {
+    if (reducedMotion || window.matchMedia('(hover: none)').matches) return;
+    const scene = root.querySelector<HTMLElement>('[data-rs-hero-scene]')!;
+    let raf = 0;
+    root.addEventListener('pointermove', (e) => {
+      const r = root.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        scene.style.setProperty('--px', x.toFixed(3));
+        scene.style.setProperty('--py', y.toFixed(3));
+      });
+    });
+    root.addEventListener('pointerleave', () => {
+      scene.style.setProperty('--px', '0');
+      scene.style.setProperty('--py', '0');
+    });
+  });
+</script>
+
+<style>
+  .rs-hero { position: relative; width: 100%; max-width: 600px; margin-inline: auto; aspect-ratio: 1 / 1.04; }
+  .rs-hero-scene { --px: 0; --py: 0; position: absolute; inset: 0; display: grid; place-items: center; perspective: 1400px; }
+  .rs-hero-dial { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; transform: translate(calc(var(--px) * -14px), calc(var(--py) * -14px)); transition: transform 0.8s var(--ease-out); }
+  .rs-hero-dial-n { font: 700 18px var(--font-ui); fill: #c9bcff; letter-spacing: 0.04em; }
+  .rs-hero-dayarc { stroke-dasharray: 1; stroke-dashoffset: 1; animation: rs-hero-draw 2.4s var(--ease-out) 0.4s forwards; }
+  @keyframes rs-hero-draw { to { stroke-dashoffset: 0; } }
+  .rs-hero-orbit circle:last-child { transform-box: fill-box; transform-origin: center; animation: rs-hero-halo 3s ease-in-out infinite; }
+  @keyframes rs-hero-halo { 50% { transform: scale(1.35); opacity: 0.5; } }
+  .rs-hero-glow { position: absolute; left: 50%; top: 56%; width: 70%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); background: radial-gradient(circle, rgb(255 178 122 / 0.45) 0%, rgb(123 97 255 / 0.22) 45%, transparent 70%); filter: blur(10px); pointer-events: none; }
+
+  .rs-hero-phone {
+    position: relative; height: 88%; aspect-ratio: 9 / 19.2; padding: 2.6%; border-radius: 13% / 6%;
+    background: linear-gradient(150deg, #3b3654, #15131f 40%, #2b2740 70%, #0c0b12);
+    box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.18), 0 50px 90px -30px rgb(0 0 0 / 0.85), 0 0 80px -10px rgb(255 178 122 / 0.35);
+    transform: rotateY(calc(-12deg + var(--px) * 14deg)) rotateX(calc(5deg + var(--py) * -10deg)) rotateZ(-2deg);
+    transition: transform 0.8s var(--ease-out);
+    animation: rs-hero-float 7s ease-in-out infinite;
+    container-type: inline-size;
+  }
+  @keyframes rs-hero-float { 50% { translate: 0 -12px; } }
+  .rs-hero-screen { position: relative; height: 100%; border-radius: 11% / 5.2%; overflow: hidden; background: #14122b; }
+  .rs-hero-wall { position: absolute; inset: 0; background: linear-gradient(180deg, #120f2e 0%, #2b2266 34%, #7a4791 58%, #ff9a7e 76%, #ffc79a 88%); }
+  .rs-hero-stars { position: absolute; inset: 0; width: 100%; height: 100%; fill: #fff; opacity: 0.8; animation: rs-hero-fade 5s ease-out 0.5s forwards; }
+  @keyframes rs-hero-fade { to { opacity: 0.25; } }
+  .rs-hero-sun { position: absolute; left: 62%; top: 62%; width: 46%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, 30%); background: radial-gradient(circle at 45% 40%, #fff8ec 0%, #ffe0bf 38%, #ffb27a 72%, rgb(255 143 122 / 0) 74%); box-shadow: 0 0 60px 26px rgb(255 190 140 / 0.45); animation: rs-hero-rise 5.5s var(--ease-out) 0.2s forwards; }
+  @keyframes rs-hero-rise { to { transform: translate(-50%, -14%); } }
+  .rs-hero-hills { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 34%; }
+
+  .rs-hero-ui { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; padding: 6cqw 6cqw 4cqw; color: #fff; font-family: Inter, system-ui, sans-serif; }
+  .rs-hero-island { width: 30cqw; height: 8cqw; border-radius: 99px; background: #050408; }
+  .rs-hero-date { margin-top: 7cqw; font-size: 5.2cqw; font-weight: 600; color: #fff; }
+  .rs-hero-time { font-size: 25cqw; line-height: 1; font-weight: 700; letter-spacing: -0.04em; color: #fff; text-shadow: 0 4px 30px rgb(20 18 43 / 0.4); }
+  .rs-hero-widget { width: 100%; margin-top: 5cqw; padding: 4cqw 4.5cqw; border-radius: 6cqw; background: rgb(20 18 43 / 0.72); border: 1px solid rgb(255 255 255 / 0.12); }
+  .rs-hero-wrow, .rs-hero-wfoot { display: flex; justify-content: space-between; align-items: baseline; }
+  .rs-hero-wk { font-size: 4cqw; font-weight: 600; color: #e9e2ff; text-transform: uppercase; letter-spacing: 0.08em; }
+  .rs-hero-wv { font-size: 5cqw; font-weight: 700; color: #ffd9b8; }
+  .rs-hero-wfoot { font-size: 3.6cqw; color: #e9e2ff; }
+  .rs-hero-curve { position: relative; height: 16cqw; margin-block: 2cqw; }
+  .rs-hero-curve svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .rs-hero-line { stroke-dasharray: 1; stroke-dashoffset: 1; animation: rs-hero-draw 2.2s var(--ease-out) 0.8s forwards; }
+  .rs-hero-now { position: absolute; left: var(--x); top: var(--y); width: 3.4cqw; height: 3.4cqw; margin: -1.7cqw 0 0 -1.7cqw; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1.2cqw rgb(255 255 255 / 0.25); animation: rs-hero-pulse 2.2s ease-in-out infinite; }
+  @keyframes rs-hero-pulse { 50% { box-shadow: 0 0 0 2.4cqw rgb(255 255 255 / 0.08); } }
+
+  .rs-hero-notes { width: 100%; margin-top: 4cqw; display: grid; gap: 2.5cqw; }
+  .rs-hero-note { display: flex; gap: 3cqw; align-items: flex-start; padding: 3.4cqw 4cqw; border-radius: 5cqw; background: rgb(20 18 43 / 0.8); border: 1px solid rgb(255 255 255 / 0.1); font-size: 3.7cqw; line-height: 1.3; color: #e9e2ff; opacity: 0; transform: translateY(-30%) scale(0.94); animation: rs-hero-note 0.9s var(--ease-out) forwards; }
+  .rs-hero-note b { display: block; font-size: 4.2cqw; color: #fff; }
+  .rs-hero-note--1 { animation-delay: 1.4s; }
+  .rs-hero-note--2 { animation-delay: 2.4s; }
+  @keyframes rs-hero-note { to { opacity: 1; transform: none; } }
+  .rs-hero-ni { flex: none; display: grid; place-items: center; width: 8cqw; height: 8cqw; border-radius: 2.4cqw; background: #ffb27a; color: #14122b; font-size: 4.6cqw; }
+  .rs-hero-ni--v { background: #7b61ff; color: #fff; }
+  .rs-hero-foot { margin-top: auto; width: 100%; display: flex; justify-content: space-between; padding-inline: 4cqw; }
+  .rs-hero-foot span { width: 11cqw; height: 11cqw; border-radius: 50%; background: rgb(20 18 43 / 0.55); border: 1px solid rgb(255 255 255 / 0.18); }
+  .rs-hero-bar { margin-top: 4cqw; width: 34cqw; height: 1.4cqw; border-radius: 99px; background: #fff; }
+  .rs-hero-sheen { position: absolute; inset: -20% -60%; background: linear-gradient(105deg, transparent 40%, rgb(255 255 255 / 0.12) 48%, transparent 56%); transform: translateX(-60%); animation: rs-hero-sheen 8s ease-in-out 1s infinite; pointer-events: none; }
+  @keyframes rs-hero-sheen { 0%, 60% { transform: translateX(-60%); } 100% { transform: translateX(60%); } }
+
+  .rs-hero-chip { position: absolute; display: inline-flex; gap: 6px; padding: 6px 12px; border-radius: 99px; background: rgb(18 16 34 / 0.92); border: 1px solid var(--line-strong); font: 500 0.78rem var(--font-ui); color: var(--ink-2); animation: rs-hero-float 6s ease-in-out infinite; }
+  .rs-hero-chip b { color: #ffb27a; }
+  .rs-hero-chip--1 { left: 0; top: 16%; }
+  .rs-hero-chip--2 { right: 0; bottom: 14%; animation-delay: -3s; }
+  .rs-hero-chip--2 b { color: #c9bcff; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rs-hero-dayarc, .rs-hero-line { animation: none; stroke-dashoffset: 0; }
+    .rs-hero-sun { animation: none; transform: translate(-50%, -14%); }
+    .rs-hero-note { animation: none; opacity: 1; transform: none; }
+    .rs-hero-orbit circle, .rs-hero-phone, .rs-hero-chip, .rs-hero-sheen, .rs-hero-now, .rs-hero-stars { animation: none; }
+    .rs-hero-sheen { display: none; }
+  }
+</style>

@@ -1,55 +1,70 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Cta from '../../components/Cta.astro';
-import ServiceVisual from '../../components/ServiceVisual.astro';
+import ServicesSystem from '../../components/ServicesSystem.astro';
 import { services } from '../../data/site';
+
+const orbits = [
+  { a: services[0], b: services[2], title: 'An app that launches with a campaign', line: 'The store page, the launch film and the paid creative are designed with the product, not after it.' },
+  { a: services[1], b: services[0], title: 'A product film that becomes a 3D website', line: 'One set of models and materials, rendered for the trailer and then run live in the browser.' },
+  { a: services[3], b: services[0], title: 'An AI system inside a mobile product', line: 'Assistants and automations that sit where people already tap, not in a separate dashboard.' },
+];
 ---
 
 <Base title="Services" description="Mobile app development, 2D/3D animation and immersive 3D web, digital marketing, and applied AI & automation — strategy, design, engineering and growth from one team.">
-  <section class="svc-hero container">
-    <p class="t-label" data-reveal>Services</p>
-    <h1 class="t-mega" data-split>Services</h1>
-    <p class="t-lead measure" data-reveal>Four disciplines that compound. Most of our best work sits where two of them meet — an app launched with a campaign, a product film that becomes a 3D website, an AI system inside a mobile product.</p>
-  </section>
+  <ServicesSystem headingLevel="h1" />
 
-  <section class="container svc-cards">
-    {
-      services.map((s, i) => (
-        <a class="svc-card" href={`/services/${s.slug}`} style={`--c:${s.accent}`} data-reveal>
-          <div class="svc-card-visual">
-            <ServiceVisual slug={s.slug} accent={s.accent} />
-          </div>
-          <div class="svc-card-body">
-            <span class="t-num svc-card-n">/{s.index}</span>
-            <h2 class="t-h2">{s.title}</h2>
-            <p class="t-lead">{s.tagline}</p>
-            <ul class="svc-card-list" role="list">{s.deliverables.map((d) => <li>{d}</li>)}</ul>
-            <span class="svc-card-cta">Explore {s.short} →</span>
-          </div>
-        </a>
-      ))
-    }
+  <section class="svc-meet container" aria-labelledby="meet-title">
+    <p class="t-label" data-reveal>Where orbits cross</p>
+    <h2 id="meet-title" class="t-h1" data-split>The best work sits between two worlds.</h2>
+    <ol class="svc-meet-list" role="list">
+      {
+        orbits.map((o, i) => (
+          <li class="svc-meet-row" style={`--a:${o.a.accent};--b:${o.b.accent}`} data-reveal>
+            <span class="svc-meet-orbit" aria-hidden="true">
+              <span class="svc-meet-p svc-meet-p--a" />
+              <span class="svc-meet-p svc-meet-p--b" />
+            </span>
+            <span class="t-num svc-meet-n">0{i + 1}</span>
+            <div>
+              <h3 class="svc-meet-t">{o.title}</h3>
+              <p class="svc-meet-l">{o.line}</p>
+            </div>
+            <p class="svc-meet-links">
+              <a href={`/services/${o.a.slug}`}>{o.a.short}</a>
+              <span aria-hidden="true">×</span>
+              <a href={`/services/${o.b.slug}`}>{o.b.short}</a>
+            </p>
+          </li>
+        ))
+      }
+    </ol>
   </section>
 
   <Cta />
 </Base>
 
 <style>
-  .svc-hero { padding-top: 10rem; padding-bottom: var(--s-8); display: grid; gap: var(--s-5); }
-  .svc-cards { display: grid; gap: var(--s-6); padding-bottom: var(--section); }
-  .svc-card { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: var(--s-7); align-items: center; padding: var(--s-7); border-radius: calc(var(--r-lg) + 8px); border: 1px solid var(--line); background: radial-gradient(60% 80% at 15% 50%, color-mix(in srgb, var(--c) 14%, transparent), transparent 70%), rgb(255 255 255 / 0.015); transition: border-color var(--dur-2), transform 0.6s var(--ease-out); }
-  .svc-card:nth-child(even) { grid-template-columns: 1.2fr 0.8fr; }
-  .svc-card:nth-child(even) .svc-card-visual { order: 2; }
-  .svc-card:hover { border-color: color-mix(in srgb, var(--c) 60%, transparent); transform: translateY(-4px); }
-  .svc-card-visual { max-width: 360px; justify-self: center; width: 100%; }
-  .svc-card-body { display: grid; gap: var(--s-4); }
-  .svc-card-n { color: var(--c); font-weight: 700; }
-  .svc-card-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s-2); }
-  .svc-card-list li { padding: 0.35rem 0.8rem; border-radius: 99px; border: 1px solid var(--line-strong); font-family: var(--font-ui); font-size: var(--fs-label); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
-  .svc-card-cta { font-family: var(--font-ui); font-weight: 600; color: var(--c); }
-  @media (max-width: 860px) {
-    .svc-card, .svc-card:nth-child(even) { grid-template-columns: 1fr; padding: var(--s-5); }
-    .svc-card:nth-child(even) .svc-card-visual { order: 0; }
-    .svc-card-visual { max-width: 240px; }
+  .svc-meet { padding-block: var(--section); display: grid; gap: var(--s-5); }
+  .svc-meet-list { list-style: none; padding: 0; margin-top: var(--s-5); border-top: 1px solid var(--line); }
+  .svc-meet-row { display: grid; grid-template-columns: 5rem 3rem 1fr auto; gap: var(--s-5); align-items: center; padding-block: var(--s-6); border-bottom: 1px solid var(--line); transition: background 0.5s; }
+  .svc-meet-row:hover { background: linear-gradient(90deg, color-mix(in srgb, var(--a) 8%, transparent), color-mix(in srgb, var(--b) 8%, transparent)); }
+  .svc-meet-orbit { position: relative; width: 4.5rem; height: 4.5rem; border-radius: 50%; border: 1px dashed var(--line-strong); }
+  .svc-meet-p { position: absolute; top: 50%; left: 50%; width: 14px; height: 14px; margin: -7px; border-radius: 50%; animation: svc-orbit 6s linear infinite; }
+  .svc-meet-p--a { background: var(--a); box-shadow: 0 0 14px var(--a); }
+  .svc-meet-p--b { background: var(--b); box-shadow: 0 0 14px var(--b); animation-delay: -3s; }
+  @keyframes svc-orbit { from { transform: rotate(0) translateX(2.25rem); } to { transform: rotate(360deg) translateX(2.25rem); } }
+  .svc-meet-row:hover .svc-meet-p { animation-duration: 2.4s; }
+  .svc-meet-n { color: var(--muted); font-weight: 700; }
+  .svc-meet-t { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-xl); letter-spacing: -0.03em; }
+  .svc-meet-l { color: var(--ink-2); max-width: 52ch; margin-top: var(--s-2); }
+  .svc-meet-links { display: flex; gap: var(--s-2); align-items: center; font: 600 var(--fs-sm) var(--font-ui); text-transform: uppercase; letter-spacing: 0.06em; }
+  .svc-meet-links a { padding: 0.5rem 0.9rem; border-radius: 99px; border: 1px solid var(--line-strong); }
+  .svc-meet-links a:hover { border-color: var(--accent); }
+  @media (prefers-reduced-motion: reduce) { .svc-meet-p { animation: none; transform: translateX(2.25rem); } .svc-meet-p--b { transform: translateX(-2.25rem); } }
+  @media (max-width: 760px) {
+    .svc-meet-row { grid-template-columns: 4.5rem 1fr; }
+    .svc-meet-n { display: none; }
+    .svc-meet-links { grid-column: 1 / -1; }
   }
 </style>

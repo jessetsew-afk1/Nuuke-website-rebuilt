@@ -1,0 +1,414 @@
+---
+// Crew manifest: each lead is a holographic ID badge hanging from a lanyard.
+// Pointer tilt + parallax layers + iridescent foil on desktop; the whole badge is a
+// button that flips it to the crew file (bio, focus areas, off-duty note, email).
+import MissionPatch from './MissionPatch.astro';
+
+type Member = {
+  id: string;
+  name: string;
+  short: string;
+  role: string;
+  email: string;
+  img: string;
+  color: string;
+  ink: string;
+  code: string;
+  station: 'command' | 'signal' | 'navigation';
+  stationLabel: string;
+  bio: string;
+  focus: string[];
+  offDuty: string;
+};
+
+const crew: Member[] = [
+  {
+    id: 'jesse',
+    name: 'Jesse Lane',
+    short: 'Jesse',
+    role: 'Chief Executive Officer',
+    email: 'jesse@nuuke.us',
+    img: '/team/jesse.webp',
+    color: '#ff2e88',
+    ink: '#ff5ea3',
+    code: 'NK-01',
+    station: 'command',
+    stationLabel: 'Command',
+    bio: 'Sets the direction for the studio and sits in on every kickoff, so the person who agrees the goal is the one who answers for it.',
+    focus: ['Studio direction', 'Creative strategy', 'Client partnerships', 'Kickoffs'],
+    offDuty: 'Usually the one asking, “what’s the simplest version of this?”',
+  },
+  {
+    id: 'jordan',
+    name: 'Jordan “JB” Bree',
+    short: 'JB',
+    role: 'Marketing Head',
+    email: 'jordan@nuuke.us',
+    img: '/team/jordan.webp',
+    color: '#3ee6b0',
+    ink: '#3ee6b0',
+    code: 'NK-02',
+    station: 'signal',
+    stationLabel: 'Signal',
+    bio: 'Turns launches into moments people actually share, and keeps the story going long after launch day.',
+    focus: ['Launch campaigns', 'Social & creator content', 'Brand voice', 'Performance reporting'],
+    offDuty: 'Keeps a running list of ads that made them stop scrolling — and notes on why.',
+  },
+  {
+    id: 'harris',
+    name: 'Harris Smith',
+    short: 'Harris',
+    role: 'Lead Project Manager',
+    email: 'harris@nuuke.us',
+    img: '/team/harris.webp',
+    color: '#8b5cff',
+    ink: '#b49cff',
+    code: 'NK-03',
+    station: 'navigation',
+    stationLabel: 'Navigation',
+    bio: 'Keeps scope, people and deadlines honest, so you always know what ships this week and what comes next.',
+    focus: ['Delivery planning', 'Scope & priorities', 'Risk tracking', 'Weekly updates'],
+    offDuty: 'Thinks every meeting should end with a name and a date next to each action.',
+  },
+];
+---
+
+<section class="ab-crew section" aria-labelledby="ab-crew-title">
+  <div class="container">
+    <div class="ab-crew-head">
+      <div>
+        <p class="t-label ab-sec-label" data-reveal>02 — Crew manifest</p>
+        <h2 id="ab-crew-title" class="t-h1" data-split>Our crew</h2>
+      </div>
+      <p class="t-lead" data-reveal>
+        Talented designers and developers who bring expertise and creativity to every project — led by these three. <span class="ab-crew-tip">Open a badge to read the crew file.</span>
+      </p>
+    </div>
+
+    <ul class="ab-crew-list" role="list" data-ab-crew>
+      {
+        crew.map((m, i) => (
+          <li class="ab-crew-item" style={`--c:${m.color};--ci:${m.ink}`}>
+            <div class="ab-reveal" data-reveal style={`--delay:${i * 0.12}s`}>
+            <div class="ab-hang" data-ab-hang>
+              <div class="ab-strap" aria-hidden="true">
+                <span class="ab-strap-band">
+                  <span>NUUKE ✦ CREW ✦ NUUKE ✦ CREW ✦ NUUKE ✦ CREW ✦</span>
+                </span>
+                <span class="ab-clip" />
+              </div>
+              <div class="ab-badge" data-ab-badge>
+                <div class="ab-tilt" data-ab-tilt>
+                  <div class="ab-inner" data-ab-inner>
+                    <div class="ab-face ab-front" data-ab-front>
+                      <div class="ab-front-top" data-ab-layer="6">
+                        <span class="ab-brand">NUUKE</span>
+                        <span class="t-num ab-code">{m.code}</span>
+                      </div>
+                      <div class="ab-photo" data-ab-layer="14">
+                        <span class="ab-orbit ab-orbit--1" aria-hidden="true" />
+                        <span class="ab-orbit ab-orbit--2" aria-hidden="true" />
+                        <span class="ab-holo-seal" aria-hidden="true" />
+                        <img src={m.img} alt={`3D avatar portrait of ${m.name}`} width="640" height="640" loading="lazy" decoding="async" />
+                      </div>
+                      <div class="ab-id" data-ab-layer="9">
+                        <p class="ab-station t-label">Station · {m.stationLabel}</p>
+                        <h3 class="ab-name">{m.name}</h3>
+                        <p class="ab-role">{m.role}</p>
+                      </div>
+                      <div class="ab-front-foot" data-ab-layer="4" aria-hidden="true">
+                        <span class="ab-barcode" />
+                      </div>
+                      <span class="ab-foil" aria-hidden="true" />
+                      <span class="ab-glare" aria-hidden="true" />
+                      <button class="ab-flip" type="button" data-ab-flip aria-expanded="false" aria-controls={`ab-file-${m.id}`}>
+                        <span class="visually-hidden">{m.name}: </span>
+                        <span class="ab-flip-chip">
+                          Open crew file <span aria-hidden="true">↻</span>
+                        </span>
+                      </button>
+                    </div>
+
+                    <div class="ab-face ab-back" id={`ab-file-${m.id}`} data-ab-back role="group" aria-label={`Crew file: ${m.name}`} tabindex="-1">
+                      <div class="ab-back-top">
+                        <div>
+                          <p class="t-label ab-back-kicker">Crew file · {m.code}</p>
+                          <p class="ab-back-name">{m.name}</p>
+                          <p class="ab-back-role">{m.role}</p>
+                        </div>
+                        <div class="ab-back-patch">
+                          <MissionPatch kind={m.station} label={m.stationLabel.toUpperCase()} code={m.code} color={m.color} />
+                        </div>
+                      </div>
+                      <p class="ab-bio">{m.bio}</p>
+                      <div class="ab-back-block">
+                        <p class="t-label ab-back-label">Focus</p>
+                        <ul class="ab-focus" role="list">
+                          {m.focus.map((f) => (
+                            <li>{f}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div class="ab-back-block">
+                        <p class="t-label ab-back-label">Off duty</p>
+                        <p class="ab-off">{m.offDuty}</p>
+                      </div>
+                      <div class="ab-back-foot">
+                        <a class="ab-mail" href={`mailto:${m.email}`}>
+                          <span aria-hidden="true">✉</span> {m.email}
+                        </a>
+                        <button class="ab-unflip" type="button" data-ab-unflip>
+                          <span aria-hidden="true">↺</span> Flip back<span class="visually-hidden"> to {m.short}’s badge</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<script>
+  import { gsap, reducedMotion } from '../../scripts/motion';
+
+  const list = document.querySelector<HTMLElement>('[data-ab-crew]');
+  if (list) {
+    const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    list.querySelectorAll<HTMLElement>('.ab-crew-item').forEach((item) => {
+      const badge = item.querySelector<HTMLElement>('[data-ab-badge]')!;
+      const tilt = item.querySelector<HTMLElement>('[data-ab-tilt]')!;
+      const hang = item.querySelector<HTMLElement>('[data-ab-hang]')!;
+      const front = item.querySelector<HTMLElement>('[data-ab-front]')!;
+      const back = item.querySelector<HTMLElement>('[data-ab-back]')!;
+      const flipBtn = item.querySelector<HTMLButtonElement>('[data-ab-flip]')!;
+      const unflipBtn = item.querySelector<HTMLButtonElement>('[data-ab-unflip]')!;
+      const layers = [...item.querySelectorAll<HTMLElement>('[data-ab-layer]')];
+
+      back.inert = true;
+      const flip = (open: boolean) => {
+        item.classList.toggle('is-flipped', open);
+        flipBtn.setAttribute('aria-expanded', String(open));
+        front.inert = open;
+        back.inert = !open;
+        if (!reducedMotion) gsap.fromTo(hang, { rotation: open ? -5 : 5 }, { rotation: 0, duration: 1.6, ease: 'elastic.out(1, 0.35)' });
+        // move focus with the content after the flip has turned far enough
+        setTimeout(() => (open ? back.focus({ preventScroll: true }) : flipBtn.focus({ preventScroll: true })), reducedMotion ? 0 : 280);
+      };
+      flipBtn.addEventListener('click', () => flip(true));
+      unflipBtn.addEventListener('click', () => flip(false));
+      back.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') flip(false);
+      });
+
+      if (!fine || reducedMotion) return;
+      const rx = gsap.quickTo(tilt, 'rotationX', { duration: 0.5, ease: 'power3.out' });
+      const ry = gsap.quickTo(tilt, 'rotationY', { duration: 0.5, ease: 'power3.out' });
+      const sway = gsap.quickTo(hang, 'rotation', { duration: 1.2, ease: 'power3.out' });
+      const lx = layers.map((l) => gsap.quickTo(l, 'x', { duration: 0.5, ease: 'power3.out' }));
+      const ly = layers.map((l) => gsap.quickTo(l, 'y', { duration: 0.5, ease: 'power3.out' }));
+      badge.addEventListener('pointermove', (e) => {
+        const r = badge.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width - 0.5;
+        const y = (e.clientY - r.top) / r.height - 0.5;
+        rx(-y * 16);
+        ry(x * 18);
+        sway(-x * 3);
+        layers.forEach((l, i) => {
+          const d = Number(l.dataset.abLayer) || 0;
+          lx[i](x * d);
+          ly[i](y * d);
+        });
+        badge.style.setProperty('--px', `${(x + 0.5) * 100}%`);
+        badge.style.setProperty('--py', `${(y + 0.5) * 100}%`);
+      });
+      badge.addEventListener('pointerenter', () => list.classList.add('is-focusing'));
+      badge.addEventListener('pointerleave', () => {
+        list.classList.remove('is-focusing');
+        rx(0);
+        ry(0);
+        sway(0);
+        lx.forEach((q) => q(0));
+        ly.forEach((q) => q(0));
+      });
+    });
+  }
+</script>
+
+<style>
+  .ab-sec-label { color: var(--ink-2); margin-bottom: var(--s-4); }
+  .ab-crew-head { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-6); align-items: end; margin-bottom: var(--s-6); }
+  .ab-crew-tip { color: var(--ink); }
+
+  .ab-crew-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--s-6);
+    padding-top: 140px;
+    position: relative;
+  }
+  /* the rail the lanyards hang from */
+  .ab-crew-list::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--line-strong) 12%, var(--line-strong) 88%, transparent); }
+  .ab-reveal { width: 100%; display: grid; justify-items: center; }
+  .ab-crew-item { position: relative; display: grid; justify-items: center; transition: transform 0.6s var(--ease-out), filter 0.6s; }
+  .ab-crew-list:global(.is-focusing) .ab-crew-item:not(:hover) { transform: scale(0.95) translateY(10px); filter: saturate(0.6) brightness(0.75); }
+  .ab-crew-item:hover { transform: translateY(-8px); z-index: 2; }
+
+  .ab-hang { position: relative; width: 100%; max-width: 380px; transform-origin: 50% -140px; }
+  .ab-strap { position: absolute; left: 50%; bottom: 100%; width: 36px; height: 140px; translate: -50% 0; display: grid; justify-items: center; }
+  .ab-strap-band {
+    width: 30px;
+    height: 128px;
+    background: var(--c);
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    box-shadow: inset 6px 0 8px rgb(0 0 0 / 0.25), inset -6px 0 8px rgb(255 255 255 / 0.15);
+  }
+  .ab-strap-band span { writing-mode: vertical-rl; font: 800 9px/1 var(--font-ui); letter-spacing: 0.3em; color: #0b0b0f; white-space: nowrap; }
+  .ab-clip { width: 34px; height: 16px; border-radius: 4px 4px 8px 8px; background: linear-gradient(90deg, #6b6b78, #d9d9e0 40%, #8b8b96); margin-top: -2px; box-shadow: 0 2px 4px rgb(0 0 0 / 0.5); }
+
+  .ab-badge { perspective: 1100px; }
+  .ab-tilt { transform-style: preserve-3d; }
+  .ab-inner { position: relative; transform-style: preserve-3d; transition: transform 0.95s cubic-bezier(0.3, 1.35, 0.4, 1); aspect-ratio: 0.66; min-height: 520px; }
+  .ab-crew-item:global(.is-flipped) .ab-inner { transform: rotateY(180deg); }
+
+  .ab-face {
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    overflow: hidden;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    background:
+      radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--c) 18%, transparent), transparent 70%),
+      linear-gradient(160deg, #17171e, #0c0c11 70%);
+    border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+    box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.8), 0 0 0 1px rgb(255 255 255 / 0.04) inset, 0 0 50px -10px color-mix(in srgb, var(--c) 35%, transparent);
+  }
+  /* punched slot for the clip */
+  .ab-front::before { content: ''; position: absolute; left: 50%; top: 12px; width: 44px; height: 8px; translate: -50% 0; border-radius: 4px; background: #050506; box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.8); z-index: 3; }
+  .ab-front { display: grid; grid-template-rows: auto 1fr auto auto; padding: 30px 22px 20px; gap: 14px; }
+  .ab-front-top { display: flex; justify-content: space-between; align-items: center; font-family: var(--font-ui); }
+  .ab-brand { font-weight: 900; letter-spacing: 0.22em; font-size: 0.8rem; color: var(--ink); }
+  .ab-code { font-size: 0.8rem; color: var(--ci); font-weight: 700; letter-spacing: 0.08em; }
+
+  .ab-photo {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--c) 55%, #f1ece6), #ebe6e0 72%);
+    min-height: 0;
+  }
+  .ab-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; mix-blend-mode: multiply; }
+  .ab-orbit { position: absolute; left: 50%; top: 36%; width: 120%; aspect-ratio: 3.2; border: 1.5px solid color-mix(in srgb, var(--c) 80%, #000); border-radius: 50%; translate: -50% -50%; rotate: -14deg; z-index: 1; opacity: 0.7; mix-blend-mode: multiply; }
+  .ab-orbit--2 { width: 96%; rotate: 18deg; top: 44%; border-style: dashed; opacity: 0.5; }
+  .ab-orbit::after { content: ''; position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--c); top: 50%; left: 50%; offset-path: ellipse(50% 50% at 50% 50%); animation: ab-orbit 7s linear infinite; mix-blend-mode: normal; }
+  .ab-orbit--2::after { animation-duration: 11s; animation-direction: reverse; width: 7px; height: 7px; }
+  @keyframes ab-orbit { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+
+  .ab-id { display: grid; gap: 2px; }
+  .ab-station { color: var(--ci); font-size: 0.7rem; }
+  .ab-name { font-size: clamp(1.45rem, 1.1rem + 0.9vw, 1.9rem); line-height: 1.05; letter-spacing: -0.035em; }
+  .ab-role { color: var(--ink-2); font-size: var(--fs-sm); font-family: var(--font-ui); }
+  .ab-front-foot { display: flex; align-items: center; min-height: 32px; }
+  .ab-barcode { width: 34%; height: 26px; background: repeating-linear-gradient(90deg, #f5f5f6 0 2px, transparent 2px 4px, #f5f5f6 4px 5px, transparent 5px 9px, #f5f5f6 9px 12px, transparent 12px 14px); opacity: 0.55; }
+  .ab-holo-seal {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    z-index: 2;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: conic-gradient(from var(--seal, 0deg), #ff2e88, #ffb547, #3ee6b0, #4fc3ff, #8b5cff, #ff2e88);
+    box-shadow: 0 0 14px rgb(255 255 255 / 0.25);
+    animation: ab-seal 6s linear infinite;
+  }
+  @keyframes ab-seal { to { rotate: 360deg; } }
+
+  .ab-foil {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(115deg, transparent 20%, rgb(255 46 136 / 0.5) 34%, rgb(255 210 120 / 0.45) 42%, rgb(62 230 176 / 0.45) 50%, rgb(79 195 255 / 0.45) 58%, rgb(139 92 255 / 0.5) 66%, transparent 80%);
+    background-size: 260% 260%;
+    background-position: var(--px, 30%) var(--py, 30%);
+    mix-blend-mode: color-dodge;
+    opacity: 0.32;
+    transition: opacity 0.4s;
+  }
+  .ab-glare { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(45% 35% at var(--px, 50%) var(--py, 20%), rgb(255 255 255 / 0.16), transparent 70%); }
+  .ab-badge:hover .ab-foil { opacity: 0.55; }
+
+  .ab-flip { position: absolute; inset: 0; z-index: 4; border-radius: 22px; display: flex; align-items: end; justify-content: flex-end; padding: 0 20px 18px; }
+  .ab-flip:focus-visible { outline: 3px solid var(--ci); outline-offset: -3px; }
+  .ab-flip-chip {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    padding: 0.5rem 0.95rem;
+    border-radius: var(--r-pill);
+    background: var(--c);
+    color: #0b0b0f;
+    font: 700 0.72rem/1 var(--font-ui);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    translate: 0 2px;
+    box-shadow: 0 6px 20px -6px var(--c);
+    transition: translate 0.3s var(--ease-out);
+  }
+  .ab-flip:hover .ab-flip-chip, .ab-flip:focus-visible .ab-flip-chip { translate: 0 0; }
+  /* the chip sits where the barcode row is, so nudge the foot */
+  .ab-front-foot { padding-right: 0; }
+
+  .ab-back { transform: rotateY(180deg); display: flex; flex-direction: column; gap: 18px; padding: 28px 24px 22px; }
+  .ab-back:focus { outline: none; }
+  .ab-back-top { display: grid; grid-template-columns: 1fr 84px; gap: 12px; align-items: start; }
+  .ab-back-kicker { color: var(--ci); }
+  .ab-back-name { font-family: var(--font-display); font-weight: 900; font-size: 1.35rem; letter-spacing: -0.03em; line-height: 1.1; margin-top: 6px; }
+  .ab-back-role { color: var(--ink-2); font-size: var(--fs-sm); font-family: var(--font-ui); }
+  .ab-back-patch { width: 84px; rotate: 8deg; filter: drop-shadow(0 6px 10px rgb(0 0 0 / 0.6)); }
+  .ab-bio { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.02rem, 0.92rem + 0.3vw, 1.18rem); line-height: 1.35; letter-spacing: -0.015em; color: var(--ink); }
+  .ab-back-block { display: grid; gap: 8px; }
+  .ab-back-label { color: var(--ink-2); font-size: 0.68rem; }
+  .ab-focus { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .ab-focus li { padding: 0.32rem 0.62rem; border-radius: var(--r-pill); border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); background: color-mix(in srgb, var(--c) 12%, transparent); font: 600 0.74rem/1.2 var(--font-ui); color: var(--ink); }
+  .ab-off { font-size: var(--fs-sm); color: var(--ink-2); font-style: italic; line-height: 1.45; }
+  .ab-back-foot { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); }
+  .ab-mail { display: inline-flex; gap: 8px; align-items: center; font: 600 var(--fs-sm)/1.2 var(--font-ui); color: var(--ci); min-height: 44px; }
+  .ab-mail:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .ab-unflip { display: inline-flex; gap: 6px; align-items: center; min-height: 44px; padding: 0 1rem; border-radius: var(--r-pill); border: 1px solid var(--line-strong); font: 600 0.75rem/1 var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); }
+  .ab-unflip:hover { border-color: var(--c); }
+
+  /* Without JS there is no flip: show the file under the badge. */
+  :global(html:not(.js)) .ab-inner { aspect-ratio: auto; min-height: 0; display: grid; gap: 16px; }
+  :global(html:not(.js)) .ab-face { position: relative; transform: none; min-height: 520px; }
+  :global(html:not(.js)) .ab-flip { display: none; }
+
+  @media (max-width: 1100px) {
+    .ab-crew-list { grid-template-columns: 1fr; padding-top: 0; gap: var(--s-9); }
+    .ab-crew-list::before { display: none; }
+    .ab-crew-item { padding-top: 110px; }
+    .ab-strap { height: 110px; }
+    .ab-strap-band { height: 98px; }
+    .ab-hang { transform-origin: 50% -110px; }
+  }
+  @media (max-width: 900px) {
+    .ab-crew-head { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 420px) {
+    .ab-inner { min-height: 540px; }
+    .ab-back { padding: 26px 18px 18px; gap: 14px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ab-orbit::after, .ab-holo-seal { animation: none; }
+  }
+</style>

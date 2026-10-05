@@ -1,0 +1,416 @@
+---
+// Cinematic opening: one day, forecast at dawn. A pinned night sky warms to peach,
+// the sun climbs over the city, the 24-hour energy curve draws itself while a clock
+// sweeps 06:00 → 22:00 and the peaks and dips light up, the manifesto reveals word by
+// word, then the "Peak in 42m" lockup lands and the vocabulary marquee rolls.
+// Everything is original SVG/CSS. Values are illustrative, not user data.
+import { curveD, areaD, xAt, yAt, energyAt, VB_W, VB_H, DAY_START, DAY_END } from './energy';
+
+type Word = { w: string; k?: 'hl' | 'lilac' | 'pill' | 'strike' | 'curve' };
+const lines: Word[][] = [
+  [{ w: 'Nobody' }, { w: 'wakes' }, { w: 'up' }, { w: 'at' }, { w: '100%.', k: 'strike' }],
+  [{ w: 'Your' }, { w: 'energy' }, { w: 'comes' }, { w: 'in' }, { w: 'waves' }],
+  [{ w: 'on' }, { w: 'a' }, { w: 'clock' }, { w: 'you' }, { w: 'can’t' }, { w: 'see:' }],
+  [{ w: 'groggy' }, { w: 'at' }, { w: 'seven,' }, { w: 'sharp', k: 'hl' }, { w: 'by' }, { w: 'ten,' }],
+  [{ w: 'flat', k: 'lilac' }, { w: 'at' }, { w: 'three,' }, { w: 'back' }, { w: 'by' }, { w: 'six.' }],
+  [{ w: 'Stop' }, { w: 'fighting' }, { w: 'the' }, { w: 'curve.', k: 'curve' }],
+  [{ w: 'Start' }, { w: 'planning' }, { w: 'around it.', k: 'pill' }],
+];
+const sentence = lines.map((l) => l.map((x) => x.w).join(' ')).join(' ');
+let n = 0;
+
+// Labelled moments on the curve (illustrative times).
+const marks = [
+  { h: 7.0, t: '06:42', l: 'Grogginess', s: 'Groggy', a: 'start', side: 'up', tone: 'lilac' },
+  { h: 10.38, t: '10:23', l: 'Morning peak', s: 'Peak', a: 'mid', side: 'up', tone: 'peach' },
+  { h: 14.8, t: '14:48', l: 'Afternoon dip', s: 'Dip', a: 'mid', side: 'up', tone: 'lilac' },
+  { h: 18.0, t: '18:00', l: 'Evening peak', s: 'Peak', a: 'mid', side: 'up', tone: 'peach' },
+  { h: 21.5, t: '21:30', l: 'Melatonin window', s: 'Melatonin', a: 'end', side: 'down', tone: 'violet' },
+].map((m) => ({ ...m, x: (xAt(m.h) / VB_W) * 100, y: (yAt(energyAt(m.h)) / VB_H) * 100 }));
+const NOW = 9 + 41 / 60;
+const now = { x: (xAt(NOW) / VB_W) * 100, y: (yAt(energyAt(NOW)) / VB_H) * 100 };
+const axis = [6, 8, 10, 12, 14, 16, 18, 20, 22].map((h) => ({ h, x: (xAt(h) / VB_W) * 100 }));
+
+// Deterministic star field.
+let seed = 11;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const stars = Array.from({ length: 90 }, (_, i) => ({ x: rnd() * 1440, y: rnd() * 560, r: 0.5 + rnd() * 1.5, tw: i % 4 === 0, d: rnd() * 4 }));
+// A generic skyline on the far ridge (not any real building).
+const towers: { x: number; w: number; h: number }[] = [];
+for (let x = 760; x < 1260; ) {
+  const w = 18 + Math.round(rnd() * 26);
+  const h = 30 + Math.round(rnd() * (x > 960 && x < 1100 ? 120 : 60));
+  towers.push({ x, w, h });
+  x += w + 3 + Math.round(rnd() * 6);
+}
+const windows = towers.flatMap((t, i) =>
+  Array.from({ length: Math.floor(t.h / 16) }, (_, j) => ({ x: t.x + 5 + ((i + j) % 2) * (t.w - 14), y: 198 - t.h + 10 + j * 16, on: (i * 7 + j * 3) % 5 === 0 })),
+).filter((w) => w.on);
+const lockup = 'Peak in 42m'.split('');
+const marquee = 'SLEEP DEBT ✦ CIRCADIAN RHYTHM ✦ ENERGY PEAKS ✦ AFTERNOON DIP ✦ MELATONIN WINDOW ✦ GROGGINESS ✦ ';
+const span = DAY_END - DAY_START;
+---
+
+<div class="rs-op" data-rs-op data-start={DAY_START} data-span={span}>
+  <div class="rs-op-sticky">
+    <div class="rs-op-sky rs-op-sky--night" aria-hidden="true"></div>
+    <div class="rs-op-sky rs-op-sky--pre" data-rs-pre aria-hidden="true"></div>
+    <div class="rs-op-sky rs-op-sky--dawn" data-rs-dawn aria-hidden="true"></div>
+
+    <svg class="rs-op-stars" data-rs-stars viewBox="0 0 1440 560" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
+      {stars.map((s) => <circle cx={s.x.toFixed(1)} cy={s.y.toFixed(1)} r={s.r.toFixed(2)} class:list={[{ 'rs-op-tw': s.tw }]} style={`--d:${s.d.toFixed(2)}s`} />)}
+    </svg>
+
+    <div class="rs-op-sun" data-rs-sun aria-hidden="true">
+      <span class="rs-op-sun-halo"></span>
+      <span class="rs-op-sun-core"></span>
+    </div>
+
+    <svg class="rs-op-hills" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
+      <g class="rs-op-night">
+        <g fill="#2a2358">{towers.map((t) => <rect x={t.x} y={198 - t.h} width={t.w} height={t.h + 40} />)}</g>
+        <path d="M0 210 C 180 170 330 200 520 180 S 860 196 1040 186 S 1300 160 1440 176 V320 H0Z" fill="#2a2358" />
+        <path d="M0 250 C 220 214 380 246 600 228 S 980 214 1180 240 S 1360 236 1440 226 V320 H0Z" fill="#1c1742" />
+        <path d="M0 286 C 260 262 520 288 760 276 S 1180 262 1440 282 V320 H0Z" fill="#100e27" />
+      </g>
+      <g class="rs-op-dawnhills" data-rs-hills>
+        <g fill="#7b4c8f">{towers.map((t) => <rect x={t.x} y={198 - t.h} width={t.w} height={t.h + 40} />)}</g>
+        <g fill="#ffd9b8">{windows.map((w) => <rect x={w.x} y={w.y} width="4" height="5" rx="1" />)}</g>
+        <path d="M0 210 C 180 170 330 200 520 180 S 860 196 1040 186 S 1300 160 1440 176 V320 H0Z" fill="#7b4c8f" />
+        <path d="M0 250 C 220 214 380 246 600 228 S 980 214 1180 240 S 1360 236 1440 226 V320 H0Z" fill="#4a2e6e" />
+        <path d="M0 286 C 260 262 520 288 760 276 S 1180 262 1440 282 V320 H0Z" fill="#231840" />
+      </g>
+    </svg>
+
+    <div class="rs-op-chart" data-rs-chart aria-hidden="true">
+      <svg class="rs-op-curve" viewBox={`0 0 ${VB_W} ${VB_H}`} preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="rs-op-stroke" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0" stop-color="#9d8bff" />
+            <stop offset=".2" stop-color="#ffb27a" />
+            <stop offset=".3" stop-color="#ffe2c4" />
+            <stop offset=".55" stop-color="#ff9f8a" />
+            <stop offset=".75" stop-color="#ffc08e" />
+            <stop offset="1" stop-color="#8f7bff" />
+          </linearGradient>
+          <linearGradient id="rs-op-area" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#ffb27a" stop-opacity=".42" />
+            <stop offset="1" stop-color="#ffb27a" stop-opacity="0" />
+          </linearGradient>
+          <linearGradient id="rs-op-band" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#7b61ff" stop-opacity=".0" />
+            <stop offset="1" stop-color="#7b61ff" stop-opacity=".55" />
+          </linearGradient>
+          <clipPath id="rs-op-clip" clipPathUnits="userSpaceOnUse">
+            <rect data-rs-clip x="0" y="0" width="0" height={VB_H} />
+          </clipPath>
+        </defs>
+        <g clip-path="url(#rs-op-clip)">
+          <rect class="rs-op-band" x={xAt(21)} y="0" width={xAt(22) - xAt(21)} height={VB_H} fill="url(#rs-op-band)" />
+          <path d={areaD()} fill="url(#rs-op-area)" />
+          <path d={curveD()} fill="none" stroke="url(#rs-op-stroke)" stroke-width="14" stroke-opacity=".22" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+          <path d={curveD()} fill="none" stroke="url(#rs-op-stroke)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" />
+        </g>
+        <path d={`M0 ${VB_H - 1}H${VB_W}`} stroke="#e9e2ff" stroke-opacity=".35" stroke-width="1" vector-effect="non-scaling-stroke" />
+      </svg>
+      {
+        marks.map((m) => (
+          <span class:list={['rs-op-mark', `rs-op-mark--${m.a}`, `rs-op-mark--${m.side}`, `rs-op-tone--${m.tone}`]} style={`--x:${m.x.toFixed(2)}%;--y:${m.y.toFixed(2)}%`} data-h={m.h}>
+            <i class="rs-op-mark-dot" />
+            <span class="rs-op-chip">
+              <b class="rs-op-chip-t">{m.t}</b>
+              <span class="rs-op-chip-l">{m.l}</span>
+              <span class="rs-op-chip-s">{m.s}</span>
+            </span>
+          </span>
+        ))
+      }
+      <span class="rs-op-now" style={`--x:${now.x.toFixed(2)}%;--y:${now.y.toFixed(2)}%`}><i></i><b>Now 09:41</b></span>
+      <span class="rs-op-head" data-rs-head><i></i></span>
+      <div class="rs-op-axis">{axis.map((a) => <span style={`--x:${a.x.toFixed(2)}%`} class:list={[{ 'rs-op-axis-odd': a.h % 4 !== 2 }]}>{String(a.h).padStart(2, '0')}</span>)}</div>
+    </div>
+
+    <div class="rs-op-grid container">
+      <div class="rs-op-copy">
+        <p class="t-label rs-op-kicker">06:00 → 22:00 · one day, forecast at dawn</p>
+        <p class="rs-op-text">
+          <span class="visually-hidden">{sentence}</span>
+          {
+            lines.map((line) => (
+              <span class="rs-op-line" aria-hidden="true">
+                {line.map((x) => (
+                  <span class:list={['rs-op-w', x.k && `rs-op-w--${x.k}`]} style={`--i:${n++}`}>
+                    {x.k === 'curve' && (
+                      <svg class="rs-op-w-curve" viewBox="0 0 60 28" aria-hidden="true">
+                        <path d="M2 22 C 10 22 12 5 20 5 S 28 18 34 18 S 44 4 50 6 S 56 16 58 18" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
+                      </svg>
+                    )}
+                    {x.w}
+                  </span>
+                ))}{' '}
+              </span>
+            ))
+          }
+        </p>
+      </div>
+      <div class="rs-op-clock" aria-hidden="true">
+        <svg viewBox="-120 -120 240 240">
+          <circle r="114" fill="#14122b" fill-opacity=".72" stroke="#e9e2ff" stroke-opacity=".28" stroke-width="2" />
+          <circle r="102" fill="none" stroke="#2f2866" stroke-width="8" />
+          <circle class="rs-op-arc" data-rs-arc r="102" fill="none" stroke="#ffb27a" stroke-width="8" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" transform="rotate(-90)" />
+          {Array.from({ length: 12 }, (_, i) => <circle cx={Math.sin((i / 6) * Math.PI) * 84} cy={-Math.cos((i / 6) * Math.PI) * 84} r={i % 3 === 0 ? 5 : 2.6} fill="#e9e2ff" />)}
+          <g class="rs-op-hand" data-rs-hour><line y2="-46" stroke="#ffffff" stroke-width="9" stroke-linecap="round" /></g>
+          <g class="rs-op-hand" data-rs-min><line y2="-72" stroke="#ffb27a" stroke-width="6" stroke-linecap="round" /></g>
+          <circle r="9" fill="#ffd9b8" stroke="#14122b" stroke-width="3" />
+        </svg>
+        <p class="rs-op-time t-num" data-rs-time>06:00</p>
+      </div>
+    </div>
+
+    <div class="rs-op-lockup" data-rs-lockup aria-hidden="true">
+      <span class="rs-op-lock-pre"><i></i>09:41 · Tuesday</span>
+      <span class="rs-op-lock-main">{lockup.map((c, i) => <span class:list={[{ 'rs-op-lock-n': i >= 8 }]} style={`--j:${i}`}>{c === ' ' ? ' ' : c}</span>)}</span>
+      <span class="rs-op-lock-sub">Your morning peak lands at 10:23. Save it for the hard thing.</span>
+      <span class="rs-op-lock-note">Illustrative forecast for our concept UI, not real user data.</span>
+    </div>
+    <p class="visually-hidden">Lockup: 09:41, Tuesday. Peak in 42 minutes. Your morning peak lands at 10:23. Illustrative forecast for our concept UI, not real user data.</p>
+
+    <div class="rs-op-marquee" data-rs-marquee aria-hidden="true">
+      <div class="rs-op-marquee-track">
+        {Array.from({ length: 2 }, () => <span>{marquee}</span>)}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { gsap, reducedMotion } from '../../../scripts/motion';
+  import { energyAt, xAt, yAt, VB_W, VB_H, fmt } from './energy';
+
+  const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
+  const seg = (p: number, a: number, b: number) => clamp01((p - a) / (b - a));
+  const smooth = (t: number) => t * t * (3 - 2 * t);
+
+  document.querySelectorAll<HTMLElement>('[data-rs-op]').forEach((root) => {
+    const q = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const words = [...root.querySelectorAll<HTMLElement>('.rs-op-w')];
+    const marks = [...root.querySelectorAll<HTMLElement>('.rs-op-mark')].map((el) => ({ el, h: parseFloat(el.dataset.h || '0') }));
+    const pre = q<HTMLElement>('[data-rs-pre]');
+    const dawn = q<HTMLElement>('[data-rs-dawn]');
+    const stars = q<SVGSVGElement>('[data-rs-stars]');
+    const sun = q<HTMLElement>('[data-rs-sun]');
+    const hills = q<SVGGElement>('[data-rs-hills]');
+    const clip = q<SVGRectElement>('[data-rs-clip]');
+    const chart = q<HTMLElement>('[data-rs-chart]');
+    const head = q<HTMLElement>('[data-rs-head]');
+    const hour = q<SVGGElement>('[data-rs-hour]');
+    const min = q<SVGGElement>('[data-rs-min]');
+    const arc = q<SVGCircleElement>('[data-rs-arc]');
+    const time = q<HTMLElement>('[data-rs-time]');
+    const lock = q<HTMLElement>('[data-rs-lockup]');
+    const start = parseFloat(root.dataset.start || '6');
+    const span = parseFloat(root.dataset.span || '16');
+
+    let box = { w: 1, h: 1 };
+    const measure = () => {
+      const r = chart.getBoundingClientRect();
+      box = { w: r.width, h: r.height };
+    };
+    let lastLit = -1;
+    let lastTime = '';
+
+    const render = (p: number) => {
+      // Manifesto, word by word.
+      const lit = Math.round(seg(p, 0.03, 0.6) * words.length);
+      if (lit !== lastLit) {
+        words.forEach((w, i) => w.classList.toggle('is-lit', i < lit));
+        lastLit = lit;
+      }
+      // Night → pre-dawn → dawn.
+      pre.style.opacity = seg(p, 0.04, 0.3).toFixed(3);
+      dawn.style.opacity = smooth(seg(p, 0.2, 0.62)).toFixed(3);
+      stars.style.opacity = (1 - 0.88 * seg(p, 0.16, 0.6)).toFixed(3);
+      hills.style.opacity = smooth(seg(p, 0.18, 0.66)).toFixed(3);
+      const s = smooth(seg(p, 0.06, 0.72));
+      sun.style.transform = `translate3d(-50%, ${(64 - s * 50).toFixed(2)}%, 0) scale(${(0.82 + s * 0.18).toFixed(3)})`;
+
+      // The day, drawn: clock sweeps 06:00 → 22:00 while the curve draws.
+      const c = seg(p, 0.12, 0.8);
+      const h = start + span * c;
+      clip.setAttribute('width', (xAt(h) + 2).toFixed(1));
+      const hx = (xAt(h) / VB_W) * box.w;
+      const hy = (yAt(energyAt(h)) / VB_H) * box.h;
+      head.style.transform = `translate3d(${hx.toFixed(1)}px, ${hy.toFixed(1)}px, 0)`;
+      head.style.opacity = c > 0 && c < 1 ? '1' : '0';
+      marks.forEach((m) => m.el.classList.toggle('is-lit', h >= m.h - 0.05));
+      const minutes = h * 60;
+      min.style.transform = `rotate(${((minutes % 60) * 6).toFixed(2)}deg)`;
+      hour.style.transform = `rotate(${(((h % 12) * 30) + (minutes % 60) * 0.5).toFixed(2)}deg)`;
+      arc.style.strokeDashoffset = (1 - c).toFixed(4);
+      const t = fmt(h);
+      if (t !== lastTime) {
+        time.textContent = t;
+        lastTime = t;
+      }
+
+      // Lockup lands.
+      const done = p > 0.84;
+      root.classList.toggle('is-done', done);
+      lock.classList.toggle('is-in', done);
+    };
+
+    measure();
+    if (reducedMotion) {
+      root.classList.add('is-static');
+      requestAnimationFrame(() => {
+        measure();
+        render(1);
+      });
+      return;
+    }
+    render(0);
+    const state = { p: 0 };
+    gsap.to(state, {
+      p: 1,
+      ease: 'none',
+      onUpdate: () => render(state.p),
+      scrollTrigger: { trigger: root, start: 'top top', end: 'bottom bottom', scrub: 0.7, onRefresh: () => (measure(), render(state.p)) },
+    });
+    window.addEventListener('resize', () => (measure(), render(state.p)), { passive: true });
+  });
+</script>
+
+<style>
+  .rs-op { position: relative; height: 440vh; background: #0b0a1f; color: #fff; isolation: isolate; }
+  .rs-op-sticky { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
+
+  /* Sky */
+  .rs-op-sky { position: absolute; inset: 0; pointer-events: none; }
+  .rs-op-sky--night { background: radial-gradient(80% 60% at 70% 100%, #2b2160 0%, transparent 70%), linear-gradient(180deg, #08071a 0%, #14122b 50%, #221c4c 100%); }
+  .rs-op-sky--pre { opacity: 0; background: radial-gradient(70% 50% at 62% 100%, #c0628d 0%, transparent 70%), linear-gradient(180deg, #120f2c 0%, #2b2262 38%, #5b3a8c 70%, #a3578d 100%); }
+  .rs-op-sky--dawn { opacity: 0; background: radial-gradient(60% 46% at 62% 92%, #ffd6ae 0%, rgb(255 178 122 / 0.6) 30%, transparent 70%), linear-gradient(180deg, #1c1748 0%, #3b2d7e 30%, #8a4f98 56%, #ff8f7a 80%, #ffc394 100%); }
+  .rs-op-stars { position: absolute; left: 0; top: 0; width: 100%; height: 68%; fill: #fff; pointer-events: none; }
+  .rs-op-tw { animation: rs-op-twinkle 3.2s ease-in-out infinite; animation-delay: var(--d); }
+  @keyframes rs-op-twinkle { 50% { opacity: 0.25; } }
+
+  .rs-op-sun { position: absolute; left: 62%; bottom: 14%; width: min(46vw, 62svh); aspect-ratio: 1; transform: translate3d(-50%, 62%, 0) scale(0.82); pointer-events: none; will-change: transform; }
+  .rs-op-sun-halo { position: absolute; inset: -40%; border-radius: 50%; background: radial-gradient(circle, rgb(255 205 160 / 0.55) 0%, rgb(255 150 120 / 0.18) 38%, transparent 66%); }
+  .rs-op-sun-core { position: absolute; inset: 22%; border-radius: 50%; background: radial-gradient(circle at 42% 38%, #fff7ea 0%, #ffe0bf 34%, #ffb27a 70%, #ff8f7a 100%); box-shadow: 0 0 80px 20px rgb(255 178 122 / 0.45); }
+
+  .rs-op-hills { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 38%; pointer-events: none; }
+  .rs-op-dawnhills { opacity: 0; }
+
+  /* Chart */
+  .rs-op-chart { position: absolute; left: var(--gutter); right: var(--gutter); top: 58%; bottom: calc(var(--safe-bottom) + 1.9rem); pointer-events: none; }
+  .rs-op-curve { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; transition: opacity 0.6s; }
+  .rs-op-band { opacity: 0.6; }
+  .rs-op-head { position: absolute; left: 0; top: 0; width: 0; height: 0; transition: opacity 0.3s; will-change: transform; }
+  .rs-op-head i { position: absolute; left: -9px; top: -9px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 5px rgb(255 178 122 / 0.35), 0 0 30px 10px rgb(255 214 174 / 0.7); }
+  .rs-op-mark { position: absolute; left: var(--x); top: var(--y); width: 0; height: 0; }
+  .rs-op-mark-dot { position: absolute; left: -6px; top: -6px; width: 12px; height: 12px; border-radius: 50%; background: #14122b; border: 3px solid var(--tc); transform: scale(0); transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .rs-op-chip {
+    position: absolute; left: 0; bottom: 16px; display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap;
+    padding: 5px 10px; border-radius: 999px; background: #14122b; border: 1px solid color-mix(in srgb, var(--tc) 60%, transparent);
+    font: 500 0.78rem/1.1 var(--font-ui); color: #fff; box-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.6);
+    opacity: 0; transform: translate(-50%, 8px); transition: opacity 0.4s, transform 0.6s var(--ease-out);
+  }
+  .rs-op-chip-t { color: var(--tc); font-weight: 700; font-feature-settings: 'tnum' 1; }
+  .rs-op-chip-s { display: none; }
+  .rs-op-mark--start .rs-op-chip { transform: translate(-14px, 8px); }
+  .rs-op-mark--end .rs-op-chip { transform: translate(calc(-100% + 14px), 8px); }
+  .rs-op-mark--down .rs-op-chip { bottom: auto; top: 16px; }
+  .rs-op-mark.is-lit .rs-op-mark-dot { transform: scale(1); }
+  .rs-op-mark.is-lit .rs-op-chip { opacity: 1; transform: translate(-50%, 0); }
+  .rs-op-mark--start.is-lit .rs-op-chip { transform: translate(-14px, 0); }
+  .rs-op-mark--end.is-lit .rs-op-chip { transform: translate(calc(-100% + 14px), 0); }
+  .rs-op-tone--peach { --tc: #ffb27a; }
+  .rs-op-tone--lilac { --tc: #c9bcff; }
+  .rs-op-tone--violet { --tc: #a996ff; }
+
+  .rs-op-now { position: absolute; left: var(--x); top: var(--y); width: 0; height: 0; opacity: 0; transition: opacity 0.5s 0.3s; }
+  .rs-op-now i { position: absolute; left: -10px; top: -10px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 6px rgb(255 255 255 / 0.25); }
+  .rs-op-now i::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid #fff; animation: rs-op-ping 1.8s var(--ease-out) infinite; }
+  @keyframes rs-op-ping { from { transform: scale(0.6); opacity: 1; } to { transform: scale(2.4); opacity: 0; } }
+  .rs-op-now b { position: absolute; left: 0; top: 18px; transform: translateX(-50%); white-space: nowrap; padding: 4px 10px; border-radius: 999px; background: #fff; color: #14122b; font: 700 0.75rem/1.1 var(--font-ui); }
+
+  .rs-op-axis { position: absolute; left: 0; right: 0; top: calc(100% + 8px); height: 1rem; transition: opacity 0.5s; }
+  .rs-op.is-done .rs-op-axis { opacity: 0; }
+  .rs-op.is-static .rs-op-axis { opacity: 1; }
+  .rs-op-axis span { position: absolute; left: var(--x); transform: translateX(-50%); font: 600 0.72rem/1 var(--font-ui); color: #e9e2ff; font-feature-settings: 'tnum' 1; }
+
+  /* Copy + clock */
+  .rs-op-grid { position: relative; display: grid; grid-template-columns: 1fr auto; gap: var(--s-7); align-items: start; padding-top: clamp(4.5rem, 11svh, 7.5rem); transition: opacity 0.6s var(--ease-out), transform 0.8s var(--ease-out), filter 0.6s; }
+  .rs-op.is-done .rs-op-grid { opacity: 0.1; transform: scale(0.96); filter: blur(4px); }
+  .rs-op-copy { display: grid; gap: var(--s-4); }
+  .rs-op-kicker { color: #ffd9b8; }
+  .rs-op-text { font-family: var(--font-display); font-weight: 900; font-size: clamp(1.35rem, min(0.7rem + 2.3vw, 5.1svh), 2.75rem); line-height: 1.08; letter-spacing: -0.035em; max-width: 24ch; }
+  .rs-op-line { display: block; }
+  .rs-op-w { display: inline-block; position: relative; margin-right: 0.22em; color: #fff; opacity: 0.2; transform: translateY(0.14em); filter: blur(2px); transition: opacity 0.4s, transform 0.55s var(--ease-out), filter 0.4s, color 0.4s; }
+  .rs-op-w.is-lit { opacity: 1; transform: none; filter: none; }
+  .rs-op-w--hl.is-lit { color: #ffb27a; }
+  .rs-op-w--lilac.is-lit { color: #c9bcff; }
+  .rs-op-w--pill { padding: 0 0.3em; border-radius: 0.5em; }
+  .rs-op-w--pill.is-lit { background: #ffb27a; color: #14122b; }
+  .rs-op-w--strike::after { content: ''; position: absolute; left: -3%; right: -2%; top: 54%; height: 0.08em; border-radius: 1em; background: #ffb27a; transform: scaleX(0); transform-origin: left; transition: transform 0.55s var(--ease-out) 0.15s; }
+  .rs-op-w--strike.is-lit::after { transform: scaleX(1); }
+  .rs-op-w--curve { padding-left: 1.7em; }
+  .rs-op-w-curve { position: absolute; left: 0; top: 0.2em; width: 1.45em; height: 0.7em; color: #ffb27a; stroke-dasharray: 90; stroke-dashoffset: 90; transition: stroke-dashoffset 0.9s var(--ease-out) 0.1s; }
+  .rs-op-w--curve.is-lit .rs-op-w-curve { stroke-dashoffset: 0; }
+
+  .rs-op-clock { width: clamp(150px, 17vw, 250px); display: grid; justify-items: center; gap: var(--s-2); }
+  .rs-op-clock svg { width: 100%; filter: drop-shadow(0 18px 40px rgb(0 0 0 / 0.45)); }
+  .rs-op-hand { will-change: transform; }
+  .rs-op-time { font-family: var(--font-display); font-weight: 900; font-size: var(--fs-2xl); letter-spacing: -0.03em; color: #fff; }
+
+  /* Lockup */
+  .rs-op-lockup { position: absolute; left: 0; right: 0; top: 0; bottom: 47%; display: grid; place-content: end center; justify-items: center; gap: var(--s-3); padding: 0 var(--gutter) var(--s-4); text-align: center; pointer-events: none; }
+  .rs-op-lock-pre { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; background: #fff; color: #14122b; font: 700 0.8rem/1 var(--font-ui); letter-spacing: 0.06em; text-transform: uppercase; opacity: 0; transform: translateY(16px); transition: opacity 0.5s, transform 0.6s var(--ease-out); }
+  .rs-op-lock-pre i { width: 10px; height: 10px; border-radius: 50%; background: #ff8f7a; box-shadow: 0 0 0 3px rgb(255 143 122 / 0.3); }
+  .rs-op-lock-main { display: flex; justify-content: center; font-family: var(--font-display); font-weight: 900; font-size: clamp(3rem, 0.4rem + 10.5vw, 11rem); line-height: 0.9; letter-spacing: -0.055em; color: #fff; text-shadow: 0.045em 0.05em 0 #14122b; white-space: nowrap; }
+  .rs-op-lock-main span { display: inline-block; opacity: 0; transform: translateY(0.55em) rotate(calc((var(--j) - 5) * 5deg)) scale(0.6); transition: opacity 0.4s calc(var(--j) * 0.04s), transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) calc(var(--j) * 0.04s); }
+  .rs-op-lock-main .rs-op-lock-n { color: #ffd9b8; }
+  .rs-op-lock-sub { max-width: 34ch; padding: 6px 14px; border-radius: 12px; background: #14122b; font: 600 clamp(0.9rem, 0.8rem + 0.4vw, 1.15rem)/1.35 var(--font-body); color: #fff; opacity: 0; transform: translateY(12px); transition: opacity 0.5s 0.45s, transform 0.6s var(--ease-out) 0.45s; }
+  .rs-op-lock-note { padding: 3px 10px; border-radius: 999px; background: #14122b; font: 500 0.72rem/1.3 var(--font-ui); color: #e9e2ff; opacity: 0; transition: opacity 0.5s 0.6s; }
+  .rs-op-lockup.is-in .rs-op-lock-pre, .rs-op-lockup.is-in .rs-op-lock-main span, .rs-op-lockup.is-in .rs-op-lock-sub, .rs-op-lockup.is-in .rs-op-lock-note { opacity: 1; transform: none; }
+  .rs-op.is-done .rs-op-now { opacity: 1; }
+
+  /* Marquee */
+  .rs-op-marquee { position: absolute; left: 0; right: 0; bottom: calc(var(--safe-bottom) - 1.6rem); overflow: hidden; background: #14122b; color: #ffb27a; padding-block: 0.7rem; opacity: 0; transform: translateY(220%) rotate(-1.5deg) scaleX(1.05); transition: transform 0.9s var(--ease-out), opacity 0.5s; border-block: 1px solid rgb(255 178 122 / 0.35); }
+  .rs-op.is-done .rs-op-marquee { opacity: 1; transform: rotate(-1.5deg) scaleX(1.05); }
+  .rs-op-marquee-track { display: flex; width: max-content; animation: rs-op-marq 30s linear infinite; font: 800 clamp(0.9rem, 0.7rem + 0.8vw, 1.3rem)/1 var(--font-display); letter-spacing: 0.04em; white-space: nowrap; }
+  @keyframes rs-op-marq { to { transform: translateX(-50%); } }
+
+  /* Reduced motion: a static, fully lit poster. */
+  .rs-op.is-static { height: auto; }
+  .rs-op.is-static .rs-op-sticky { position: relative; height: auto; display: flex; flex-direction: column; padding-bottom: calc(var(--s-9) + 2rem); }
+  .rs-op.is-static .rs-op-grid { opacity: 1; transform: none; filter: none; }
+  .rs-op.is-static .rs-op-lockup { position: relative; inset: auto; order: 3; margin-top: var(--s-7); }
+  .rs-op.is-static .rs-op-chart { position: relative; inset: auto; order: 4; margin: var(--s-9) var(--gutter) var(--s-7); height: clamp(180px, 30vw, 340px); }
+  .rs-op.is-static .rs-op-marquee { opacity: 1; transform: rotate(-1.5deg) scaleX(1.05); }
+  .rs-op.is-static .rs-op-marquee-track, .rs-op.is-static .rs-op-tw, .rs-op.is-static .rs-op-now i::after { animation: none; }
+  .rs-op.is-static .rs-op-mark .rs-op-chip { opacity: 1; }
+  .rs-op.is-static .rs-op-now { display: none; }
+  .rs-op.is-static .rs-op-sun { bottom: 30%; }
+
+  @media (max-width: 760px) {
+    .rs-op-grid { grid-template-columns: 1fr; gap: var(--s-4); padding-top: 4.25rem; }
+    .rs-op-clock { order: -1; grid-template-columns: auto auto; align-items: center; justify-self: start; width: auto; gap: var(--s-3); }
+    .rs-op-clock svg { width: 76px; }
+    .rs-op-time { font-size: 1.6rem; }
+    .rs-op-kicker { font-size: 0.68rem; }
+    .rs-op-text { font-size: clamp(1.2rem, min(5.6vw, 3.2svh), 1.6rem); }
+    .rs-op-chart { top: 57%; bottom: calc(var(--safe-bottom) + 1.6rem); }
+    .rs-op-chip { font-size: 0.7rem; padding: 4px 8px; }
+    .rs-op-chip-t, .rs-op-chip-l { display: none; }
+    .rs-op-chip-s { display: inline; }
+    .rs-op-axis-odd { display: none; }
+    .rs-op-sun { left: 66%; width: 78vw; bottom: 18%; }
+    .rs-op-hills { height: 32%; }
+    .rs-op-lockup { bottom: 46%; }
+    .rs-op-lock-main { font-size: clamp(2.4rem, 13.5vw, 5rem); }
+    .rs-op-lock-sub { font-size: 0.88rem; }
+  }
+  @media (max-width: 760px) and (max-height: 700px) {
+    .rs-op-lock-sub { display: none; }
+  }
+</style>

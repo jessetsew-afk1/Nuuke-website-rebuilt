@@ -1,0 +1,243 @@
+---
+// Values as a constellation. Each value is a star (a tab); charting all four draws
+// the NUUKE "n" across the sky — and the rocket lifts off inside it, like the logo.
+import Rocket from './Rocket.astro';
+
+const values = [
+  { t: 'Strategy before pixels', d: 'Every project starts with the problem worth solving, the people it’s for and the number that will prove it worked.', x: 20, y: 82, pos: 'br' },
+  { t: 'Show, don’t tell', d: 'You tap a prototype in week one and spin the 3D in week two. Decisions get made on real things, not slide decks.', x: 23, y: 30, pos: 'tl' },
+  { t: 'One team, no hand-offs', d: 'Strategists, designers, engineers and marketers work in the same room — what we design is what ships.', x: 74, y: 30, pos: 'tr' },
+  { t: 'Built for longevity', d: 'Design systems, clean code and documentation, so your product keeps getting better after launch day.', x: 78, y: 82, pos: 'bl' },
+];
+// deterministic background stars
+let seed = 7;
+const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+const dust = Array.from({ length: 90 }, () => ({ x: rnd() * 100, y: rnd() * 100, s: rnd() < 0.15 ? 2.6 : rnd() < 0.5 ? 1.6 : 1, o: 0.25 + rnd() * 0.5 }));
+// The three strokes of the "n", in a W × H box (re-run in the browser on resize so
+// strokes never stretch).
+const segsFor = (W: number, H: number) => {
+  const p = values.map((v) => ({ x: (v.x / 100) * W, y: (v.y / 100) * H }));
+  const lift = H * 0.26;
+  return [
+    `M${p[0].x} ${p[0].y} L ${p[1].x} ${p[1].y}`,
+    `M${p[1].x} ${p[1].y} C ${p[1].x + W * 0.06} ${p[1].y - lift}, ${p[2].x - W * 0.06} ${p[2].y - lift}, ${p[2].x} ${p[2].y}`,
+    `M${p[2].x} ${p[2].y} L ${p[3].x} ${p[3].y}`,
+  ];
+};
+const segs = segsFor(160, 110);
+const pts = JSON.stringify(values.map((v) => [v.x, v.y]));
+---
+
+<section class="ab-con section" aria-labelledby="ab-con-title" data-ab-con data-pts={pts}>
+  <div class="container">
+    <div class="ab-con-head">
+      <p class="t-label ab-sec-label" data-reveal>03 — Values</p>
+      <h2 id="ab-con-title" class="t-h1" data-split>How we think</h2>
+      <p class="t-lead measure" data-reveal>Four principles we navigate by. Select each star to chart them.</p>
+    </div>
+
+    <div class="ab-con-grid">
+      <div class="ab-sky" data-reveal>
+        <svg class="ab-sky-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          {dust.map((d) => <path d={`M${d.x.toFixed(2)} ${d.y.toFixed(2)}h0`} stroke="#fff" stroke-opacity={d.o.toFixed(2)} stroke-width={d.s} stroke-linecap="round" vector-effect="non-scaling-stroke" />)}
+        </svg>
+        <svg class="ab-sky-svg" viewBox="0 0 160 110" aria-hidden="true" data-ab-lines>
+          {segs.map((d) => <path d={d} class="ab-guide" data-ab-guide />)}
+          {segs.map((d, i) => <path d={d} class="ab-link" data-ab-link={i} pathLength="1" />)}
+        </svg>
+        <div class="ab-sky-rocket" aria-hidden="true"><Rocket uid="con" /></div>
+        <div class="ab-stars" role="tablist" aria-label="Our values">
+          {
+            values.map((val, i) => (
+              <button
+                class={`ab-star ab-star--${val.pos}`}
+                type="button"
+                role="tab"
+                id={`ab-star-${i}`}
+                aria-selected={i === 0 ? 'true' : 'false'}
+                aria-controls={`ab-val-${i}`}
+                style={`--x:${val.x}%;--y:${val.y}%`}
+                data-ab-star
+              >
+                <span class="ab-star-glyph" aria-hidden="true" />
+                <span class="ab-star-label">
+                  <span class="t-num ab-star-num">0{i + 1}</span>
+                  <span class="ab-star-title">{val.t}</span>
+                </span>
+              </button>
+            ))
+          }
+        </div>
+        <p class="ab-sky-name t-label" aria-hidden="true">Constellation · the NUUKE n</p>
+      </div>
+
+      <div class="ab-con-side">
+        {
+          values.map((val, i) => (
+            <div class="ab-val" role="tabpanel" id={`ab-val-${i}`} aria-labelledby={`ab-star-${i}`} hidden={i !== 0}>
+              <span class="t-num ab-val-num" aria-hidden="true">0{i + 1}</span>
+              <h3 class="t-h3 ab-val-title">{val.t}</h3>
+              <p class="t-lead">{val.d}</p>
+            </div>
+          ))
+        }
+        <div class="ab-con-progress">
+          <ol class="ab-pips" role="list" aria-hidden="true">
+            {values.map(() => <li data-ab-pip />)}
+          </ol>
+          <p class="t-small ab-con-status" aria-live="polite" data-ab-status>1 of 4 stars charted.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { initTabs } from '../../scripts/about-tabs';
+  import { gsap, reducedMotion } from '../../scripts/motion';
+
+  document.querySelectorAll<HTMLElement>('[data-ab-con]').forEach((root) => {
+    const stars = [...root.querySelectorAll<HTMLElement>('[data-ab-star]')];
+    const links = [...root.querySelectorAll<SVGPathElement>('[data-ab-link]')];
+    const pips = [...root.querySelectorAll<HTMLElement>('[data-ab-pip]')];
+    const status = root.querySelector<HTMLElement>('[data-ab-status]')!;
+    const seen = new Set<number>([0]);
+    // keep the strokes in pixel space so they never stretch with the box
+    const sky = root.querySelector<HTMLElement>('.ab-sky')!;
+    const lines = root.querySelector<SVGSVGElement>('[data-ab-lines]')!;
+    const guides = [...root.querySelectorAll<SVGPathElement>('[data-ab-guide]')];
+    const pts = (JSON.parse(root.dataset.pts || '[]') as [number, number][]).map(([x, y]) => ({ x, y }));
+    const layout = () => {
+      const W = sky.clientWidth;
+      const H = sky.clientHeight;
+      if (!W || !H) return;
+      lines.setAttribute('viewBox', `0 0 ${W} ${H}`);
+      const p = pts.map((q) => ({ x: (q.x / 100) * W, y: (q.y / 100) * H }));
+      const lift = H * 0.26;
+      const d = [
+        `M${p[0].x} ${p[0].y} L ${p[1].x} ${p[1].y}`,
+        `M${p[1].x} ${p[1].y} C ${p[1].x + W * 0.06} ${p[1].y - lift}, ${p[2].x - W * 0.06} ${p[2].y - lift}, ${p[2].x} ${p[2].y}`,
+        `M${p[2].x} ${p[2].y} L ${p[3].x} ${p[3].y}`,
+      ];
+      d.forEach((s, i) => {
+        guides[i].setAttribute('d', s);
+        links[i].setAttribute('d', s);
+      });
+    };
+    layout();
+    new ResizeObserver(layout).observe(sky);
+    const paint = () => {
+      stars.forEach((s, i) => s.classList.toggle('is-seen', seen.has(i)));
+      pips.forEach((p, i) => p.classList.toggle('is-on', seen.has(i)));
+      links.forEach((l, i) => l.classList.toggle('is-on', seen.has(i) && seen.has(i + 1)));
+      const done = seen.size === stars.length;
+      root.classList.toggle('is-complete', done);
+      status.textContent = done ? 'All 4 charted. You just drew the NUUKE n.' : `${seen.size} of 4 stars charted.`;
+    };
+    initTabs(root.querySelector<HTMLElement>('[role="tablist"]')!, (i) => {
+      const fresh = !seen.has(i);
+      seen.add(i);
+      paint();
+      const panel = root.querySelector<HTMLElement>(`#ab-val-${i}`);
+      if (panel && !reducedMotion) gsap.fromTo(panel.children, { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'expo.out', stagger: 0.06 });
+      if (fresh && !reducedMotion) gsap.fromTo(stars[i].querySelector('.ab-star-glyph'), { scale: 2.4 }, { scale: 1, duration: 0.9, ease: 'elastic.out(1, 0.4)' });
+    });
+    paint();
+  });
+</script>
+
+<style>
+  .ab-sec-label { color: var(--ink-2); margin-bottom: var(--s-4); }
+  .ab-con-head { display: grid; gap: var(--s-4); margin-bottom: var(--s-7); }
+  .ab-con-grid { display: grid; grid-template-columns: 1.45fr 1fr; gap: var(--s-7); align-items: center; }
+
+  .ab-sky {
+    position: relative;
+    aspect-ratio: 16 / 11;
+    border-radius: var(--r-lg);
+    border: 1px solid var(--line);
+    background:
+      radial-gradient(50% 60% at 50% 45%, rgb(139 92 255 / 0.18), transparent 70%),
+      radial-gradient(40% 40% at 80% 90%, rgb(255 46 136 / 0.12), transparent 70%),
+      #07070b;
+    overflow: hidden;
+  }
+  .ab-sky-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .ab-guide { fill: none; stroke: rgb(255 255 255 / 0.16); stroke-width: 1; stroke-dasharray: 3 6; }
+  .ab-link { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.1s var(--ease-out); filter: drop-shadow(0 0 6px rgb(255 46 136 / 0.8)); }
+  .ab-link:global(.is-on) { stroke-dashoffset: 0; }
+
+  .ab-stars { position: absolute; inset: 0; }
+  .ab-star {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    translate: -22px -22px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+  }
+  .ab-star-glyph {
+    width: 26px;
+    height: 26px;
+    background: #f5f5f6;
+    clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
+    transition: background 0.3s, transform 0.4s var(--ease-out);
+    filter: drop-shadow(0 0 6px #fff);
+  }
+  .ab-star::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    border: 1.5px solid rgb(255 255 255 / 0.55);
+    animation: ab-ping 2.2s var(--ease-out) infinite;
+  }
+  @keyframes ab-ping { from { transform: scale(0.5); opacity: 1; } to { transform: scale(1.7); opacity: 0; } }
+  .ab-star:global(.is-seen)::before { animation: none; opacity: 0; }
+  .ab-star:global(.is-seen) .ab-star-glyph { background: var(--accent); }
+  .ab-star[aria-selected='true'] .ab-star-glyph { transform: scale(1.45); }
+  .ab-star:hover .ab-star-glyph { transform: scale(1.3); }
+  .ab-star:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .ab-star-label { position: absolute; display: grid; gap: 2px; width: max-content; max-width: 11rem; text-align: left; pointer-events: none; }
+  .ab-star--br .ab-star-label { left: 46px; top: 4px; }
+  .ab-star--tl .ab-star-label { right: 46px; bottom: 6px; text-align: right; }
+  .ab-star--tr .ab-star-label { left: 46px; bottom: 6px; }
+  .ab-star--bl .ab-star-label { right: 46px; top: 4px; text-align: right; }
+  .ab-star-num { font-size: var(--fs-label); color: var(--ink-2); font-weight: 700; }
+  .ab-star-title { font: 700 0.95rem/1.2 var(--font-display); color: var(--ink); letter-spacing: -0.01em; }
+  .ab-star[aria-selected='true'] .ab-star-num { color: var(--accent); }
+
+  .ab-sky-rocket { position: absolute; left: 48.5%; top: 46%; width: 7%; translate: -50% 0; opacity: 0; transform: translateY(40%) scale(0.6); transition: opacity 0.6s, transform 1.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  :global(.is-complete) .ab-sky-rocket { opacity: 1; transform: none; }
+  .ab-sky-name { position: absolute; left: 50%; bottom: 4%; translate: -50% 0; color: var(--ink); opacity: 0; transition: opacity 0.6s 0.5s; white-space: nowrap; }
+  :global(.is-complete) .ab-sky-name { opacity: 1; }
+
+  .ab-con-side { display: grid; gap: var(--s-6); align-content: center; }
+  .ab-val { display: grid; gap: var(--s-4); min-height: 15rem; align-content: start; }
+  .ab-val-num { font-size: var(--fs-3xl); font-weight: 800; color: var(--accent); line-height: 1; }
+  .ab-con-progress { display: flex; align-items: center; gap: var(--s-4); }
+  .ab-pips { list-style: none; padding: 0; display: flex; gap: 6px; }
+  .ab-pips li { width: 22px; height: 4px; border-radius: 2px; background: rgb(255 255 255 / 0.18); transition: background 0.3s; }
+  .ab-pips li:global(.is-on) { background: var(--accent); }
+  .ab-con-status { color: var(--ink-2); }
+
+  @media (max-width: 960px) {
+    .ab-con-grid { grid-template-columns: 1fr; gap: var(--s-6); }
+    .ab-val { min-height: 0; }
+  }
+  @media (max-width: 640px) {
+    .ab-sky { aspect-ratio: 1 / 1.02; }
+    .ab-star-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .ab-star--br .ab-star-label, .ab-star--tr .ab-star-label { left: 40px; }
+    .ab-star--tl .ab-star-label, .ab-star--bl .ab-star-label { right: 40px; }
+    .ab-sky-rocket { width: 10%; }
+    .ab-con-side { gap: var(--s-5); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ab-star::before { animation: none; }
+  }
+</style>

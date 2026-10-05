@@ -1,105 +1,36 @@
 ---
 import Base from '../layouts/Base.astro';
 import Cta from '../components/Cta.astro';
+import AboutHero from '../components/about/AboutHero.astro';
+import Manifesto from '../components/about/Manifesto.astro';
+import CrewManifest from '../components/about/CrewManifest.astro';
+import Constellation from '../components/about/Constellation.astro';
+import MissionLog from '../components/about/MissionLog.astro';
 
-const team = [
-  { name: 'Jesse Lane', role: 'Chief Executive Officer', email: 'jesse@nuuke.us', img: '/team/jesse.webp', color: '#ff2e88' },
-  { name: 'Jordan “JB” Bree', role: 'Marketing Head', email: 'jordan@nuuke.us', img: '/team/jordan.webp', color: '#3ee6b0' },
-  { name: 'Harris Smith', role: 'Lead Project Manager', email: 'harris@nuuke.us', img: '/team/harris.webp', color: '#8b5cff' },
-];
-const values = [
-  { t: 'Strategy before pixels', d: 'Every project starts with the problem worth solving, the people it’s for and the number that will prove it worked.' },
-  { t: 'Show, don’t tell', d: 'You tap a prototype in week one and spin the 3D in week two. Decisions get made on real things, not slide decks.' },
-  { t: 'One team, no hand-offs', d: 'Strategists, designers, engineers and marketers work in the same room — what we design is what ships.' },
-  { t: 'Built for longevity', d: 'Design systems, clean code and documentation, so your product keeps getting better after launch day.' },
-];
-const ways = [
-  { t: 'Sprint', d: '2–4 weeks. Research, flows and a tappable prototype or 3D concept you can test with real users.', k: 'Validate an idea' },
-  { t: 'Build', d: '2–6 months. Design, engineering and launch of an app, 3D website or film — with a dedicated squad.', k: 'Ship a product' },
-  { t: 'Partner', d: 'Ongoing. Growth marketing, content and continuous product improvements on a monthly retainer.', k: 'Grow and iterate' },
-];
 // TODO(owner): add awards here once each is confirmed with a link to the award page.
 const awards: { year: string; project: string; award: string; org: string; href: string }[] = [];
 ---
 
-<Base title="About" description="NUUKE is a specialized unit for market domination — not a vendor. Meet the team behind our mobile, 3D, animation, marketing and AI work.">
-  <section class="ab-hero container">
-    <p class="t-label" data-reveal>About us</p>
-    <h1 class="t-mega" data-split>Building brands that don’t blend in.</h1>
-  </section>
-
-  <section class="section container ab-manifesto">
-    <p class="ab-big" data-reveal>We don’t do <span class="t-accent">“pretty for the sake of pretty.”</span></p>
-    <div class="ab-cols">
-      <p class="t-lead" data-reveal>At NUUKE, design isn’t decoration, it’s the engine that powers identity, emotion, and impact. We blend strategy, storytelling, and technology to craft visual experiences that feel alive, intentional, and unforgettable.</p>
-      <p class="t-lead" data-reveal style="--delay:.1s">We’re a specialized unit for market leaders — not a vendor. Mobile apps, immersive 3D, animation, marketing and applied AI under one roof, so your product, story and growth engine are designed together.</p>
-    </div>
-  </section>
-
-  <section class="section container" aria-labelledby="team-title">
-    <div class="ab-head">
-      <h2 id="team-title" class="t-h1" data-split>Our team</h2>
-      <p class="t-lead measure" data-reveal>Talented designers and developers who bring expertise and creativity to every project — led by:</p>
-    </div>
-    <ul class="team" role="list" data-stagger="0.12">
-      {
-        team.map((m) => (
-          <li class="member" style={`--m:${m.color}`} data-tilt>
-            <div class="member-photo">
-              <img src={m.img} alt={`Portrait of ${m.name}`} width="640" height="640" loading="lazy" />
-            </div>
-            <div class="member-info">
-              <p class="t-label">{m.role}</p>
-              <h3 class="t-h3">{m.name}</h3>
-              <a href={`mailto:${m.email}`} class="member-mail">{m.email}</a>
-            </div>
-          </li>
-        ))
-      }
-    </ul>
-  </section>
-
-  <section class="section container" aria-labelledby="values-title">
-    <h2 id="values-title" class="t-h2" data-split>How we think</h2>
-    <ol class="values" role="list" data-stagger="0.1">
-      {
-        values.map((v, i) => (
-          <li class="value">
-            <span class="t-num">0{i + 1}</span>
-            <h3 class="t-h4">{v.t}</h3>
-            <p class="t-body">{v.d}</p>
-          </li>
-        ))
-      }
-    </ol>
-  </section>
-
-  <section class="section container" aria-labelledby="ways-title">
-    <h2 id="ways-title" class="t-h2" data-split>Ways to work with us</h2>
-    <div class="ways" data-stagger="0.1">
-      {
-        ways.map((w) => (
-          <div class="way card">
-            <span class="chip chip--accent">{w.k}</span>
-            <h3 class="t-h3">{w.t}</h3>
-            <p class="t-body">{w.d}</p>
-          </div>
-        ))
-      }
-    </div>
-  </section>
+<Base title="About" description="NUUKE is a specialized unit for market domination — not a vendor. Meet the crew behind our mobile, 3D, animation, marketing and AI work.">
+  <AboutHero />
+  <Manifesto />
+  <CrewManifest />
+  <Constellation />
+  <MissionLog />
 
   {
     awards.length > 0 && (
       <section class="section container" aria-labelledby="awards-title">
         <h2 id="awards-title" class="t-h2">Recognition</h2>
-        <ul class="awards" role="list">
+        <ul class="ab-awards" role="list">
           {awards.map((a) => (
             <li>
               <span class="t-num">{a.year}</span>
               <span>{a.project}</span>
               <span>{a.award}</span>
-              <a href={a.href} target="_blank" rel="noopener">{a.org} ↗</a>
+              <a href={a.href} target="_blank" rel="noopener">
+                {a.org} ↗
+              </a>
             </li>
           ))}
         </ul>
@@ -110,48 +41,10 @@ const awards: { year: string; project: string; award: string; org: string; href:
   <Cta />
 </Base>
 
-<script>
-  if (!window.matchMedia('(hover: none), (prefers-reduced-motion: reduce)').matches) {
-    document.querySelectorAll<HTMLElement>('[data-tilt]').forEach((el) => {
-      el.addEventListener('pointermove', (e) => {
-        const r = el.getBoundingClientRect();
-        const x = (e.clientX - r.left) / r.width - 0.5;
-        const y = (e.clientY - r.top) / r.height - 0.5;
-        el.style.transform = `perspective(1000px) rotateY(${x * 10}deg) rotateX(${-y * 10}deg)`;
-        el.style.setProperty('--gx', `${(x + 0.5) * 100}%`);
-        el.style.setProperty('--gy', `${(y + 0.5) * 100}%`);
-      });
-      el.addEventListener('pointerleave', () => (el.style.transform = ''));
-    });
-  }
-</script>
-
 <style>
-  .ab-hero { padding-top: 10rem; }
-  .ab-hero .t-mega { font-size: clamp(3rem, 1rem + 9vw, 10rem); max-width: 12ch; }
-  .ab-big { font-family: var(--font-display); font-weight: 900; font-size: var(--fs-3xl); line-height: 1.02; letter-spacing: -0.04em; max-width: 16ch; }
-  .ab-cols { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-7); margin-top: var(--s-7); }
-  .ab-head { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-6); align-items: end; margin-bottom: var(--s-8); }
-  .team { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-5); }
-  .member { position: relative; border-radius: calc(var(--r-lg) + 6px); overflow: hidden; border: 1px solid var(--line); background: var(--surface); transition: transform 0.5s var(--ease-out); will-change: transform; }
-  .member::after { content: ''; position: absolute; inset: 0; background: radial-gradient(40% 40% at var(--gx, 50%) var(--gy, 30%), rgb(255 255 255 / 0.12), transparent 70%); pointer-events: none; }
-  .member-photo { aspect-ratio: 1; background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--m) 40%, #ebe8e2), #ebe8e2 70%); }
-  .member-photo img { width: 100%; height: 100%; object-fit: cover; mix-blend-mode: multiply; }
-  .member-info { display: grid; gap: var(--s-2); padding: var(--s-5); }
-  .member-mail { color: var(--ink-2); font-size: var(--fs-sm); }
-  .member-mail:hover { color: var(--m); }
-  .values { list-style: none; padding: 0; margin-top: var(--s-7); display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s-5); }
-  .value { display: grid; gap: var(--s-3); padding-top: var(--s-5); border-top: 2px solid var(--line); align-content: start; }
-  .value .t-num { color: var(--accent); font-weight: 700; }
-  .ways { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-5); margin-top: var(--s-7); }
-  .way { display: grid; gap: var(--s-4); align-content: start; }
-  .way .chip { justify-self: start; }
-  .awards { list-style: none; padding: 0; border-top: 1px solid var(--line); }
-  .awards li { display: grid; grid-template-columns: 6rem 1fr 1fr 1fr; gap: var(--s-4); padding-block: var(--s-4); border-bottom: 1px solid var(--line); }
-  @media (max-width: 900px) {
-    .ab-cols, .ab-head { grid-template-columns: 1fr; }
-    .team, .ways { grid-template-columns: 1fr; }
-    .values { grid-template-columns: 1fr 1fr; }
+  .ab-awards { list-style: none; padding: 0; border-top: 1px solid var(--line); }
+  .ab-awards li { display: grid; grid-template-columns: 6rem 1fr 1fr 1fr; gap: var(--s-4); padding-block: var(--s-4); border-bottom: 1px solid var(--line); }
+  @media (max-width: 700px) {
+    .ab-awards li { grid-template-columns: 1fr; gap: var(--s-1); }
   }
-  @media (max-width: 520px) { .values { grid-template-columns: 1fr; } }
 </style>

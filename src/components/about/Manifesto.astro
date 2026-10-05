@@ -1,0 +1,232 @@
+---
+// "Design is the engine." Words ignite as you scroll; an engine bell beside them
+// throttles up through Identity → Emotion → Impact as those words light. Then the
+// lockup lands: a specialized unit for market domination — not a vendor.
+type W = { w: string; k?: 'hl' | 'strike' | 'pill'; g?: number };
+const head: W[] = [
+  { w: 'We' }, { w: 'don’t' }, { w: 'do' }, { w: '“pretty', k: 'hl' }, { w: 'for', k: 'hl' }, { w: 'the', k: 'hl' }, { w: 'sake', k: 'hl' }, { w: 'of', k: 'hl' }, { w: 'pretty.”', k: 'hl' },
+];
+const body: W[] = [
+  { w: 'At' }, { w: 'NUUKE,' }, { w: 'design' }, { w: 'isn’t' }, { w: 'decoration,', k: 'strike' }, { w: 'it’s' }, { w: 'the' }, { w: 'engine', k: 'pill' },
+  { w: 'that' }, { w: 'powers' }, { w: 'identity,', k: 'hl', g: 0 }, { w: 'emotion,', k: 'hl', g: 1 }, { w: 'and' }, { w: 'impact.', k: 'hl', g: 2 },
+  { w: 'We' }, { w: 'blend' }, { w: 'strategy,' }, { w: 'storytelling,' }, { w: 'and' }, { w: 'technology' }, { w: 'to' }, { w: 'craft' }, { w: 'visual' }, { w: 'experiences' },
+  { w: 'that' }, { w: 'feel' }, { w: 'alive,', k: 'hl' }, { w: 'intentional,', k: 'hl' }, { w: 'and' }, { w: 'unforgettable.', k: 'hl' },
+];
+const text = (a: W[]) => a.map((x) => x.w).join(' ');
+let n = 0;
+const gauge = ['Identity', 'Emotion', 'Impact'];
+const marquee = 'MOBILE APPS ✦ IMMERSIVE 3D ✦ 2D/3D ANIMATION ✦ DIGITAL MARKETING ✦ APPLIED AI ✦ ';
+---
+
+<section class="ab-mani" id="ab-manifesto" data-ab-mani aria-labelledby="ab-mani-title">
+  <div class="ab-mani-sticky">
+    <div class="ab-mani-grid container" data-ab-mani-grid>
+      <div class="ab-mani-copy">
+        <p class="t-label ab-mani-label">01 — Manifesto</p>
+        <h2 id="ab-mani-title" class="ab-mani-head">
+          <span class="visually-hidden">{text(head)}</span>
+          {head.map((x) => <span class:list={['ab-w', x.k && `ab-w--${x.k}`]} aria-hidden="true" style={`--i:${n++}`}>{x.w}</span>)}
+        </h2>
+        <p class="ab-mani-body">
+          <span class="visually-hidden">{text(body)}</span>
+          {
+            body.map((x) => (
+              <span class:list={['ab-w', x.k && `ab-w--${x.k}`]} aria-hidden="true" data-g={x.g} style={`--i:${n++}`}>
+                {x.w}
+              </span>
+            ))
+          }
+        </p>
+      </div>
+
+      <div class="ab-engine" aria-hidden="true">
+        <svg viewBox="0 0 200 320" class="ab-engine-svg">
+          <defs>
+            <linearGradient id="ab-bell" x1="0" x2="1">
+              <stop offset="0" stop-color="#1b1b22" />
+              <stop offset="0.35" stop-color="#5b5b68" />
+              <stop offset="0.55" stop-color="#2a2a33" />
+              <stop offset="1" stop-color="#0f0f14" />
+            </linearGradient>
+            <linearGradient id="ab-plume" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#fff" />
+              <stop offset="0.18" stop-color="#ffd38a" />
+              <stop offset="0.45" stop-color="#ff2e88" />
+              <stop offset="1" stop-color="#ff2e88" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <g class="ab-plume" data-ab-plume>
+            <path d="M58 132 C 40 200 78 262 100 320 C 122 262 160 200 142 132 Z" fill="url(#ab-plume)" />
+            <path d="M78 132 C 72 180 92 214 100 250 C 108 214 128 180 122 132 Z" fill="#fff" opacity="0.85" />
+          </g>
+          <rect x="72" y="8" width="56" height="26" rx="5" fill="#2a2a33" />
+          <rect x="62" y="34" width="76" height="12" rx="3" fill="#ff2e88" />
+          <path d="M80 46 L 120 46 L 150 132 L 50 132 Z" fill="url(#ab-bell)" />
+          <path d="M50 132 L 150 132 L 146 140 L 54 140 Z" fill="#ff2e88" />
+          {[60, 76, 92].map((y) => <path d={`M${80 - (y - 46) * 0.35} ${y} L ${120 + (y - 46) * 0.35} ${y}`} stroke="#000" stroke-opacity="0.35" stroke-width="2" />)}
+        </svg>
+        <ol class="ab-gauge" role="list">
+          {gauge.map((g, i) => (
+            <li data-ab-gauge={i}>
+              <span class="ab-gauge-bar"></span>
+              <span class="t-label">{g}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+
+    <div class="ab-lockup" data-ab-lockup>
+      <p class="ab-lock-text">
+        <span class="ab-lock-a">A specialized unit</span>
+        <span class="ab-lock-b">for market domination</span>
+        <span class="ab-lock-c">— not a <span class="ab-lock-strike">vendor</span>.</span>
+      </p>
+    </div>
+
+    <div class="ab-marquee" aria-hidden="true">
+      <div class="ab-marquee-track">{[0, 1, 2, 3].map(() => <span>{marquee}</span>)}</div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { ScrollTrigger, reducedMotion } from '../../scripts/motion';
+  document.querySelectorAll<HTMLElement>('[data-ab-mani]').forEach((root) => {
+    const words = [...root.querySelectorAll<HTMLElement>('.ab-w')];
+    const plume = root.querySelector<SVGGElement>('[data-ab-plume]')!;
+    const gauges = [...root.querySelectorAll<HTMLElement>('[data-ab-gauge]')];
+    const lock = root.querySelector<HTMLElement>('[data-ab-lockup]')!;
+    const gIndex = [0, 1, 2].map((g) => words.findIndex((w) => w.dataset.g === String(g)));
+    const set = (p: number) => {
+      const lit = Math.round(Math.min(1, p / 0.74) * words.length);
+      words.forEach((w, i) => w.classList.toggle('is-lit', i < lit));
+      gauges.forEach((g, i) => g.classList.toggle('is-on', lit > gIndex[i]));
+      const thrust = Math.min(1, p / 0.74);
+      plume.style.transform = `scaleY(${0.08 + thrust * 0.92}) scaleX(${0.5 + thrust * 0.5})`;
+      plume.style.opacity = String(Math.min(1, 0.2 + thrust));
+      const done = p > 0.8;
+      root.classList.toggle('is-done', done);
+      lock.classList.toggle('is-in', done);
+    };
+    if (reducedMotion) {
+      root.classList.add('is-static');
+      set(1);
+      return;
+    }
+    set(0);
+    ScrollTrigger.create({ trigger: root, start: 'top top', end: 'bottom bottom', onUpdate: (s) => set(s.progress) });
+  });
+</script>
+
+<style>
+  .ab-mani { position: relative; height: 330vh; }
+  .ab-mani-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+    overflow: hidden;
+    display: grid;
+    align-content: center;
+    padding-bottom: 4.5rem;
+    background:
+      radial-gradient(50% 60% at 82% 55%, rgb(255 46 136 / 0.12), transparent 70%),
+      radial-gradient(40% 50% at 10% 20%, rgb(139 92 255 / 0.1), transparent 70%);
+  }
+  .ab-mani-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: var(--s-8);
+    align-items: center;
+    transition: opacity 0.6s var(--ease-out), transform 0.8s var(--ease-out), filter 0.6s;
+  }
+  .ab-mani.is-done .ab-mani-grid { opacity: 0.1; transform: scale(0.96); filter: blur(5px); }
+  .ab-mani-label { color: var(--ink-2); margin-bottom: var(--s-5); }
+  .ab-mani-head {
+    font-size: clamp(2rem, 1rem + 3.6vw, 4.6rem);
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    max-width: 16ch;
+    margin-bottom: var(--s-6);
+  }
+  .ab-mani-body {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.15rem, 0.5rem + 1.75vw, 2.25rem);
+    line-height: 1.22;
+    letter-spacing: -0.025em;
+    max-width: 32ch;
+  }
+  .ab-w {
+    display: inline-block;
+    margin-right: 0.24em;
+    color: #8a8a96;
+    transform: translateY(0.14em);
+    transition: color 0.35s, transform 0.5s var(--ease-out), background-color 0.35s;
+    position: relative;
+  }
+  .ab-w.is-lit { color: var(--ink); transform: none; }
+  .ab-w--hl.is-lit { color: var(--accent); }
+  .ab-w--pill { padding: 0 0.28em; border-radius: 0.4em; }
+  .ab-w--pill.is-lit { background: var(--accent); color: #0b0b0f; }
+  .ab-w--strike::after {
+    content: '';
+    position: absolute;
+    left: -3%;
+    right: 0;
+    top: 52%;
+    height: 0.1em;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.5s var(--ease-out) 0.15s;
+  }
+  .ab-w--strike.is-lit::after { transform: scaleX(1.02); }
+
+  .ab-engine { display: grid; justify-items: center; justify-self: center; gap: var(--s-5); width: clamp(160px, 20vw, 300px); }
+  .ab-engine-svg { width: 100%; overflow: visible; filter: drop-shadow(0 0 30px rgb(255 46 136 / 0.3)); }
+  .ab-plume { transform-origin: 100px 132px; transform-box: view-box; transition: transform 0.4s var(--ease-out), opacity 0.4s; }
+  .ab-gauge { list-style: none; padding: 0; display: grid; gap: var(--s-3); width: 100%; }
+  .ab-gauge li { display: grid; grid-template-columns: 1fr 5.5rem; align-items: center; gap: var(--s-3); }
+  .ab-gauge .t-label { color: var(--ink-2); transition: color 0.3s; }
+  .ab-gauge-bar { height: 6px; border-radius: 3px; background: rgb(255 255 255 / 0.12); position: relative; overflow: hidden; }
+  .ab-gauge-bar::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #ffb547, var(--accent)); transform: scaleX(0); transform-origin: left; transition: transform 0.6s var(--ease-out); }
+  .ab-gauge li:global(.is-on) .ab-gauge-bar::after { transform: none; }
+  .ab-gauge li:global(.is-on) .t-label { color: var(--ink); }
+
+  .ab-lockup { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none; padding-inline: var(--gutter); padding-bottom: 4rem; }
+  .ab-lock-text { display: grid; justify-items: center; font-family: var(--font-display); font-weight: 900; letter-spacing: -0.05em; line-height: 0.92; }
+  .ab-lock-text > span { display: block; opacity: 0; transform: translateY(0.5em) scale(0.92); transition: opacity 0.5s, transform 0.9s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .ab-lock-a { font-size: clamp(1.5rem, 0.9rem + 2.6vw, 3.4rem); color: var(--ink-2); letter-spacing: -0.03em; }
+  .ab-lock-b { font-size: clamp(2.4rem, 0.6rem + 7.4vw, 8.4rem); text-transform: uppercase; transition-delay: 0.08s !important; }
+  .ab-lock-c { font-size: clamp(1.8rem, 0.9rem + 3.8vw, 5rem); color: var(--accent); margin-top: 0.2em; transition-delay: 0.16s !important; }
+  .ab-lock-strike { position: relative; display: inline-block; }
+  .ab-lock-strike::after { content: ''; position: absolute; left: -4%; right: -4%; top: 55%; height: 0.11em; background: var(--ink); transform: scaleX(0) rotate(-4deg); transform-origin: left; transition: transform 0.5s var(--ease-out) 0.7s; }
+  .ab-lockup:global(.is-in) .ab-lock-text > span { opacity: 1; transform: none; }
+  .ab-lockup:global(.is-in) .ab-lock-strike::after { transform: scaleX(1) rotate(-4deg); }
+
+  .ab-marquee { position: absolute; left: 0; right: 0; bottom: calc(var(--safe-bottom) - 1.5rem); overflow: hidden; background: var(--accent); color: #0b0b0f; padding-block: 0.7rem; transform: rotate(-1.5deg) scaleX(1.05); }
+  .ab-marquee-track { display: flex; width: max-content; animation: ab-marq 36s linear infinite; font: 800 clamp(0.9rem, 0.7rem + 0.8vw, 1.3rem) / 1 var(--font-display); letter-spacing: 0.04em; white-space: nowrap; }
+  .ab-marquee-track span { padding-right: 0.3em; }
+  @keyframes ab-marq { to { transform: translateX(-50%); } }
+
+  .ab-mani:global(.is-static) { height: auto; }
+  .ab-mani:global(.is-static) .ab-mani-sticky { position: relative; height: auto; padding-block: var(--s-9) calc(var(--s-9) + 4rem); }
+  .ab-mani:global(.is-static) .ab-mani-grid { opacity: 1; transform: none; filter: none; }
+  .ab-mani:global(.is-static) .ab-lockup { position: relative; margin-top: var(--s-8); }
+  .ab-mani:global(.is-static) .ab-marquee-track { animation: none; }
+
+  @media (max-width: 760px) {
+    .ab-mani-grid { grid-template-columns: 1fr; gap: var(--s-5); }
+    .ab-engine { justify-self: stretch; }
+    .ab-engine { grid-template-columns: 56px 1fr; width: 100%; align-items: center; gap: var(--s-4); }
+    .ab-engine-svg { width: 56px; }
+    .ab-mani-label { margin-bottom: var(--s-3); }
+    .ab-mani-head { font-size: clamp(1.75rem, 8.4vw, 2.4rem); margin-bottom: var(--s-4); }
+    .ab-mani-body { font-size: clamp(1.05rem, 4.9vw, 1.3rem); }
+    .ab-gauge { gap: var(--s-2); }
+    .ab-lock-b { font-size: clamp(2rem, 10.4vw, 3rem); }
+    .ab-lock-c { font-size: clamp(1.6rem, 8vw, 2.4rem); }
+  }
+</style>

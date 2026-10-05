@@ -1,0 +1,180 @@
+---
+// Services as a solar system you scroll through. Used on the homepage and /services.
+import { services } from '../data/site';
+import ServiceVisual from './ServiceVisual.astro';
+
+interface Props {
+  headingLevel?: 'h1' | 'h2';
+}
+const { headingLevel = 'h2' } = Astro.props;
+const H = headingLevel;
+const lines = [
+  'Pocket-sized products people open every day.',
+  'Worlds, films and objects that move people.',
+  'Campaigns that turn attention into revenue.',
+  'Systems that do the busywork while you sleep.',
+];
+---
+
+<section class="ss" data-ss aria-labelledby="ss-title" style={`--n:${services.length}`}>
+  <div class="ss-sticky">
+    <canvas class="ss-canvas" data-ss-canvas aria-hidden="true"></canvas>
+    <div class="ss-vignette" aria-hidden="true"></div>
+
+    <div class="ss-panels">
+      <div class="ss-panel is-on" data-ss-panel="0">
+        <p class="t-label">Services</p>
+        <H id="ss-title" class="ss-title">Four worlds.<br />One orbit.</H>
+        <p class="t-lead">Everything we make circles one idea: build the thing your market can’t ignore.<span class="ss-hint"> Scroll to fly through each world, or tap a planet.</span></p>
+      </div>
+      {
+        services.map((s, i) => (
+          <div class="ss-panel" data-ss-panel={i + 1} style={`--c:${s.accent}`}>
+            <p class="t-label ss-idx"><span class="t-num">/{s.index}</span> World {i + 1} of 4</p>
+            <h3 class="ss-name">{s.title}</h3>
+            <p class="t-lead">{s.tagline}</p>
+            <p class="ss-line">{lines[i]}</p>
+            <ul class="ss-chips" role="list">{s.deliverables.slice(0, 5).map((d) => <li>{d}</li>)}</ul>
+            <a class="ss-link" href={`/services/${s.slug}`}>Explore {s.short} <span aria-hidden="true">→</span></a>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="ss-labels" aria-hidden="true">
+      {services.map((s, i) => <button type="button" tabindex="-1" class="ss-label" data-ss-label={i} style={`--c:${s.accent}`}>{s.short}</button>)}
+    </div>
+
+    <nav class="ss-nav" aria-label="Jump to a service">
+      <button type="button" class="ss-dot is-on" data-ss-go="0" aria-label="Overview"><span></span></button>
+      {services.map((s, i) => <button type="button" class="ss-dot" data-ss-go={i + 1} aria-label={s.title} style={`--c:${s.accent}`}><span></span></button>)}
+    </nav>
+  </div>
+
+  <!-- Shown instead of the 3D system when WebGL isn't a good idea. -->
+  <div class="ss-fallback container" data-ss-fallback hidden>
+    {
+      services.map((s) => (
+        <a class="ss-fb" href={`/services/${s.slug}`} style={`--c:${s.accent}`}>
+          <ServiceVisual slug={s.slug} accent={s.accent} size="sm" />
+          <span>
+            <strong>{s.title}</strong>
+            <span class="t-small">{s.tagline}</span>
+          </span>
+        </a>
+      ))
+    }
+  </div>
+</section>
+
+<script>
+  import { ScrollTrigger, reducedMotion, lenis, whenNear } from '../scripts/motion';
+  import { hasHardwareGL } from '../scripts/gl-support';
+  import { services } from '../data/site';
+
+  document.querySelectorAll<HTMLElement>('[data-ss]').forEach((root) => {
+    const canvas = root.querySelector<HTMLCanvasElement>('[data-ss-canvas]')!;
+    const panels = [...root.querySelectorAll<HTMLElement>('[data-ss-panel]')];
+    const dots = [...root.querySelectorAll<HTMLButtonElement>('[data-ss-go]')];
+    const labels = [...root.querySelectorAll<HTMLButtonElement>('[data-ss-label]')];
+    const stops = panels.length;
+
+    if (reducedMotion || !hasHardwareGL()) {
+      root.classList.add('is-static');
+      root.querySelector<HTMLElement>('[data-ss-fallback]')!.hidden = false;
+      return;
+    }
+
+    let active = 0;
+    const setActive = (i: number) => {
+      if (i === active) return;
+      active = i;
+      panels.forEach((p, j) => p.classList.toggle('is-on', j === i));
+      dots.forEach((d, j) => {
+        d.classList.toggle('is-on', j === i);
+        d.setAttribute('aria-current', j === i ? 'true' : 'false');
+      });
+      labels.forEach((l, j) => l.classList.toggle('is-on', j + 1 === i));
+    };
+    const scrollToStop = (i: number) => {
+      const top = root.getBoundingClientRect().top + window.scrollY;
+      const y = top + (i / (stops - 1)) * (root.offsetHeight - window.innerHeight);
+      lenis ? lenis.scrollTo(y, { duration: 1.6 }) : window.scrollTo({ top: y, behavior: 'smooth' });
+    };
+    dots.forEach((d) => d.addEventListener('click', () => scrollToStop(Number(d.dataset.ssGo))));
+    labels.forEach((l) => l.addEventListener('click', () => scrollToStop(Number(l.dataset.ssLabel) + 1)));
+
+    whenNear(root, async () => {
+      const { initServices } = await import('../scripts/three/services');
+      const scene = await initServices(canvas, services.map((s) => s.accent));
+      ScrollTrigger.create({
+        trigger: root,
+        start: 'top top',
+        end: 'bottom bottom',
+        onUpdate: (st) => {
+          scene.setProgress(st.progress);
+          setActive(Math.round(st.progress * (stops - 1)));
+        },
+      });
+      const tick = () => {
+        const r = root.getBoundingClientRect();
+        if (r.bottom > 0 && r.top < window.innerHeight) {
+          scene.planetsOnScreen().forEach((p, i) => {
+            const l = labels[i];
+            l.style.transform = `translate(${p.x}px, ${p.y}px)`;
+            l.style.opacity = p.visible ? '' : '0';
+          });
+        }
+        requestAnimationFrame(tick);
+      };
+      tick();
+    }, '600px');
+  });
+</script>
+
+<style>
+  .ss { position: relative; height: calc(var(--n) * 100vh + 160vh); }
+  .ss.is-static { height: auto; padding-block: var(--section); }
+  .ss.is-static .ss-sticky { position: relative; height: auto; }
+  .ss.is-static .ss-canvas, .ss.is-static .ss-labels, .ss.is-static .ss-nav, .ss.is-static .ss-vignette { display: none; }
+  .ss.is-static .ss-panels { position: relative; inset: auto; transform: none; width: 100%; max-width: var(--max); min-height: 0; margin-inline: auto; padding-inline: var(--gutter); }
+  .ss.is-static .ss-hint { display: none; }
+  .ss.is-static .t-lead { max-width: 60ch; }
+  .ss.is-static:has(h1) { padding-top: 9rem; }
+  .ss.is-static .ss-panel:not([data-ss-panel='0']) { display: none; }
+  .ss.is-static .ss-panel[data-ss-panel='0'] { position: relative; opacity: 1; transform: none; }
+  .ss-sticky { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+  .ss-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .ss-vignette { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgb(5 5 6 / 0.85) 0%, rgb(5 5 6 / 0.35) 38%, transparent 60%); }
+  .ss-panels { position: absolute; left: var(--gutter); top: 50%; transform: translateY(-50%); width: min(520px, calc(100% - 2 * var(--gutter))); min-height: 360px; }
+  .ss-panel { position: absolute; inset: 0 0 auto; display: grid; gap: var(--s-4); opacity: 0; transform: translateY(24px); filter: blur(6px); transition: opacity 0.7s var(--ease-out), transform 0.9s var(--ease-out), filter 0.7s; pointer-events: none; }
+  .ss-panel.is-on { opacity: 1; transform: none; filter: none; pointer-events: auto; }
+  .ss-title { font-family: var(--font-display); font-weight: 900; font-size: var(--fs-4xl); line-height: 0.92; letter-spacing: -0.05em; }
+  .ss-idx .t-num { color: var(--c); font-weight: 700; margin-right: var(--s-2); }
+  .ss-name { font-family: var(--font-display); font-weight: 900; font-size: var(--fs-3xl); line-height: 0.98; letter-spacing: -0.045em; color: var(--ink); text-shadow: 0 0 40px color-mix(in srgb, var(--c) 45%, transparent); }
+  .ss-line { color: var(--ink); font-size: var(--fs-lg); border-left: 3px solid var(--c); padding-left: var(--s-4); }
+  .ss-chips { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s-2); }
+  .ss-chips li { padding: 0.35rem 0.8rem; border-radius: 99px; border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); background: rgb(5 5 6 / 0.6); font: 500 var(--fs-label) var(--font-ui); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+  .ss-link { justify-self: start; display: inline-flex; gap: var(--s-2); align-items: center; padding: 0.8rem 1.3rem; border-radius: 99px; background: var(--c); color: #0b0b0f; font: 700 var(--fs-sm) var(--font-ui); letter-spacing: 0.04em; text-transform: uppercase; transition: transform var(--dur-2) var(--ease-out); }
+  .ss-link:hover { transform: translateX(6px); }
+  .ss-labels { position: absolute; inset: 0; pointer-events: none; }
+  .ss-label { position: absolute; left: 0; top: 0; margin: 28px 0 0 -40px; padding: 0.3rem 0.7rem; border-radius: 99px; border: 1px solid var(--c); background: rgb(5 5 6 / 0.75); color: var(--ink); font: 600 11px var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; pointer-events: auto; transition: opacity var(--dur-2), background var(--dur-1); white-space: nowrap; }
+  .ss-label.is-on, .ss-label:hover { background: var(--c); color: #0b0b0f; }
+  .ss-nav { position: absolute; right: var(--gutter); top: 50%; transform: translateY(-50%); display: grid; gap: 14px; }
+  .ss-dot { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; }
+  .ss-dot span { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--c, var(--ink)); transition: transform var(--dur-2) var(--ease-out), background var(--dur-1); }
+  .ss-dot.is-on span { background: var(--c, var(--ink)); transform: scale(1.4); }
+  .ss-fallback { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s-4); margin-top: var(--s-7); }
+  .ss-fb { display: flex; gap: var(--s-4); align-items: center; padding: var(--s-5); border-radius: var(--r-lg); border: 1px solid var(--line); }
+  .ss-fb:hover { border-color: var(--c); }
+  .ss-fb strong { display: block; font-family: var(--font-display); font-size: var(--fs-lg); }
+  @media (max-width: 760px) {
+    .ss-vignette { background: linear-gradient(0deg, rgb(5 5 6 / 0.92) 0%, rgb(5 5 6 / 0.6) 45%, transparent 70%); }
+    .ss-panels { top: auto; bottom: calc(var(--nav-h) + 2.5rem); transform: none; min-height: 0; }
+    .ss-panel { position: absolute; inset: auto 0 0; }
+    .ss-panel .t-lead { display: none; }
+    .ss-panel[data-ss-panel='0'] .t-lead { display: block; }
+    .ss-nav { top: 90px; transform: none; grid-auto-flow: column; right: 50%; translate: 50% 0; }
+    .ss-fallback { grid-template-columns: 1fr; }
+  }
+</style>

@@ -128,6 +128,7 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
 
 /** True when WebGL is running on a software rasteriser (no usable GPU). */
 export function isSoftwareGL(gl: WebGLRenderingContext | WebGL2RenderingContext) {
+  if (/[?&]gl=force\b/.test(location.search)) return false;
   try {
     const ext = gl.getExtension('WEBGL_debug_renderer_info');
     const name = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : '';

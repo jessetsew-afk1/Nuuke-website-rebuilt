@@ -6,9 +6,13 @@ interface Props {
   class?: string;
 }
 const { project: p, class: cls } = Astro.props;
+// Case studies can ship their own cover at src/components/cases/<slug>/Cover.astro (SVG art, 800×600 viewBox).
+const custom = import.meta.glob<{ default: any }>('./cases/*/Cover.astro', { eager: true });
+const Custom = custom[`./cases/${p.slug}/Cover.astro`]?.default;
 ---
 
 <div class:list={['cover', `cover--${p.slug}`, cls]} style={`--a:${p.accent};--b:${p.accent2}`} aria-hidden="true">
+  {Custom && <Custom project={p} />}
   {
     p.slug === 'rise-science' && (
       <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">

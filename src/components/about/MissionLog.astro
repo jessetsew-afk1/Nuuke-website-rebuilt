@@ -1,0 +1,321 @@
+---
+// Mission log: the three ways to work with us as mission profiles. Pick a mission
+// and the rocket flies its trajectory — a sub-orbital hop (Sprint), a launch into
+// orbit (Build) or a steady orbit that keeps going (Partner) — lighting each stage.
+const missions = [
+  {
+    id: 'sprint',
+    t: 'Sprint',
+    k: 'Validate an idea',
+    dur: '2–4 weeks',
+    profile: 'Sub-orbital hop',
+    d: 'Research, flows and a tappable prototype or 3D concept you can test with real users.',
+    path: 'M110 331 C 170 30, 430 30, 490 331',
+    stops: [0.04, 0.34, 0.66, 0.97],
+    loop: false,
+    log: [
+      { t: 'Kickoff', d: 'Agree the problem worth solving, who it’s for and what would prove it worked.' },
+      { t: 'Research & flows', d: 'Map the journeys and the screens or scenes that matter most.' },
+      { t: 'Prototype', d: 'A tappable prototype or 3D concept — something real to react to.' },
+      { t: 'Test & decide', d: 'Put it in front of real users, then decide what to build next.' },
+    ],
+  },
+  {
+    id: 'build',
+    t: 'Build',
+    k: 'Ship a product',
+    dur: '2–6 months',
+    profile: 'Launch to orbit',
+    d: 'Design, engineering and launch of an app, 3D website or film — with a dedicated squad.',
+    path: 'M150 319 C 150 220, 210 160, 300 160 A 250 140 0 0 1 550 300 A 250 140 0 0 1 50 300 A 250 140 0 0 1 300 160',
+    stops: [0.02, 0.13, 0.3, 0.86],
+    loop: false,
+    log: [
+      { t: 'Squad & plan', d: 'A dedicated squad, a scope and milestones everyone can see.' },
+      { t: 'Design', d: 'UI, design system and motion, built on what the research showed.' },
+      { t: 'Engineer', d: 'The app, 3D website or film, built in short cycles you can tap along the way.' },
+      { t: 'Launch', d: 'Ship it, document it and hand over a product that keeps improving.' },
+    ],
+  },
+  {
+    id: 'partner',
+    t: 'Partner',
+    k: 'Grow and iterate',
+    dur: 'Ongoing',
+    profile: 'Stable orbit',
+    d: 'Growth marketing, content and continuous product improvements on a monthly retainer.',
+    path: 'M300 160 A 250 140 0 0 1 550 300 A 250 140 0 0 1 50 300 A 250 140 0 0 1 300 160',
+    stops: [0.02, 0.2, 0.8, 0.92],
+    loop: true,
+    log: [
+      { t: 'Monthly plan', d: 'Set the priorities for the month ahead together.' },
+      { t: 'Content & campaigns', d: 'Growth marketing and content that keeps the brand in motion.' },
+      { t: 'Product improvements', d: 'Continuous fixes and features, shipped as they’re ready.' },
+      { t: 'Report & adjust', d: 'Look at what worked, then plan the next orbit.' },
+    ],
+  },
+];
+const paths = JSON.stringify(missions.map((m) => ({ path: m.path, stops: m.stops, loop: m.loop })));
+---
+
+<section class="ab-log section" aria-labelledby="ab-log-title" data-ab-log data-paths={paths}>
+  <div class="container">
+    <div class="ab-log-head">
+      <div>
+        <p class="t-label ab-sec-label" data-reveal>04 — Mission log</p>
+        <h2 id="ab-log-title" class="t-h1 ab-log-h" data-split>Ways to work with us</h2>
+      </div>
+      <p class="t-lead" data-reveal>Three mission profiles. Pick one to see how it flies.</p>
+    </div>
+
+    <div class="ab-log-tabs" role="tablist" aria-label="Mission types" data-reveal>
+      {
+        missions.map((m, i) => (
+          <button class="ab-log-tab" type="button" role="tab" id={`ab-mt-${m.id}`} aria-selected={i === 0 ? 'true' : 'false'} aria-controls={`ab-mp-${m.id}`}>
+            <span class="t-num ab-log-tab-n">M-0{i + 1}</span>
+            <span class="ab-log-tab-t">{m.t}</span>
+            <span class="ab-log-tab-k">{m.k}</span>
+          </button>
+        ))
+      }
+    </div>
+
+    <div class="ab-log-grid">
+      <div class="ab-traj" data-reveal>
+        <svg viewBox="0 0 600 380" class="ab-traj-svg" aria-hidden="true">
+          <defs>
+            <radialGradient id="ab-planet" cx="0.5" cy="0.05" r="0.6">
+              <stop offset="0" stop-color="#3a2a7a" />
+              <stop offset="0.5" stop-color="#17142e" />
+              <stop offset="1" stop-color="#07070b" />
+            </radialGradient>
+            <linearGradient id="ab-atmo" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#8b5cff" stop-opacity="0.5" />
+              <stop offset="1" stop-color="#8b5cff" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          {[...Array(40)].map((_, i) => <circle cx={(i * 137.5) % 600} cy={(i * 71.3) % 280} r={i % 7 === 0 ? 1.4 : 0.8} fill="#fff" opacity={0.25 + ((i * 13) % 10) / 20} />)}
+          <path class="ab-traj-ghost" data-ab-ghost d={missions[0].path} />
+          <path class="ab-traj-path" data-ab-path d={missions[0].path} />
+          <g data-ab-stops>
+            {[0, 1, 2, 3].map((i) => (
+              <g class="ab-stop" data-ab-stop={i}>
+                <circle r="11" class="ab-stop-ring" />
+                <circle r="5" class="ab-stop-dot" />
+                <text y="-17" text-anchor="middle" class="ab-stop-n">0{i + 1}</text>
+              </g>
+            ))}
+          </g>
+          <g class="ab-ship" data-ab-ship>
+            <g transform="rotate(90) scale(0.11) translate(-120 -270)">
+              <path d="M80 418 C 76 470 108 506 120 540 C 132 506 164 470 160 418 Z" fill="#ff2e88" opacity="0.85" />
+              <path d="M74 262 C 36 290 16 350 18 432 Q 46 404 86 392 Z M166 262 C 204 290 224 350 222 432 Q 194 404 154 392 Z" fill="#ff2e88" />
+              <path d="M120 18 C 168 70 182 170 176 300 C 174 340 166 372 156 392 L 84 392 C 74 372 66 340 64 300 C 58 170 72 70 120 18 Z" fill="#f4ece1" />
+              <path d="M120 18 C 150 50 165 85 172 112 L 68 112 C 75 85 90 50 120 18 Z" fill="#ff2e88" />
+              <circle cx="120" cy="200" r="30" fill="#2a1f6e" stroke="#1d1d26" stroke-width="8" />
+            </g>
+          </g>
+          <!-- the planet sits in front so the far side of each orbit passes behind it -->
+          <circle cx="300" cy="900" r="606" fill="url(#ab-atmo)" opacity="0.6" />
+          <circle cx="300" cy="900" r="600" fill="url(#ab-planet)" stroke="#8b5cff" stroke-opacity="0.5" />
+          <path d="M110 331 l -8 0 l 8 -12 l 8 12 z" fill="#f5f5f6" opacity="0.7" />
+        </svg>
+        <p class="ab-traj-profile t-label" aria-hidden="true" data-ab-profile>{missions[0].profile} · {missions[0].dur}</p>
+        <button class="ab-replay" type="button" data-ab-replay>
+          <span aria-hidden="true">↻</span> Replay flight
+        </button>
+      </div>
+
+      <div class="ab-log-panels">
+        {
+          missions.map((m, i) => (
+            <div class="ab-log-panel" role="tabpanel" id={`ab-mp-${m.id}`} aria-labelledby={`ab-mt-${m.id}`} hidden={i !== 0} data-profile={`${m.profile} · ${m.dur}`}>
+              <div class="ab-log-meta">
+                <span class="chip chip--accent">{m.k}</span>
+                <span class="chip">{m.dur}</span>
+              </div>
+              <h3 class="t-h3">{m.t}</h3>
+              <p class="t-body ab-log-d">{m.d}</p>
+              <ol class="ab-entries" role="list">
+                {m.log.map((e, j) => (
+                  <li class="ab-entry" data-ab-entry={j}>
+                    <span class="t-num ab-entry-n">Stage 0{j + 1}</span>
+                    <h4 class="ab-entry-t">{e.t}</h4>
+                    <p class="ab-entry-d">{e.d}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { initTabs } from '../../scripts/about-tabs';
+  import { gsap, ScrollTrigger, reducedMotion } from '../../scripts/motion';
+
+  type Mission = { path: string; stops: number[]; loop: boolean };
+  document.querySelectorAll<HTMLElement>('[data-ab-log]').forEach((root) => {
+    const missions = JSON.parse(root.dataset.paths || '[]') as Mission[];
+    const path = root.querySelector<SVGPathElement>('[data-ab-path]')!;
+    const ghost = root.querySelector<SVGPathElement>('[data-ab-ghost]')!;
+    const ship = root.querySelector<SVGGElement>('[data-ab-ship]')!;
+    const stops = [...root.querySelectorAll<SVGGElement>('[data-ab-stop]')];
+    const profile = root.querySelector<HTMLElement>('[data-ab-profile]')!;
+    let tween = null as gsap.core.Tween | null;
+    let cur = 0;
+
+    const fly = (i: number) => {
+      cur = i;
+      const m = missions[i];
+      path.setAttribute('d', m.path);
+      ghost.setAttribute('d', m.path);
+      const L = path.getTotalLength();
+      stops.forEach((s, k) => {
+        const p = path.getPointAtLength(m.stops[k] * L);
+        s.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`);
+      });
+      const panel = root.querySelectorAll<HTMLElement>('[role="tabpanel"]')[i];
+      const entries = panel ? [...panel.querySelectorAll<HTMLElement>('[data-ab-entry]')] : [];
+      profile.textContent = panel?.dataset.profile || '';
+      const set = (t: number) => {
+        const a = path.getPointAtLength(t * L);
+        const b = path.getPointAtLength(Math.min(L, t * L + 1));
+        const c = t * L + 1 > L ? path.getPointAtLength(Math.max(0, t * L - 1)) : a;
+        const ang = t * L + 1 > L ? Math.atan2(a.y - c.y, a.x - c.x) : Math.atan2(b.y - a.y, b.x - a.x);
+        ship.setAttribute('transform', `translate(${a.x.toFixed(1)} ${a.y.toFixed(1)}) rotate(${((ang * 180) / Math.PI).toFixed(1)})`);
+        path.style.strokeDashoffset = String(L * (1 - t));
+        stops.forEach((s, k) => s.classList.toggle('is-on', m.loop ? (t % 1) >= m.stops[k] - 0.001 || t >= 1 : t >= m.stops[k] - 0.001));
+        entries.forEach((e, k) => e.classList.toggle('is-on', t >= m.stops[k] - 0.001));
+      };
+      path.style.strokeDasharray = String(L);
+      tween?.kill();
+      if (reducedMotion) {
+        set(m.loop ? 0.999 : 1);
+        return;
+      }
+      const o = { t: 0 };
+      tween = gsap.to(o, {
+        t: 1,
+        duration: m.loop ? 7 : 3.2,
+        ease: m.loop ? 'none' : 'power2.inOut',
+        onUpdate: () => set(o.t),
+        onComplete: () => {
+          if (m.loop) {
+            // keep orbiting; stages stay lit
+            const p = { t: 0 };
+            tween = gsap.to(p, {
+              t: 1,
+              duration: 7,
+              ease: 'none',
+              repeat: -1,
+              onUpdate: () => {
+                const a = path.getPointAtLength(p.t * L);
+                const b = path.getPointAtLength(Math.min(L, p.t * L + 1));
+                ship.setAttribute('transform', `translate(${a.x.toFixed(1)} ${a.y.toFixed(1)}) rotate(${((Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI).toFixed(1)})`);
+              },
+            });
+          }
+        },
+      });
+    };
+
+    initTabs(root.querySelector<HTMLElement>('[role="tablist"]')!, (i) => fly(i));
+    root.querySelector('[data-ab-replay]')?.addEventListener('click', () => fly(cur));
+    if (reducedMotion) fly(0);
+    else {
+      fly(0);
+      tween?.pause(0);
+      ScrollTrigger.create({ trigger: root.querySelector('.ab-traj'), start: 'top 70%', once: true, onEnter: () => tween?.play() });
+    }
+  });
+</script>
+
+<style>
+  .ab-sec-label { color: var(--ink-2); margin-bottom: var(--s-4); }
+  .ab-log-h { font-size: clamp(2.75rem, 1rem + 5.4vw, 6.5rem); }
+  .ab-log-head { display: grid; grid-template-columns: 1.7fr 1fr; gap: var(--s-6); align-items: end; margin-bottom: var(--s-7); }
+
+  .ab-log-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); margin-bottom: var(--s-6); }
+  .ab-log-tab {
+    display: grid;
+    gap: 2px;
+    text-align: left;
+    padding: var(--s-4) var(--s-5);
+    border-radius: var(--r-md);
+    border: 1px solid var(--line);
+    background: rgb(255 255 255 / 0.02);
+    transition: border-color 0.3s, background 0.3s, transform 0.4s var(--ease-out);
+    position: relative;
+    overflow: hidden;
+  }
+  .ab-log-tab::after { content: ''; position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform 0.6s var(--ease-out); }
+  .ab-log-tab:hover { border-color: var(--line-strong); transform: translateY(-2px); }
+  .ab-log-tab[aria-selected='true'] { border-color: color-mix(in srgb, var(--accent) 60%, transparent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .ab-log-tab[aria-selected='true']::after { transform: none; }
+  .ab-log-tab-n { font-size: var(--fs-label); color: var(--ink-2); font-weight: 700; letter-spacing: 0.08em; }
+  .ab-log-tab[aria-selected='true'] .ab-log-tab-n { color: var(--accent); }
+  .ab-log-tab-t { font: 900 var(--fs-xl)/1.1 var(--font-display); letter-spacing: -0.03em; }
+  .ab-log-tab-k { font-size: var(--fs-sm); color: var(--ink-2); }
+
+  .ab-log-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: var(--s-7); align-items: start; }
+  .ab-traj { position: relative; border-radius: var(--r-lg); border: 1px solid var(--line); background: #07070b; overflow: hidden; }
+  .ab-traj-svg { width: 100%; height: auto; }
+  .ab-traj-ghost { fill: none; stroke: rgb(255 255 255 / 0.16); stroke-width: 1.5; stroke-dasharray: 4 6; }
+  .ab-traj-path { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; filter: drop-shadow(0 0 5px rgb(255 46 136 / 0.8)); }
+  .ab-stop-ring { fill: #07070b; stroke: rgb(255 255 255 / 0.3); stroke-width: 1.5; transition: stroke 0.3s; }
+  .ab-stop-dot { fill: rgb(255 255 255 / 0.3); transition: fill 0.3s; }
+  .ab-stop-n { font: 700 11px var(--font-ui); fill: #c9c9cf; }
+  .ab-stop:global(.is-on) .ab-stop-ring { stroke: var(--accent); }
+  .ab-stop:global(.is-on) .ab-stop-dot { fill: var(--accent); }
+  .ab-traj-profile { position: absolute; left: var(--s-5); top: var(--s-4); color: var(--ink); }
+  .ab-replay {
+    position: absolute;
+    right: var(--s-4);
+    top: var(--s-3);
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 1rem;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--line-strong);
+    background: rgb(5 5 6 / 0.6);
+    font: 600 0.72rem/1 var(--font-ui);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .ab-replay:hover { border-color: var(--accent); }
+
+  .ab-log-panel { display: grid; gap: var(--s-4); }
+  .ab-log-meta { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+  .ab-log-d { max-width: 44ch; }
+  .ab-entries { list-style: none; padding: 0; display: grid; gap: 0; margin-top: var(--s-3); border-left: 1px solid var(--line-strong); }
+  .ab-entry { position: relative; padding: var(--s-3) 0 var(--s-3) var(--s-5); display: grid; gap: 2px; }
+  .ab-entry::before { content: ''; position: absolute; left: -6px; top: 1.15rem; width: 11px; height: 11px; border-radius: 50%; background: var(--bg); border: 1.5px solid var(--line-strong); transition: background 0.3s, border-color 0.3s, box-shadow 0.3s; }
+  .ab-entry:global(.is-on)::before { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 12px var(--accent); }
+  .ab-entry-n { font-size: var(--fs-label); color: var(--ink-2); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+  .ab-entry:global(.is-on) .ab-entry-n { color: var(--accent); }
+  .ab-entry-t { font-size: var(--fs-lg); letter-spacing: -0.01em; }
+  .ab-entry-d { font-size: var(--fs-sm); color: var(--ink-2); }
+
+  @media (max-width: 960px) {
+    .ab-log-head, .ab-log-grid { grid-template-columns: 1fr; }
+    .ab-log-grid { gap: var(--s-6); }
+  }
+  @media (max-width: 640px) {
+    .ab-log-tabs { gap: var(--s-2); }
+    .ab-log-tab { padding: var(--s-3); }
+    .ab-log-tab-t { font-size: 1.15rem; }
+    .ab-log-tab-k { font-size: 0.72rem; line-height: 1.3; }
+    .ab-traj { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-2); padding-bottom: var(--s-3); }
+    .ab-traj-svg { flex: 0 0 100%; }
+    .ab-traj-profile, .ab-replay { position: static; }
+    .ab-traj-profile { padding-left: var(--s-4); }
+    .ab-replay { margin-right: var(--s-3); }
+    .ab-stop-n { font-size: 17px; }
+  }
+</style>
