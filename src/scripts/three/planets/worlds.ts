@@ -3,7 +3,7 @@
 // terminator, ocean glints, a separately drifting cloud deck and a fresnel atmosphere.
 import { THREE, makePhone, svgTexture } from '../core';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import { Baker } from './bake';
+import { Baker, idle } from './bake';
 import { OUT, RING, SPHERE } from './glsl';
 
 export type Quality = { phone: boolean; tex: number; seg: number; particles: number };
@@ -459,7 +459,7 @@ async function makeSurface(baker: Baker, q: Quality, o: SurfaceOpts, ring?: { in
   tilt.add(spin);
 
   const { a, b } = bakeSurface(baker, o.kind, o.accent, q, o.seed, o.bumpK);
-  await new Promise((r) => setTimeout(r, 0));
+  await idle();
 
   const defines: Record<string, string> = {};
   if (o.clouds) defines.CLOUDS = '';

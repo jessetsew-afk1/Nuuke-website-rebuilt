@@ -131,9 +131,71 @@ const lines = [
     dots.forEach((d) => d.addEventListener('click', () => scrollToStop(Number(d.dataset.ssGo))));
     labels.forEach((l) => l.addEventListener('click', () => scrollToStop(Number(l.dataset.ssLabel) + 1)));
 
-    whenNear(root, async () => {
+    // Seamless hand-over with the page's other WebGL layer (the homepage journey): while the
+    // section slides in (and out), the edge of the opaque canvas is a soft, scroll-driven fade
+    // instead of a hard line, and only once it covers the whole screen is it fully opaque.
+    let secTop = 0;
+    let secH = 0;
+    const measure = () => {
+      const r = root.getBoundingClientRect();
+      secTop = r.top + window.scrollY;
+      secH = r.height;
+    };
+    let lastA = -1;
+    let lastB = -1;
+    let edgeQueued = 0;
+    const edges = () => {
+      edgeQueued = 0;
+      const vh = window.innerHeight;
+      const sy = window.scrollY;
+      const inK = Math.min(1, Math.max(0, (sy + vh - secTop) / vh));
+      const outK = Math.min(1, Math.max(0, (sy + vh - secTop - secH) / vh));
+      // Band heights in px: wide while the section is just entering / leaving, zero once it fills the screen.
+      const ease = (x: number) => x * x * (3 - 2 * x);
+      const a = Math.round((1 - ease(inK)) * vh * 0.85);
+      const b = Math.round(ease(outK) * vh * 0.85);
+      if (a === lastA && b === lastB) return;
+      lastA = a;
+      lastB = b;
+      root.style.setProperty('--ss-a', `${a}px`);
+      root.style.setProperty('--ss-b', `${b}px`);
+      root.classList.toggle('is-solid', a === 0 && b === 0);
+    };
+    const queueEdges = () => {
+      if (!edgeQueued) edgeQueued = requestAnimationFrame(edges);
+    };
+    measure();
+    edges();
+    window.addEventListener('scroll', queueEdges, { passive: true });
+    window.addEventListener('resize', () => (measure(), queueEdges()));
+    window.addEventListener('load', () => (measure(), queueEdges()));
+    new ResizeObserver(() => (measure(), queueEdges())).observe(document.body);
+
+    // Build the 3D system early and in small idle-time steps (see initServices), long before the
+    // section is reached: when the visitor gets here there is nothing left to set up.
+    let started = false;
+    const begin = () => {
+      if (started) return;
+      started = true;
+      build();
+    };
+    whenNear(root, begin, '300% 0px');
+    const html = document.documentElement;
+    const idleStart = () => {
+      // not while the launch sequence is playing
+      if (html.classList.contains('is-loading')) return void setTimeout(idleStart, 1000);
+      const ric = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+      if (ric) ric(begin, { timeout: 3000 });
+      else setTimeout(begin, 200);
+    };
+    const afterLoad = () => setTimeout(idleStart, 2500);
+    if (document.readyState === 'complete') afterLoad();
+    else window.addEventListener('load', afterLoad, { once: true });
+
+    async function build() {
       const { initServices } = await import('../scripts/three/services');
       const scene = await initServices(canvas, services.map((s) => s.accent));
+      root.classList.add('is-ready');
       ScrollTrigger.create({
         trigger: root,
         start: 'top top',
@@ -164,7 +226,7 @@ const lines = [
         onScreen = es[0]?.isIntersecting ?? false;
         if (onScreen && !raf) raf = requestAnimationFrame(tick);
       }).observe(root);
-    }, '600px');
+    }
   });
 </script>
 
@@ -180,7 +242,13 @@ const lines = [
   .ss.is-static .ss-panel:not([data-ss-panel='0']) { display: none; }
   .ss.is-static .ss-panel[data-ss-panel='0'] { position: relative; opacity: 1; transform: none; }
   .ss-sticky { position: sticky; top: 0; height: 100svh; overflow: hidden; }
-  .ss-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .ss-canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 0.6s; }
+  .ss.is-ready .ss-canvas { opacity: 1; }
+  /* soft entry / exit edges (band sizes set from the scroll position) */
+  .ss:not(.is-static):not(.is-solid) :is(.ss-canvas, .ss-vignette, .ss-labels) {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, rgb(0 0 0 / 0.35) calc(var(--ss-a, 0px) * 0.45), #000 var(--ss-a, 0px), #000 calc(100% - var(--ss-b, 0px)), rgb(0 0 0 / 0.35) calc(100% - var(--ss-b, 0px) * 0.45), transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, rgb(0 0 0 / 0.35) calc(var(--ss-a, 0px) * 0.45), #000 var(--ss-a, 0px), #000 calc(100% - var(--ss-b, 0px)), rgb(0 0 0 / 0.35) calc(100% - var(--ss-b, 0px) * 0.45), transparent 100%);
+  }
   .ss-vignette { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgb(5 5 6 / 0.85) 0%, rgb(5 5 6 / 0.35) 38%, transparent 60%); }
   .ss-panels { position: absolute; left: var(--gutter); top: 50%; transform: translateY(-50%); width: min(520px, calc(100% - 2 * var(--gutter))); min-height: 360px; }
   .ss-panel { position: absolute; inset: 0 0 auto; display: grid; gap: var(--s-4); opacity: 0; transform: translateY(24px); filter: blur(6px); transition: opacity 0.7s var(--ease-out), transform 0.9s var(--ease-out), filter 0.7s; pointer-events: none; }

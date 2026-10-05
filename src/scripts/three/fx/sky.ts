@@ -49,8 +49,8 @@ void main() {
   sp += vec3(0.16, 0.035, 0.12) * neb * neb * 0.55;
   sp += vec3(0.04, 0.07, 0.2) * smoothstep(0.0, 0.7, n2) * band * 0.35;
   sp += vec3(0.26, 0.05, 0.16) * pow(max(n1 * n2, 0.0), 1.5) * band * 0.6;
-  // The sun from space: white core, wide soft halo
-  sp += vec3(1.6, 1.45, 1.3) * (pow(s, 2400.0) * 9.0 + pow(s, 120.0) * 0.12 + pow(s, 14.0) * 0.008) * uSunBoost;
+  // The sun from space: white core, a soft warm halo
+  sp += (vec3(1.6, 1.45, 1.3) * pow(s, 2400.0) * 9.0 + vec3(1.6, 1.25, 0.9) * pow(s, 120.0) * 0.1 + vec3(1.5, 1.05, 0.7) * pow(s, 14.0) * 0.007) * uSunBoost;
   vec3 c = mix(atm, sp, smoothstep(0.55, 1.0, uAlt));
   c += vec3(1.0) * uFlash;
   c += (hash12(gl_FragCoord.xy + uTime) - 0.5) / 255.0;

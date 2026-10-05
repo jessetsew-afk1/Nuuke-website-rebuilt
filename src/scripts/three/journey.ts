@@ -74,7 +74,8 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
   scene.add(burnLight);
 
   const SUN_DUSK = new THREE.Vector3(-0.5, -0.012, -1).normalize();
-  const SUN_SPACE = new THREE.Vector3(0.62, 0.32, -1).normalize();
+  const SUN_SPACE = new THREE.Vector3(0.62, 0.32, -1);
+  const sunSpace = new THREE.Vector3();
   const sunDir = SUN_DUSK.clone();
 
   const dome = makeDome();
@@ -443,11 +444,14 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
     scene.environment = envSpace;
     renderer.shadowMap.enabled = false;
     fill.castShadow = false;
+    const prevRT = renderer.getRenderTarget();
+    renderer.setRenderTarget(post.target); // the variants the post pipeline draws with
     try {
       renderer.compileAsync(scene, camera).catch(() => {});
     } catch {
       /* compiles on first use instead */
     } finally {
+      renderer.setRenderTarget(prevRT);
       scene.environment = env;
       renderer.shadowMap.enabled = sm;
       fill.castShadow = cs;
@@ -771,7 +775,11 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
     camera.updateMatrixWorld();
 
     // ===== Backdrop =====
-    sunDir.lerpVectors(SUN_DUSK, SUN_SPACE, sstep(0.5, 1, alt));
+    // In space the sun sits just past the top-right corner of the frame. On wide windows a fixed
+    // direction would bring it into the frame (a big white glare that small or narrow windows
+    // never showed), so it moves out with the aspect ratio and always sits at the same spot.
+    sunSpace.set(Math.max(SUN_SPACE.x, 0.3875 * Math.min(camera.aspect, 4)), SUN_SPACE.y, SUN_SPACE.z).normalize();
+    sunDir.lerpVectors(SUN_DUSK, sunSpace, sstep(0.5, 1, alt));
     sun.position.copy(camLook).addScaledVector(sunDir, 20);
     sun.target.position.copy(camLook);
     if (mode === 'pad' || mode === 'launch') {
@@ -903,7 +911,7 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
       warpK === 0 &&
       starFlow < 0.01 &&
       !smoke.alive;
-    const fps = cover === 2 ? 0 : quiet ? (cover ? 5 : 15) : 60;
+    const fps = cover === 2 ? 0 : quiet ? 15 : 60;
     if (fps !== fpsNow) {
       fpsNow = fps;
       stage.setFps(fps);

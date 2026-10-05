@@ -172,7 +172,7 @@ const stages = [
 </Base>
 
 <script>
-  import { gsap, ScrollTrigger, reducedMotion, lenis } from '../scripts/motion';
+  import { gsap, ScrollTrigger, reducedMotion, lenis, whenNear } from '../scripts/motion';
   import { hasHardwareGL } from '../scripts/gl-support';
   import * as audio from '../scripts/audio';
 
@@ -353,6 +353,14 @@ const stages = [
     filmBtn.textContent = play ? 'Pause film' : 'Play film';
     filmBtn.setAttribute('aria-pressed', String(play));
   };
+  // Start buffering the film (about 1 MB) a couple of screens before the visitor gets there,
+  // so it does not start loading and decoding right as the porthole opens.
+  whenNear(filmSec, () => {
+    if (video.preload !== 'auto') {
+      video.preload = 'auto';
+      video.load();
+    }
+  }, '200% 0px');
   filmBtn.addEventListener('click', () => {
     userPaused = !video.paused;
     setFilm(video.paused);

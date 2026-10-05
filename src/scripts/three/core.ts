@@ -9,17 +9,18 @@ export { THREE };
 // ---------------------------------------------------------------- quality governor
 // One governor for every stage on the page. It measures how long rendered frames really take
 // (interval between consecutive rendered frames, capped at 60 fps) and steps through quality
-// tiers: down quickly when frames are late, up slowly (with growing back-off) when there is
-// headroom. Tier 0 is the full look; each scene reads the current tier through onQuality().
+// tiers. Down: fast (within about a second of sustained slow frames), and never undone just
+// because a step showed no measurable gain (rAF intervals snap to 16.7 / 33.3 ms, so one step
+// often looks like no gain; the next one does). Up: only after a long stretch of headroom, one
+// tier at a time, and a probe that makes frames late is undone at once with a growing back-off.
+// Tier 0 is the full look; each scene reads the current tier through onQuality().
 
 export type Quality = {
   /** 0 = full quality ... 4 = lightest */
   tier: number;
   /** Device pixel ratio cap for this tier. */
   maxPR: number;
-  /** Bloom resolution scale relative to the scene's normal bloom size. */
-  bloom: number;
-  /** Particle budget multiplier, relative to what the scene uses at this device's ceiling. */
+  /** Particle / instance budget multiplier. */
   particles: number;
   /** MSAA samples for HDR scene targets (scenes may use fewer). */
   samples: number;
@@ -28,11 +29,11 @@ export type Quality = {
 };
 
 const TIERS: Omit<Quality, 'tier'>[] = [
-  { maxPR: 1.75, bloom: 1, particles: 1, samples: 4, extras: true },
-  { maxPR: 1.5, bloom: 1, particles: 1, samples: 4, extras: true },
-  { maxPR: 1.25, bloom: 0.5, particles: 0.8, samples: 2, extras: true },
-  { maxPR: 1.0, bloom: 0.5, particles: 0.6, samples: 0, extras: false },
-  { maxPR: 0.8, bloom: 0.25, particles: 0.45, samples: 0, extras: false },
+  { maxPR: 1.75, particles: 1, samples: 4, extras: true },
+  { maxPR: 1.5, particles: 0.9, samples: 4, extras: true },
+  { maxPR: 1.25, particles: 0.75, samples: 2, extras: true },
+  { maxPR: 1.0, particles: 0.6, samples: 0, extras: false },
+  { maxPR: 0.8, particles: 0.45, samples: 0, extras: false },
 ];
 const MAX_TIER = TIERS.length - 1;
 const FRAME_MS = 1000 / 60;
@@ -45,53 +46,61 @@ const qsNum = (k: string) => {
 /** Phones and tablets: never heavier than the established mobile look. */
 export const isLiteDevice = () => window.innerWidth < 760 || window.matchMedia('(pointer: coarse)').matches;
 
-function startTier(gl: WebGLRenderingContext | WebGL2RenderingContext, ceiling: number) {
-  let name = '';
+let gpuName = '';
+/** Starting tier from the GPU name and the size of the backbuffer. */
+export function tierHint(name: string, w: number, h: number, dpr: number, cores = 8, mem = 8) {
+  const n = name.toLowerCase();
+  let t: number;
+  let discrete = false;
+  if (/swiftshader|llvmpipe|softpipe|software|basic render/.test(n)) return MAX_TIER;
+  if (/geforce (rtx|gtx)|nvidia rtx|quadro rtx|radeon rx|radeon pro|\brx \d{3,4}|arc\(tm\) a\d|intel\(r\) arc|apple m\d (pro|max|ultra)/.test(n)) {
+    t = 0;
+    discrete = true;
+  } else if (/geforce|nvidia|quadro/.test(n)) t = 1; // older / entry discrete (MX, GT)
+  else if (/adreno \(tm\) [7-9]\d\d|adreno [7-9]\d\d|mali-g7\d\d|mali-g[7-9]\d\b|immortalis/.test(n)) t = 2;
+  else if (/mali|adreno|powervr|videocore/.test(n)) t = 3;
+  else if (/intel.*(hd graphics|uhd graphics [56]\d\d)/.test(n)) t = 3; // older Intel integrated
+  else t = 2; // Intel Iris / UHD, AMD Radeon Graphics / Vega, Apple M base, "Apple GPU", unknown
+  if (cores <= 4) t++;
+  if (mem <= 4) t++;
+  // Fill rate: a high pixel ratio on a large window costs more than the GPU name suggests.
+  const pr = Math.min(dpr || 1, 1.75);
+  const px = w * h * pr * pr;
+  if (px > (discrete ? 6.5e6 : 2.8e6)) t++;
+  return Math.min(MAX_TIER, t);
+}
+
+function startTier(gl: WebGLRenderingContext | WebGL2RenderingContext, ceiling = 0) {
   try {
     const ext = gl.getExtension('WEBGL_debug_renderer_info');
-    name = String(gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || '').toLowerCase();
+    gpuName = String(gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || '');
   } catch {
     /* unknown GPU */
   }
-  let t = 0;
-  if (/swiftshader|llvmpipe|softpipe|software|basic render/.test(name)) t = 4;
-  else if (/nvidia|geforce|quadro|radeon (rx|pro)|\brx \d|arc\(tm\)|intel\(r\) arc|apple m\d (pro|max|ultra)/.test(name)) t = 0;
-  else if (/apple m\d|apple gpu/.test(name)) t = 1;
-  else if (/iris|radeon|vega/.test(name)) t = 2;
-  else if (/intel|mali-[gt][1-5]\d\b|mali-[t4]|adreno \(tm\) [2-5]\d\d|adreno [2-5]\d\d|powervr|videocore|mali-400/.test(name)) t = 3;
-  else if (/mali|adreno/.test(name)) t = 2;
-  else if (name) t = 1;
-  else t = 2;
   const nav = navigator as Navigator & { deviceMemory?: number };
-  if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) t++;
-  if (nav.deviceMemory && nav.deviceMemory <= 4) t++;
-  // Very large backbuffers (4K / 5K panels) cost more than the GPU name suggests.
-  const pr = Math.min(window.devicePixelRatio || 1, 1.75);
-  if (window.innerWidth * window.innerHeight * pr * pr > 2560 * 1440 * 1.6) t++;
-  return Math.max(ceiling, Math.min(MAX_TIER, t));
+  const t = tierHint(gpuName, window.innerWidth, window.innerHeight, window.devicePixelRatio, navigator.hardwareConcurrency || 8, nav.deviceMemory || 8);
+  return Math.max(ceiling, t);
 }
 
 type QualityListener = (q: Quality) => void;
+const WIN = 24; // frames per verdict (0.4 s at 60 fps, 0.8 s at 30 fps)
 const gov = {
   inited: false,
   tier: 0,
-  ceiling: 0,
+  ceiling: 0, // richest tier this device may use
   pinned: false,
   listeners: new Set<QualityListener>(),
-  // rolling window of rendered-frame intervals (ms)
-  win: new Float32Array(60),
-  n: 0,
-  sinceChange: 0,
-  goodFor: 0, // ms of consecutive "comfortable" windows
-  upWait: 6000, // ms of headroom needed before trying a richer tier
-  lastUpAt: -1e9,
-  // Did the last step down actually help? (see govSample)
-  dropMean: 0, // mean frame interval just before the last step down; 0 = nothing to check
-  dropFrom: 0,
-  holdUntil: -1e9, // no further steps down before this time
-  holdMs: 20000,
-  dropStep: 1, // tiers to step down next time (grows when a single step did not help)
+  win: new Float32Array(WIN), // rendered-frame intervals (ms)
+  n: 0, // samples since the last tier change
+  goodFor: 0, // ms of consecutive comfortable frames
+  upWait: 20000, // ms of headroom needed before probing a richer tier
+  probeFrom: -1, // tier we stepped up from (a probe in progress), -1 = none
+  probeUntil: 0,
+  fails: [0, 0, 0, 0, 0], // failed probes INTO each tier
+  holdUntil: 0, // no verdicts before this time (heavy one-off work in progress)
+  bad: 0, // slow verdicts in a row
   frameMs: 0, // smoothed main-thread ms per tick (diagnostics)
+  changes: 0,
 };
 
 const quality = (): Quality => ({ tier: gov.tier, ...TIERS[gov.tier] });
@@ -101,8 +110,9 @@ function setTier(t: number) {
   if (t === gov.tier) return;
   gov.tier = t;
   gov.n = 0;
-  gov.sinceChange = 0;
   gov.goodFor = 0;
+  gov.bad = 0;
+  gov.changes++;
   const q = quality();
   gov.listeners.forEach((f) => f(q));
 }
@@ -115,54 +125,59 @@ function initGovernor(gl: WebGLRenderingContext | WebGL2RenderingContext) {
   if (forced !== null) {
     gov.pinned = true;
     gov.tier = Math.max(0, Math.min(MAX_TIER, Math.round(forced)));
+    startTier(gl); // still read the GPU name (diagnostics)
   } else gov.tier = startTier(gl, gov.ceiling);
+}
+
+/** Pause verdicts for a while, e.g. while a scene is being built in idle-time chunks. */
+export function holdGovernor(ms: number) {
+  gov.holdUntil = Math.max(gov.holdUntil, performance.now() + ms);
+  gov.n = 0;
 }
 
 /** Feed one rendered-frame interval (only between two consecutive rendered ticks). */
 function govSample(ms: number, now: number) {
-  if (gov.pinned) return;
-  if (ms > 250) return; // a pause or a one-off stall, not a trend
-  gov.win[gov.n % gov.win.length] = Math.min(ms, 50);
+  if (gov.pinned || now < gov.holdUntil) return;
+  if (ms > 200) return; // a pause or a one-off stall, not a trend
+  gov.win[gov.n % WIN] = Math.min(ms, 50);
   gov.n++;
-  gov.sinceChange++;
-  if (gov.n < gov.win.length || gov.n % 30 !== 0) return;
+  if (gov.n < WIN || gov.n % 8 !== 0) return;
   let sum = 0;
   let late = 0;
-  for (let i = 0; i < gov.win.length; i++) {
+  for (let i = 0; i < WIN; i++) {
     sum += gov.win[i];
     // 28 ms, not 25: on a 75 Hz screen the 60 fps cap leaves one 26.7 ms gap in every four.
     if (gov.win[i] > 28) late++;
   }
-  const mean = sum / gov.win.length;
-  if (gov.dropMean) {
-    // First full window after a step down. If it bought (almost) nothing, the frame rate is
-    // limited by something other than our rendering (a 30 fps battery saver, a busy machine,
-    // a throttled tab): go back to the richer tier and stop stepping down for a while instead
-    // of sliding to the lightest look for no gain.
-    // The next attempt steps down further, in case only a bigger cut gets under a vsync step.
-    const before = gov.dropMean;
-    gov.dropMean = 0;
-    if (mean > before * 0.93) {
-      gov.holdUntil = now + gov.holdMs;
-      gov.holdMs = Math.min(300000, gov.holdMs * 3);
-      gov.dropStep = Math.min(MAX_TIER, gov.dropStep + 1);
-      setTier(gov.dropFrom);
+  const mean = sum / WIN;
+  if (gov.probeFrom >= 0) {
+    // A probe of a richer tier is running: undo it at the first sign of trouble.
+    if (mean > 18.2 || late > 2) {
+      const into = gov.tier;
+      gov.fails[into]++;
+      gov.upWait = Math.min(240000, gov.upWait * 2);
+      gov.probeFrom = -1;
+      // Three failed probes into a tier: stay out of it for this visit.
+      if (gov.fails[into] >= 3) gov.ceiling = Math.max(gov.ceiling, into + 1);
+      setTier(into + 1);
       return;
     }
-    gov.dropStep = 1;
+    if (now > gov.probeUntil) gov.probeFrom = -1; // it held: keep it
   }
-  if (mean > 20.5 && gov.sinceChange >= 45 && now >= gov.holdUntil && gov.tier < MAX_TIER) {
-    // Under ~50 fps on average: lighten. If we only just stepped up, back off for longer.
-    if (now - gov.lastUpAt < 8000) gov.upWait = Math.min(120000, gov.upWait * 2);
-    gov.dropMean = mean;
-    gov.dropFrom = gov.tier;
-    setTier(gov.tier + gov.dropStep);
+  if (mean > 20 || late > WIN / 3) {
+    // Slow frames (under ~50 fps) in two verdicts running (about a second): lighten, two tiers
+    // at once when far behind. One bad verdict alone may be a passing hiccup.
+    gov.bad++;
+    gov.goodFor = 0;
+    if (gov.bad >= 2 && gov.tier < MAX_TIER) setTier(gov.tier + (mean > 34 ? 2 : 1));
     return;
   }
-  if (mean < 17.6 && late <= 2) gov.goodFor += 30 * FRAME_MS;
+  gov.bad = 0;
+  if (mean < 17.2 && late === 0) gov.goodFor += 8 * FRAME_MS;
   else gov.goodFor = 0;
-  if (gov.goodFor >= gov.upWait && gov.tier > gov.ceiling) {
-    gov.lastUpAt = now;
+  if (gov.goodFor >= gov.upWait && gov.tier > gov.ceiling && gov.fails[gov.tier - 1] < 3) {
+    gov.probeFrom = gov.tier;
+    gov.probeUntil = now + 3000;
     setTier(gov.tier - 1);
   }
 }
@@ -174,6 +189,39 @@ export function onQuality(fn: QualityListener) {
   return () => gov.listeners.delete(fn);
 }
 export const getQuality = quality;
+
+// ---------------------------------------------------------------- shader compilation
+
+/**
+ * renderer.compileAsync with a time limit: where KHR_parallel_shader_compile is missing the
+ * readiness poll can stall, and the shaders then simply link on first use.
+ */
+export function compileSoon(renderer: THREE.WebGLRenderer, scene: THREE.Object3D, camera: THREE.Camera, ms = 2000) {
+  return Promise.race([renderer.compileAsync(scene, camera).then(() => undefined), new Promise<void>((r) => setTimeout(r, ms))]).catch(() => undefined);
+}
+
+// ---------------------------------------------------------------- environment
+
+/**
+ * The studio reflection map (RoomEnvironment through PMREM), with its shaders compiled
+ * without blocking first, so building it does not stall the page.
+ */
+export async function buildRoomEnv(renderer: THREE.WebGLRenderer) {
+  const room = new RoomEnvironment();
+  const cam = new THREE.PerspectiveCamera(90, 1, 0.1, 100);
+  const tmp = new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType });
+  const prev = renderer.getRenderTarget();
+  renderer.setRenderTarget(tmp); // PMREM draws the room into a target
+  const pending = compileSoon(renderer, room, cam);
+  renderer.setRenderTarget(prev);
+  await pending;
+  tmp.dispose();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const tex = pmrem.fromScene(room, 0.04).texture;
+  pmrem.dispose();
+  room.dispose();
+  return tex;
+}
 
 // ---------------------------------------------------------------- stage
 
@@ -198,7 +246,18 @@ export type Stage = {
 };
 
 const debug = qsFlag('perf');
-type DebugStage = { name: string; renders: number; ticks: number; fps: number; info: () => unknown };
+type DebugStage = {
+  name: string;
+  renders: number;
+  ticks: number;
+  fps: number;
+  js: number; // smoothed JS ms per tick (frame callbacks + issuing the draw)
+  iv: Float32Array; // recent rendered-frame intervals (ms)
+  ivN: number;
+  calls: number;
+  tris: number;
+  info: () => Record<string, unknown>;
+};
 const debugStages: DebugStage[] = [];
 // ?perf&step: frames advance only when a test calls __nuukeStep(n) (deterministic captures).
 const stepMode = debug && qsFlag('step');
@@ -206,7 +265,7 @@ const stepHooks: ((ts: number) => void)[] = [];
 let stepTs = 0;
 if (debug)
   Object.assign(window, {
-    __nuukeGL: { gov, quality, stages: debugStages, setTier },
+    __nuukeGL: { gov, quality, stages: debugStages, setTier, gpu: () => gpuName },
     __nuukeStep: (n = 1) => {
       for (let i = 0; i < n; i++) {
         stepTs += FRAME_MS;
@@ -214,6 +273,80 @@ if (debug)
       }
     },
   });
+
+// ?perf: a small diagnostics panel (top-left, above everything) for screenshots from real devices.
+let overlayOn = false;
+function startOverlay() {
+  if (!debug || overlayOn || qsFlag('nooverlay')) return;
+  overlayOn = true;
+  const box = document.createElement('div');
+  box.setAttribute('aria-hidden', 'true');
+  box.style.cssText =
+    'position:fixed;left:6px;top:6px;z-index:2147483647;pointer-events:none;max-width:min(360px,calc(100vw - 12px));padding:6px 8px;border-radius:6px;background:rgba(0,0,0,.78);color:#d8ffd8;font:10.5px/1.35 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word';
+  document.body.appendChild(box);
+  let longTasks = 0;
+  let longMax = 0;
+  try {
+    new PerformanceObserver((l) =>
+      l.getEntries().forEach((e) => {
+        longTasks++;
+        longMax = Math.max(longMax, e.duration);
+      }),
+    ).observe({ type: 'longtask', buffered: true });
+  } catch {
+    /* not supported */
+  }
+  // Display rate as the browser delivers it (all rAF ticks).
+  let rafN = 0;
+  const raf = () => {
+    rafN++;
+    requestAnimationFrame(raf);
+  };
+  requestAnimationFrame(raf);
+  const prev = new Map<DebugStage, number>();
+  let last = performance.now();
+  let rafPrev = 0;
+  const sorted: number[] = [];
+  setInterval(() => {
+    const now = performance.now();
+    const secs = (now - last) / 1000;
+    last = now;
+    const rows: string[] = [];
+    let main: DebugStage | null = null;
+    let mainFps = -1;
+    for (const st of debugStages) {
+      const fps = (st.renders - (prev.get(st) ?? st.renders)) / secs;
+      prev.set(st, st.renders);
+      if (fps > mainFps) {
+        mainFps = fps;
+        main = st;
+      }
+      if (fps > 0.05) {
+        const i = st.info() as { size: number[] };
+        rows.push(`  ${st.name.split(' ')[0]}: ${fps.toFixed(0)} fps  ${i.size[0]}x${i.size[1]}  ${st.calls} calls ${(st.tris / 1000).toFixed(0)}k tri  js ${st.js.toFixed(1)}ms`);
+      }
+    }
+    let avg = 0;
+    let p95 = 0;
+    if (main) {
+      const n = Math.min(main.ivN, main.iv.length);
+      sorted.length = 0;
+      for (let i = 0; i < n; i++) sorted.push(main.iv[i]);
+      sorted.sort((a, b) => a - b);
+      avg = n ? sorted.reduce((a, b) => a + b, 0) / n : 0;
+      p95 = n ? sorted[Math.min(n - 1, Math.floor(n * 0.95))] : 0;
+    }
+    const rafFps = (rafN - rafPrev) / secs;
+    rafPrev = rafN;
+    const q = quality();
+    box.textContent =
+      `fps ${Math.max(0, mainFps).toFixed(0)} (display ${rafFps.toFixed(0)})  frame avg ${avg.toFixed(1)} p95 ${p95.toFixed(1)} ms\n` +
+      `tier ${q.tier}${gov.pinned ? ' (pinned)' : ''}  maxPR ${q.maxPR}  dpr ${window.devicePixelRatio}  view ${window.innerWidth}x${window.innerHeight}\n` +
+      `long tasks ${longTasks}${longTasks ? ` (max ${longMax.toFixed(0)} ms)` : ''}  tier changes ${gov.changes}\n` +
+      `gpu ${gpuName || '?'}\n` +
+      (rows.length ? `rendering:\n${rows.join('\n')}` : 'rendering: none');
+  }, 500);
+}
 
 export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?: number; env?: boolean; alpha?: boolean } = {}): Stage {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: opts.alpha ?? true, powerPreference: 'high-performance' });
@@ -279,8 +412,25 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
   let acc = 0;
   let renderedPrev = false;
   let prevRenderTs = 0;
-  const dbg: DebugStage = { name: canvas.className || canvas.id || 'canvas', renders: 0, ticks: 0, fps: 60, info: () => ({ ...renderer.info.memory, calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, pr: renderer.getPixelRatio(), size: [canvas.width, canvas.height] }) };
-  if (debug) debugStages.push(dbg);
+  const dbg: DebugStage = {
+    name: canvas.className || canvas.id || 'canvas',
+    renders: 0,
+    ticks: 0,
+    fps: 60,
+    js: 0,
+    iv: new Float32Array(120),
+    ivN: 0,
+    calls: 0,
+    tris: 0,
+    info: () => ({ ...renderer.info.memory, calls: dbg.calls, triangles: dbg.tris, pr: renderer.getPixelRatio(), size: [canvas.width, canvas.height] }),
+  };
+  if (debug) {
+    debugStages.push(dbg);
+    // Count every pass of a frame (post-processing included), not just the last one.
+    renderer.info.autoReset = false;
+    if (document.body) startOverlay();
+    else window.addEventListener('DOMContentLoaded', startOverlay, { once: true });
+  }
 
   const tick = (ts: number) => {
     raf = 0;
@@ -318,17 +468,25 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
     const now = performance.now();
     const due = fps >= 60 || (fps > 0 && now - lastRender >= 1000 / fps - 4);
     if (due || dirty) {
+      if (debug) renderer.info.reset();
       render();
       dirty = false;
       lastRender = now;
       dbg.renders++;
+      if (debug) {
+        dbg.calls = renderer.info.render.calls;
+        dbg.tris = renderer.info.render.triangles;
+        if (renderedPrev) dbg.iv[dbg.ivN++ % dbg.iv.length] = ts - prevRenderTs;
+      }
       if (renderedPrev && fps >= 60) govSample(ts - prevRenderTs, now);
       prevRenderTs = ts;
       renderedPrev = true;
     } else renderedPrev = false;
     dbg.ticks++;
     dbg.fps = fps;
-    gov.frameMs += (performance.now() - t0 - gov.frameMs) * 0.05;
+    const jsMs = performance.now() - t0;
+    gov.frameMs += (jsMs - gov.frameMs) * 0.05;
+    dbg.js += (jsMs - dbg.js) * 0.1;
     if (again && !stepMode) raf = requestAnimationFrame(tick);
   };
   if (stepMode) stepHooks.push((ts) => tick(ts));

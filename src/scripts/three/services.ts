@@ -1,10 +1,10 @@
 // Services as a solar system: the NUUKE star at the centre, one world per service.
 // Scroll progress (0..1) flies a cinematic camera from an overview to each world in turn.
 // Heavy lifting lives in ./planets/*: GPU-baked surfaces, the sun, deep space and belts.
-import { createStage, isLiteDevice, onQuality, THREE } from './core';
+import { buildRoomEnv, createStage, holdGovernor, isLiteDevice, onQuality, THREE } from './core';
 import { makeRocket } from './rocket';
 import { makePipeline } from './fx/pipeline';
-import { Baker } from './planets/bake';
+import { Baker, idle } from './planets/bake';
 import { makeSun } from './planets/sun';
 import { makeBelt, makeNearDust, makeSpace } from './planets/space';
 import { makeAI, makeAnimation, makeMarketing, makeMobile, sparkleMaterial, type Quality, type World } from './planets/worlds';
@@ -49,13 +49,37 @@ const smoother = (x: number) => {
 };
 
 export async function initServices(canvas: HTMLCanvasElement, colors: string[]): Promise<ServicesScene> {
+  // The system is built in small steps, each in its own idle period (it starts long before the
+  // section is reached), so it never stalls scrolling. Frame-time verdicts pause meanwhile.
+  const timing = /[?&]perf\b/.test(location.search);
+  let chunkT = performance.now();
+  const step = async (label = '') => {
+    // ?perf: each chunk's main-thread time shows up as a performance measure ("ss <label>")
+    if (timing) performance.measure(`ss ${label}`, { start: chunkT, end: performance.now() });
+    holdGovernor(1500);
+    await idle();
+    chunkT = performance.now();
+  };
   const phone = isLiteDevice();
-  const stage = createStage(canvas, { fov: 38, z: 40, alpha: false });
+  const stage = createStage(canvas, { fov: 38, z: 40, alpha: false, env: false });
   const { scene, camera, renderer } = stage;
-  // Surface bakes and particle counts are fixed at build time: pick them from the starting tier.
+  // Draw nothing until everything below is built and compiled.
+  stage.setRender(() => {});
+  // Surface bakes, mesh detail and particle counts are fixed at build time: pick them from the
+  // starting tier (instance and particle counts also follow later tier changes).
   let startTier = 0;
   onQuality((qq) => (startTier = qq.tier))();
-  const q: Quality = phone || startTier >= 3 ? { phone, tex: 768, seg: 72, particles: 0.45 } : startTier === 2 ? { phone, tex: 1024, seg: 96, particles: 0.75 } : { phone, tex: 1536, seg: 128, particles: 1 };
+  const q: Quality =
+    phone || startTier >= 3
+      ? { phone, tex: 768, seg: 72, particles: 0.45 }
+      : startTier === 2
+        ? { phone, tex: 1024, seg: 96, particles: 0.75 }
+        : startTier === 1
+          ? { phone, tex: 1536, seg: 112, particles: 0.9 }
+          : { phone, tex: 1536, seg: 128, particles: 1 };
+  await step('stage');
+  scene.environment = await buildRoomEnv(renderer);
+  await step('env');
   camera.near = 0.05;
   camera.far = 2400;
   camera.updateProjectionMatrix();
@@ -67,7 +91,6 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
   scene.add(new THREE.AmbientLight(0x8088ff, 0.025));
 
   const baker = new Baker(renderer);
-  const yieldFrame = () => new Promise((r) => setTimeout(r, 0));
 
   const space = makeSpace(baker, q);
   scene.add(space.group);
@@ -78,15 +101,16 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
   scene.add(system);
 
   const accents = colors.map((c) => new THREE.Color(c));
-  await yieldFrame();
+  await step('space+sun');
   const worlds: World[] = [];
   worlds.push(await makeMobile(baker, q, accents[0], colors[0]));
-  await yieldFrame();
+  await step('mobile');
   worlds.push(await makeAnimation(baker, q, accents[1]));
-  await yieldFrame();
+  await step('animation');
   worlds.push(await makeMarketing(baker, q, accents[2]));
-  await yieldFrame();
+  await step('marketing');
   worlds.push(await makeAI(baker, q, accents[3]));
+  await step('ai');
 
   const orbitMat = new THREE.LineBasicMaterial({ color: 0xc9c2ff, transparent: true, opacity: 0.1, depthWrite: false });
   ORBITS.forEach((r, i) => {
@@ -100,6 +124,7 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
   const beltDust = new THREE.Points(belt.dustGeo, sparkleMaterial(new THREE.Color(0.9, 0.78, 0.66), 1.1));
   belt.group.add(beltDust);
   system.add(belt.group);
+  await step('belt');
 
   const near = makeNearDust(q);
   scene.add(near.points);
@@ -117,6 +142,7 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
   const rocket = makeRocket({ small: true });
   rocket.group.scale.setScalar(0.12);
   scene.add(rocket.group);
+  await step('rocket');
 
   // ------------------------------------------------------------ post: bloom + film finish
   const post = makePipeline(renderer, scene, camera, {
@@ -126,11 +152,9 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
     uniforms: { uTime: { value: 0 }, uCA: { value: phone ? 0 : 0.012 }, uGrain: { value: 1 } },
   });
   const finish = { uniforms: post.uniforms };
-  // Draw nothing until the shaders below are compiled: a render while compileAsync is still
-  // running would force the same compile synchronously (a long main-thread stall).
-  stage.setRender(() => {});
   onQuality((qq) => {
     post.setQuality(qq);
+    belt.setBudget(qq.particles / q.particles);
     finish.uniforms.uCA.value = phone || !qq.extras ? 0 : 0.012;
     finish.uniforms.uGrain.value = qq.extras ? 1 : 0;
     syncPR();
@@ -282,16 +306,39 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
     finish.uniforms.uTime.value = t;
   };
 
-  // Compile everything up front (in parallel where the browser allows) to avoid a hitch on first view,
-  // including the bloom and finish shaders.
+  // Finish off-screen, one idle period at a time: draw the queued surface bakes, compile every
+  // shader without blocking (the exact variants the post pipeline uses), upload the textures,
+  // then draw one frame into the pipeline's target so geometry is on the GPU too. A render
+  // while compileAsync is still running would force the same compile synchronously, which is
+  // why nothing is drawn to the canvas until here.
   frame(0);
+  await baker.flush(() => step('bake strip'));
   try {
-    if (renderer.extensions.has('KHR_parallel_shader_compile')) await renderer.compileAsync(scene, camera);
-    else renderer.compile(scene, camera);
-    post.warm();
+    await post.compileAsync();
   } catch {
     /* compile on first render instead */
   }
+  await step('compile');
+  const texs = new Set<THREE.Texture>();
+  scene.traverse((o) => {
+    const mats = (o as THREE.Mesh).material;
+    for (const m of Array.isArray(mats) ? mats : mats ? [mats] : []) {
+      for (const v of Object.values(m)) if ((v as THREE.Texture)?.isTexture) texs.add(v as THREE.Texture);
+      const u = (m as THREE.ShaderMaterial).uniforms;
+      if (u) for (const k in u) if ((u[k].value as THREE.Texture)?.isTexture) texs.add(u[k].value as THREE.Texture);
+    }
+  });
+  for (const tx of texs) {
+    if ((tx as THREE.Texture & { isRenderTargetTexture?: boolean }).isRenderTargetTexture) continue;
+    renderer.initTexture(tx);
+    await step('texture');
+  }
+  frame(0);
+  await post.primeObjects(() => step('prime object'));
+  post.prime();
+  await step('prime scene');
+  post.primeBloom();
+  await step('prime bloom');
   stage.setRender(post.render);
   stage.invalidate();
   stage.onFrame((t) => frame(t));

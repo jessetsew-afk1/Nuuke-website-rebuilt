@@ -159,8 +159,8 @@ export function makeSpace(baker: Baker, q: Quality) {
 export function makeBelt(q: Quality, radius: number, width: number) {
   const group = new THREE.Group();
   // Lumpy rocks: layered sine noise on a subdivided sphere, smooth-shaded, with a speckled rock texture.
-  const rockGeo = (seed: number) => {
-    const g = new THREE.IcosahedronGeometry(1, q.phone ? 1 : 2);
+  const rockGeo = (seed: number, detail: number) => {
+    const g = new THREE.IcosahedronGeometry(1, detail);
     const p = g.attributes.position;
     const v = new THREE.Vector3();
     const n3 = (x: number, y: number, z: number, f: number, o: number) => Math.sin(x * f + o) * Math.sin(y * f * 1.3 + o * 2.1) * Math.sin(z * f * 0.9 + o * 0.7);
@@ -206,9 +206,15 @@ export function makeBelt(q: Quality, radius: number, width: number) {
   const sc = new THREE.Vector3();
   const tint = new THREE.Color();
   const meshes: THREE.InstancedMesh[] = [];
+  // Most rocks are specks a few pixels across: they get a coarser mesh (80 instead of 320
+  // triangles); only the few large ones keep the fine one. Same look, about 60% fewer triangles.
+  const fine = q.phone ? 1 : 2;
   for (let k = 0; k < 3; k++) {
     const n = Math.round(total / 3);
-    const im = new THREE.InstancedMesh(rockGeo(k), mat, n);
+    const big: THREE.Matrix4[] = [];
+    const small: THREE.Matrix4[] = [];
+    const bigC: THREE.Color[] = [];
+    const smallC: THREE.Color[] = [];
     for (let i = 0; i < n; i++) {
       const a = Math.random() * Math.PI * 2;
       const g = (Math.random() + Math.random() + Math.random()) / 3 - 0.5;
@@ -219,13 +225,24 @@ export function makeBelt(q: Quality, radius: number, width: number) {
       const s = 0.012 + Math.pow(Math.random(), 5) * 0.16;
       sc.set(s * (0.8 + Math.random() * 0.5), s * (0.7 + Math.random() * 0.4), s * (0.8 + Math.random() * 0.5));
       m.compose(pos, qn, sc);
-      im.setMatrixAt(i, m);
       const b = 0.5 + Math.random() * 0.6;
       tint.setRGB(b * (0.95 + Math.random() * 0.1), b * 0.92, b * (0.82 + Math.random() * 0.12));
-      im.setColorAt(i, tint);
+      (s > 0.05 ? big : small).push(m.clone());
+      (s > 0.05 ? bigC : smallC).push(tint.clone());
     }
-    meshes.push(im);
-    group.add(im);
+    for (const [list, cols, detail] of [
+      [big, bigC, fine],
+      [small, smallC, Math.max(0, fine - 1)],
+    ] as const) {
+      if (!list.length) continue;
+      const im = new THREE.InstancedMesh(rockGeo(k, detail), mat, list.length);
+      list.forEach((mm, i) => {
+        im.setMatrixAt(i, mm);
+        im.setColorAt(i, cols[i]);
+      });
+      meshes.push(im);
+      group.add(im);
+    }
   }
   // fine belt dust
   const dn = Math.round(3000 * q.particles);
@@ -239,7 +256,17 @@ export function makeBelt(q: Quality, radius: number, width: number) {
     ds[i] = Math.random();
   }
   const dustGeo = new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(dp, 3)).setAttribute('aS', new THREE.BufferAttribute(ds, 1));
-  return { group, meshes, dustGeo };
+  const full = meshes.map((im) => im.count);
+  return {
+    group,
+    meshes,
+    dustGeo,
+    /** Share of rocks and dust to draw (quality tier); instances are in random order. */
+    setBudget(k: number) {
+      meshes.forEach((im, i) => (im.count = Math.max(1, Math.round(full[i] * Math.min(1, k)))));
+      dustGeo.setDrawRange(0, Math.round(dn * Math.min(1, k)));
+    },
+  };
 }
 
 /** Out-of-focus motes near the lens: they wrap around the camera so there are always some in view. */
