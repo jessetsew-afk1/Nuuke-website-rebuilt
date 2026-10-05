@@ -1,9 +1,11 @@
 // NUUKE score engine.
 // One orchestral track (public/audio/score.mp3, 2:26, normalised to about -18 LUFS) played through Web Audio:
-//   deck A/B (for crossfades) → low-pass filter → dry + reverb → master.
+//   deck A/B (for crossfades) → low-pass filter → dry + reverb → master → duck → out.
 // Scroll drives "intensity": the filter opens, the room tightens and the level rises,
 // so the strings sit softly behind the page at the top and come forward as you go deeper.
-// It stays background music: never louder than ~0.5 and never filtered below ~1.8 kHz.
+// It stays background music: never louder than ~0.37 and never filtered below ~1.8 kHz.
+// Sound effects (sfx.ts) share the same AudioContext (`getContext()`) and can dip the
+// score underneath them with `duck()`.
 // Browsers only allow sound after a tap/click/key, so `enable()` must run inside one.
 
 const SRC = '/audio/score.mp3';
@@ -22,6 +24,9 @@ let filter: BiquadFilterNode;
 let dry: GainNode;
 let wet: GainNode;
 let master: GainNode;
+let ducker: GainNode;
+let duckLevel = 1;
+let duckEnd = 0;
 let intensity = 0.15;
 let enabled = false;
 let fading = false;
@@ -71,7 +76,8 @@ function build() {
   verb.buffer = impulse(ctx);
   filter.connect(dry).connect(master);
   filter.connect(verb).connect(wet).connect(master);
-  master.connect(ctx.destination);
+  ducker = ctx.createGain();
+  master.connect(ducker).connect(ctx.destination);
   decks = [0, 1].map(() => {
     const el = new Audio();
     el.src = SRC;
@@ -96,7 +102,8 @@ function build() {
   setInterval(() => enabled && store.set(KEY_TIME, String(decks[live].el.currentTime), sessionStorage), 1000);
 }
 
-const level = () => 0.22 + 0.3 * Math.pow(intensity, 0.8);
+// Background level: about 3 dB under the first cut of the score (0.22..0.52).
+const level = () => 0.155 + 0.215 * Math.pow(intensity, 0.8);
 
 /** Push the current intensity into the audio graph. */
 function apply(now = false) {
@@ -116,6 +123,30 @@ export function setIntensity(v: number) {
   if (Math.abs(next - intensity) < 0.004) return;
   intensity = next;
   apply();
+}
+
+/** The shared AudioContext (null until the visitor first turns sound on). */
+export const getContext = (): AudioContext | null => ctx;
+
+/**
+ * Dip the score by `db` (negative) for `hold` seconds, then let it back up smoothly.
+ * Overlapping ducks merge: the deepest level and the latest end win.
+ */
+export function duck(db = -6, hold = 1, attack = 0.4, release = 1.2) {
+  if (!ctx || !enabled) return;
+  const t = ctx.currentTime;
+  const g = Math.pow(10, Math.min(0, db) / 20);
+  const active = t < duckEnd;
+  const lvl = active ? Math.min(g, duckLevel) : g;
+  const end = Math.max(t + attack + hold, active ? duckEnd : 0);
+  if (active && lvl === duckLevel && end === duckEnd) return;
+  const p = ducker.gain;
+  p.cancelScheduledValues(t);
+  p.setValueAtTime(p.value, t);
+  p.setTargetAtTime(lvl, t, Math.max(0.01, attack / 3));
+  p.setTargetAtTime(1, end, Math.max(0.05, release / 3));
+  duckLevel = lvl;
+  duckEnd = end;
 }
 
 /** Crossfade to another point in the score (e.g. the climax for a finale). */
