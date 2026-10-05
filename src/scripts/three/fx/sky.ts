@@ -4,11 +4,19 @@
 import { THREE } from '../core';
 import { SIMPLEX3, HASH } from './noise';
 
+/**
+ * Projection used by the backdrop only (dome, stars, dust). The warp jump widens this one
+ * while the real camera stays at its normal field of view, so the jump stretches space
+ * around the rocket without moving or resizing the rocket itself.
+ */
+export const backdropProj = { value: new THREE.Matrix4() };
+
 const DOME_VERT = /* glsl */ `
+uniform mat4 uProj;
 varying vec3 vDir;
 void main() {
   vDir = position;
-  vec4 p = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  vec4 p = uProj * modelViewMatrix * vec4(position, 1.0);
   gl_Position = p.xyww;
 }`;
 // The deep-space nebula is eight octaves of 3D noise per pixel: far too much work to repeat
@@ -113,6 +121,7 @@ export function makeDome(renderer: THREE.WebGLRenderer) {
       uTime: { value: 0 },
       uFlash: { value: 0 },
       tNebula: { value: nebula.texture },
+      uProj: backdropProj,
     },
   });
   const mesh = new THREE.Mesh(new THREE.SphereGeometry(10, 48, 24), mat);
@@ -125,6 +134,7 @@ export function makeDome(renderer: THREE.WebGLRenderer) {
 const STAR_VERT = /* glsl */ `
 attribute vec3 iPos;
 attribute vec3 iData; // size, brightness, seed
+uniform mat4 uProj;
 uniform vec3 uOffset;
 uniform vec3 uVel;
 uniform float uStreak;
@@ -140,7 +150,7 @@ void main() {
   vec3 p = mod(iPos + uOffset + 80.0, 160.0) - 80.0;
   float dist = length(p);
   vec3 wp = p + cameraPosition;
-  mat4 vp = projectionMatrix * viewMatrix;
+  mat4 vp = uProj * viewMatrix;
   vec4 h = vp * vec4(wp, 1.0);
   vec4 t = vp * vec4(wp - uVel * uStreak, 1.0);
   if (h.w <= 0.0) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
@@ -209,6 +219,7 @@ export function makeStars(count: number) {
       uTime: { value: 0 },
       uAlpha: { value: 0 },
       uBoost: { value: 0 },
+      uProj: backdropProj,
     },
   });
   const mesh = new THREE.Mesh(g, mat);
@@ -221,6 +232,7 @@ export function makeStars(count: number) {
 const DUST_VERT = /* glsl */ `
 attribute vec3 iPos;
 attribute vec2 iData; // size, seed
+uniform mat4 uProj;
 uniform vec3 uOffset;
 uniform vec3 uBox;
 uniform vec3 uCenter;
@@ -237,7 +249,7 @@ void main() {
   float blur = clamp(abs(depth - uFocus) / max(depth, 0.5) * 2.4, 0.0, 3.0);
   float size = iData.x * (0.025 + blur * 0.08);
   mv.xy += position.xy * size;
-  gl_Position = projectionMatrix * mv;
+  gl_Position = uProj * mv;
   vUv = position.xy + 0.5;
   vBlur = blur;
   vA = smoothstep(0.8, 2.5, depth) * (1.0 - smoothstep(uFocus * 1.2, uFocus * 1.9, depth)) / (1.0 + blur * blur * 6.0) * 0.55;
@@ -284,6 +296,7 @@ export function makeDust(count: number) {
       uCenter: { value: new THREE.Vector3(0, 0, 5.5) },
       uFocus: { value: 12 },
       uTime: { value: 0 },
+      uProj: backdropProj,
       uAlpha: { value: 0 },
     },
   });

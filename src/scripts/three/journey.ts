@@ -9,7 +9,7 @@ import { createStage, getQuality, isLiteDevice, onQuality, THREE } from './core'
 import { makeRocket } from './rocket';
 import * as sfx from '../sfx';
 import { makeEnv } from './fx/env';
-import { makeDome, makeStars, makeDust } from './fx/sky';
+import { makeDome, makeStars, makeDust, backdropProj } from './fx/sky';
 import { Smoke, Sparks } from './fx/particles';
 import { makePost } from './fx/post';
 import { makePad, ROCKET_BASE, DECK, type Pad } from './fx/pad';
@@ -260,7 +260,7 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
   bodyRO.observe(document.body);
   let wayIndex = -1;
   const zones: number[] = [];
-  const wpOut = { x: 0, y: 0, s: 1, o: 1, i: 0 };
+  const wpOut = { x: 0, y: 0, s: 1, o: 1, i: 0, a: 0 };
   const waypoint = () => {
     const vh = window.innerHeight;
     const sy = window.scrollY;
@@ -276,7 +276,7 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
     let a = 0;
     let b = 0;
     let t = 0;
-    if (!ways.length) return Object.assign(wpOut, { x: 0, y: 0, s: 1, o: 1, i: 0 });
+    if (!ways.length) return Object.assign(wpOut, { x: 0, y: 0, s: 1, o: 1, i: 0, a: 0 });
     const n = ways.length;
     if (mid <= zones[0]) a = b = 0;
     else {
@@ -301,6 +301,7 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
     wpOut.s = A.s + (B.s - A.s) * t;
     wpOut.o = A.o + (B.o - A.o) * t;
     wpOut.i = t < 0.5 ? a : b;
+    wpOut.a = a;
     return wpOut;
   };
   /** 2 = an opaque section fills the viewport, 1 = one is partly on screen, 0 = none. */
@@ -348,6 +349,9 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
   let shakeAmp = 0;
   let flash = 0;
   let sunVis = 0; // eased lens-flare strength
+  let sunHide = 0; // eased warpEnv, so a cancelled jump does not pop the sun back in
+  let backdropFov = 35; // field of view of the backdrop (widened by the warp jump)
+  const backdropCam = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
   const hjDebug = qs.has('hjdebug');
   let sunRawDbg = 0;
   const padSun = new THREE.Vector2(2, 2); // sun in uv as seen by the unshaken pad camera
@@ -618,7 +622,11 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
         hudStage = arriveT < 1.6 && withPad ? 'Ascent' : null;
       }
       // Nose up when scrolling down, nose down when scrolling back up; lean into turns.
-      if (sv < -2.5) facing += (1 - facing) * damp(4, realDt);
+      // From the flight plan onward the rocket stays nose-up: a half-turn there used to swing
+      // it through a loop (and a circular smoke trail) right before the warp and the landing.
+      const lockUp = ways.length > 1 && wp.a >= ways.length - 2;
+      if (lockUp) facing += (0 - facing) * damp(3, realDt);
+      else if (sv < -2.5) facing += (1 - facing) * damp(4, realDt);
       else if (sv > 2.5) facing += (0 - facing) * damp(4, realDt);
       let tz = facing * Math.PI - Math.atan2(vel.x * 0.06, 1.2 + speed * 0.04) * (facing > 0.5 ? -1 : 1);
       let spinTarget = 0.5 + Math.sin(spin) * 0.55 - vel.x * 0.04;
@@ -709,20 +717,25 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
     }
 
     // ===== Warp =====
+    // The jump only stretches space: the FOV kick goes to the backdrop's own projection (stars,
+    // dust, dome), never to the real camera. Kicking the real camera used to shrink the rocket
+    // toward the centre and then snap it back, bigger and somewhere else, at the drop-out flash.
     let fovTarget = 35;
     let warpK = 0;
+    let warpEnv = 0; // 0..1 how much the sun is tucked away during the jump
     if (warpT >= 0) {
       warpT += realDt;
       const charge = sstep(0, 1.2, warpT);
       if (!warpDropped) {
         warpK = charge;
-        fovTarget = 35 + 42 * Math.pow(charge, 1.6);
-        shakeTarget = Math.max(shakeTarget, charge * 0.45);
-        thrust = Math.max(thrust, 1.2 + charge * 0.4);
-        boost = Math.max(boost, charge * 1.4);
+        warpEnv = sstep(0, 0.3, warpT);
+        fovTarget = 35 + 40 * Math.pow(charge, 1.6);
+        shakeTarget = Math.max(shakeTarget, charge * 0.3);
+        thrust = Math.max(thrust, 0.9 + charge * 0.35);
+        boost = Math.max(boost, charge * 0.5);
         if (warpT >= 1.25) {
           warpDropped = true;
-          flash = 1;
+          flash = 0.85;
           sfx.warpDrop();
           warpDrop?.();
           warpDrop = null;
@@ -730,11 +743,22 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
       } else {
         const after = warpT - 1.25;
         warpK = Math.max(0, 1 - after * 4);
-        fovTarget = 35 - 6 * Math.sin(Math.min(1, after * 2.5) * Math.PI) * (1 - after);
+        warpEnv = 1 - sstep(0.2, 1.4, after);
+        fovTarget = 35 - 6 * Math.sin(Math.min(1, after * 2.5) * Math.PI) * Math.max(0, 1 - after);
       }
     }
-    camera.fov += (fovTarget - camera.fov) * (warpDropped && warpT < 1.6 ? damp(18, realDt) : damp(6, realDt));
-    camera.updateProjectionMatrix();
+    sunHide += (warpEnv - sunHide) * damp(6, realDt);
+    backdropFov += (fovTarget - backdropFov) * (warpDropped && warpT < 1.6 ? damp(18, realDt) : damp(6, realDt));
+    if (camera.fov !== 35) {
+      camera.fov = 35;
+      camera.updateProjectionMatrix();
+    }
+    backdropCam.fov = backdropFov;
+    backdropCam.aspect = camera.aspect;
+    backdropCam.near = camera.near;
+    backdropCam.far = camera.far;
+    backdropCam.updateProjectionMatrix();
+    backdropProj.value.copy(backdropCam.projectionMatrix);
 
     // ===== Apply rocket transform =====
     vel.subVectors(cur, prev).divideScalar(Math.max(realDt, 1e-3));
@@ -809,7 +833,7 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
     su.uVel.value.copy(tmp);
     su.uStreak.value = 0.05 - warpK * 0.035;
     su.uBoost.value = warpK * 4;
-    du2.uSunBoost.value = 1 - warpK;
+    du2.uSunBoost.value = 1 - sunHide;
     su.uAlpha.value = space;
     su.uTime.value = t;
     su.uPx.value = 1.5 * renderer.getPixelRatio();
@@ -885,15 +909,15 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
       by = sunDir.z < 0 ? 0.5 + (0.5 * sunDir.y) / fz / th : 2;
     }
     const edge = sstep(-0.15, 0.05, Math.min(bx, by, 1 - bx, 1 - by));
-    const sunTarget = edge * (space * 0.85 + (1 - space) * 0.1) * (1 - warpK);
-    sunVis += (sunTarget - sunVis) * damp(warpK > 0 ? 8 : 2, realDt);
+    const sunTarget = edge * (space * 0.85 + (1 - space) * 0.1) * (1 - sunHide);
+    sunVis += (sunTarget - sunVis) * damp(sunHide > 0.01 ? 8 : 2, realDt);
     fu.uSunVis.value = sunVis;
     fu.uFlash.value = Math.min(1, flash);
     fu.uFlashCol.value.setRGB(0.92, 0.95, 1.0);
     fu.uTime.value = t;
     fu.uVignette.value = 0.5 + warpK * 0.4;
     du2.uFlash.value = 0;
-    post.bloom.strength = (mode === 'pad' || mode === 'launch' ? 0.55 : 0.48) + warpK * 0.6;
+    post.bloom.strength = (mode === 'pad' || mode === 'launch' ? 0.55 : 0.48) + warpK * 0.15;
 
     // ===== Render policy =====
     // The rocket is out of sight and nothing moves fast: the backdrop only drifts, so a few
@@ -952,7 +976,7 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
     }
   });
 
-  if (hjDebug) (window as unknown as { __hj: unknown }).__hj = () => ({ mode, film, curOpacity, finale, warpT, seq, fov: camera.fov, cam: camera.position.toArray(), rocket: cur.toArray(), scale: curScale, sunVis: fu.uSunVis.value, sunRaw: sunRawDbg, sun: fu.uSun.value.toArray(), fps: fpsNow, smoke: smoke.alive, look: look.toArray(), sv, flash, shakeAmp, starFlow, rigErr: rigPos.distanceTo(rigPosT), camLook: camLook.toArray(), dir: camera.getWorldDirection(new THREE.Vector3()).toArray() });
+  if (hjDebug) (window as unknown as { __hj: unknown }).__hj = () => ({ mode, film, curOpacity, finale, warpT, seq, fov: camera.fov, bfov: backdropFov, facing, rotZ, cam: camera.position.toArray(), rocket: cur.toArray(), scale: curScale, sunVis: fu.uSunVis.value, sunRaw: sunRawDbg, sun: fu.uSun.value.toArray(), fps: fpsNow, smoke: smoke.alive, look: look.toArray(), sv, flash, shakeAmp, starFlow, rigErr: rigPos.distanceTo(rigPosT), camLook: camLook.toArray(), dir: camera.getWorldDirection(new THREE.Vector3()).toArray() });
 
   return {
     setLoad: (p) => (load = p),
