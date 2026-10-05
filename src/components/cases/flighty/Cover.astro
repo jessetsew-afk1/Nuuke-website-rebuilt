@@ -7,7 +7,8 @@ interface Props {
   project: Project;
 }
 const { project: p } = Astro.props;
-const view = { lat0: 34, lon0: -96, cx: 590, cy: 330, r: 220 };
+const view = { lat0: 38, lon0: -97, cx: 590, cy: 330, r: 420 };
+const DISC = 220;
 const grat = graticule(view, 15);
 const routes: [string, string, string][] = [
   ['DEN', 'ORD', FL.late],
@@ -17,7 +18,11 @@ const routes: [string, string, string][] = [
 ];
 const dots = Object.values(A)
   .map((a) => ({ a, p: proj(a.lat, a.lon, view) }))
-  .filter((d) => d.p.z > 0.1);
+  .filter((d) => Math.hypot(d.p.x - view.cx, d.p.y - view.cy) < DISC - 8);
+const pl = proj(42.6, -106, view);
+const o = proj(A.ORD.lat, A.ORD.lon, view);
+const sf = proj(A.SFO.lat, A.SFO.lon, view);
+const heading = (Math.atan2(sf.y - o.y, sf.x - o.x) * 180) / Math.PI;
 const word = 'FLIGHTY'.split('');
 const rows = [
   { t: '13:15', c: 'JFK', s: 'BOARDING', col: FL.ok },
@@ -38,6 +43,7 @@ const rows = [
       <stop offset="0" stop-color="#1b1d2b" />
       <stop offset="1" stop-color="#0a0a10" />
     </radialGradient>
+    <clipPath id="flc-clip"><circle cx="590" cy="330" r="220" /></clipPath>
     <linearGradient id="flc-flap" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#2a2a34" />
       <stop offset=".5" stop-color="#1f1f28" />
@@ -50,14 +56,17 @@ const rows = [
     {Array.from({ length: 40 }).map((_, i) => <circle cx={(i * 137) % 800} cy={(i * 71) % 260} r={i % 4 ? 0.9 : 1.6} />)}
   </g>
   <!-- globe -->
-  <circle cx={view.cx} cy={view.cy} r={view.r + 18} fill="none" stroke="#2a2a35" stroke-width="6" />
-  <circle cx={view.cx} cy={view.cy} r={view.r + 18} fill="none" stroke={FL.late} stroke-width="6" stroke-linecap="round" stroke-dasharray={`${2 * Math.PI * (view.r + 18) * 0.42} 9999`} transform={`rotate(-90 ${view.cx} ${view.cy})`} />
-  <circle cx={view.cx} cy={view.cy} r={view.r} fill="url(#flc-globe)" />
-  <path d={grat} fill="none" stroke="#ffffff" stroke-opacity=".09" stroke-width="1" />
-  {routes.map(([a, b, c]) => <path d={arcPath(A[a], A[b], view, 0.16)} fill="none" stroke={c} stroke-width="3" stroke-linecap="round" opacity=".9" />)}
-  {dots.map((d) => <circle cx={d.p.x} cy={d.p.y} r="4" fill="#f5f5f0" />)}
-  <g transform={`translate(${proj(A.ORD.lat, A.ORD.lon, view).x - 40} ${proj(A.ORD.lat, A.ORD.lon, view).y - 52}) rotate(-28)`}>
-    <path d="M0 0 l22 -4 l10 -12 l5 0 l-5 13 l14 -2 l4 -6 l4 0 l-2 8 l2 8 l-4 0 l-4 -6 l-14 -2 l5 13 l-5 0 l-10 -12 z" fill="#f5f5f0" />
+  <circle cx={view.cx} cy={view.cy} r={DISC + 18} fill="none" stroke="#2a2a35" stroke-width="6" />
+  <circle cx={view.cx} cy={view.cy} r={DISC + 18} fill="none" stroke={FL.late} stroke-width="6" stroke-linecap="round" stroke-dasharray={`${2 * Math.PI * (DISC + 18) * 0.42} 9999`} transform={`rotate(-90 ${view.cx} ${view.cy})`} />
+  <circle cx={view.cx} cy={view.cy} r={DISC} fill="url(#flc-globe)" />
+  <g clip-path="url(#flc-clip)">
+    <path d={grat} fill="none" stroke="#ffffff" stroke-opacity=".09" stroke-width="1" />
+    {routes.map(([a, b, c]) => <path d={arcPath(A[a], A[b], view, 0.16)} fill="none" stroke={c} stroke-width="4" stroke-linecap="round" opacity=".95" />)}
+    {dots.map((d) => <circle cx={d.p.x} cy={d.p.y} r="5" fill="#f5f5f0" />)}
+  </g>
+  <circle cx={view.cx} cy={view.cy} r={DISC} fill="none" stroke="#fff" stroke-opacity=".12" />
+  <g transform={`translate(${pl.x} ${pl.y - 6}) rotate(${heading}) scale(1.6)`}>
+    <path d="M12 0 L3 -2 L-2 -10 L-5 -10 L-3 -2 L-9 -2 L-11 -5 L-13 -5 L-12 0 L-13 5 L-11 5 L-9 2 L-3 2 L-5 10 L-2 10 L3 2 Z" fill="#f5f5f0" />
   </g>
   <!-- board -->
   <g transform="translate(46 96)">

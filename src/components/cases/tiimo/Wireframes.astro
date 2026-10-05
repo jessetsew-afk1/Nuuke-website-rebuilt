@@ -155,7 +155,7 @@ const steps = ['Sketch', 'Wireframe', 'Colour', 'Notes'];
       m.canvas.style.opacity = String(seg(p, 0.56, 0.66));
       m.col.forEach((el, i) => (el.style.opacity = String(seg(p, 0.58 + (i / n) * 0.14, 0.64 + (i / n) * 0.14))));
       // 4. Notes pin on.
-      const notesOn = Math.floor(seg(p, 0.76, 0.96) * m.pins.length + (p >= 0.96 ? 1 : 0));
+      const notesOn = Math.min(m.pins.length, Math.floor(seg(p, 0.76, 0.96) * m.pins.length + (p >= 0.96 ? 1 : 0)));
       m.pins.forEach((pin, i) => pin.classList.toggle('is-in', i < notesOn));
       m.notes.forEach((no, i) => {
         no.classList.toggle('is-in', i < notesOn);

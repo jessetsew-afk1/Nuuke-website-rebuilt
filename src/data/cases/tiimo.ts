@@ -313,6 +313,6 @@ export const TONE_FLAGS: { re: string; why: string }[] = [
   { re: 'crush|destroy|destroys|superpowers?', why: 'Combat words add pressure.' },
   { re: 'no more excuses|never be late', why: 'Implies the reader is the problem.' },
   { re: 'productivity|pro\\b', why: 'We talk about days, not output.' },
-  { re: 'functionality|decomposition|designated|interface', why: 'Jargon. Say what changed for the person.' },
+  { re: 'functionality|decomposition|designated|interface|multi-user|application|post-session', why: 'Jargon. Say what changed for the person.' },
   { re: '!!+', why: 'Shouting. One calm sentence is enough.' },
 ];

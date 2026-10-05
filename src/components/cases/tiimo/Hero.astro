@@ -84,7 +84,8 @@ const css = [
   .ti-hb.is-round { border-radius: 50%; }
   @keyframes ti-float { 50% { translate: 0 -14px; } }
 
-  .ti-h-phone { position: absolute; left: 50%; top: 50%; width: 41%; aspect-ratio: 9 / 19; translate: -50% -50%; rotate: 3deg; padding: 2.2%; border-radius: 13% / 6.2%; background: linear-gradient(150deg, #2a2440, #120e20 50%, #2d2645); box-shadow: 0 50px 90px -30px rgb(30 15 70 / 0.8), 0 0 0 1px rgb(255 255 255 / 0.08); animation: ti-float 9s ease-in-out infinite; container-type: inline-size; }
+  .ti-h-phone { position: absolute; left: 50%; top: 50%; width: 41%; aspect-ratio: 9 / 19; translate: -50% -50%; rotate: 3deg; padding: 2.2%; border-radius: 13% / 6.2%; background: linear-gradient(150deg, #2a2440, #120e20 50%, #2d2645); box-shadow: 0 50px 90px -30px rgb(30 15 70 / 0.8), 0 0 0 1px rgb(255 255 255 / 0.08); animation: ti-float-c 9s ease-in-out infinite; container-type: inline-size; }
+  @keyframes ti-float-c { 50% { translate: -50% calc(-50% - 12px); } }
   .ti-h-screen { position: relative; height: 100%; border-radius: 11% / 5.2%; overflow: hidden; background: #f7f3ff; padding: 18cqw 6cqw 0; color: #1f1a33; font-family: Inter, system-ui, sans-serif; }
   .ti-h-island { position: absolute; left: 50%; top: 3.4cqw; width: 28cqw; height: 8cqw; margin-left: -14cqw; border-radius: 9cqw; background: #120e20; }
   .ti-h-kicker { font-size: 3.6cqw; font-weight: 700; letter-spacing: 0.16em; color: #625a7c; }

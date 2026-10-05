@@ -3,14 +3,15 @@
 import { THREE, createStage } from './core';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
-const PASTELS = [0xdccfff, 0xffd3df, 0xffdcbf, 0xfff0b0, 0xc9f1dd, 0xd2e7ff, 0xa98bff];
+// Slightly stronger than the UI pastels: tone mapping and the studio light lift them back to pastel.
+const PASTELS = [0xb9a2ff, 0xff9db8, 0xffb27d, 0xffdf5e, 0x86e0b4, 0x93c6ff, 0x9a78ff];
 
 export async function init(canvas: HTMLCanvasElement) {
   const stage = createStage(canvas, { fov: 32, z: 12 });
   const { scene, camera } = stage;
 
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xd9cdf7, 1.4));
-  const key = new THREE.DirectionalLight(0xffffff, 1.6);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8f7fc4, 0.7));
+  const key = new THREE.DirectionalLight(0xffffff, 1.1);
   key.position.set(3, 5, 6);
   scene.add(key);
 
@@ -32,12 +33,10 @@ export async function init(canvas: HTMLCanvasElement) {
   const items = spots.map(([x, y, z, c], i) => {
     const mat = new THREE.MeshPhysicalMaterial({
       color: PASTELS[c],
-      roughness: 0.42,
+      roughness: 0.5,
       metalness: 0,
-      clearcoat: 0.7,
-      clearcoatRoughness: 0.35,
-      sheen: 0.6,
-      sheenColor: new THREE.Color(0xffffff),
+      clearcoat: 0.5,
+      clearcoatRoughness: 0.4,
     });
     const m = new THREE.Mesh(geos[i % geos.length], mat);
     m.position.set(x, y, z);

@@ -155,7 +155,6 @@ const durLabel = (d: number) => (d >= 1 ? `${Math.floor(d)} h${d % 1 ? ` ${Math.
     let mobile = false;
     let slotTop = 0;
     let slotLeft = 0;
-    let panelRight = 0;
     let panelLeft = 0;
     let textRight = 0;
 
@@ -176,7 +175,6 @@ const durLabel = (d: number) => (d >= 1 ? `${Math.floor(d)} h${d % 1 ? ` ${Math.
       const pr = panel.getBoundingClientRect();
       slotTop = r.top - sr.top;
       slotLeft = r.left - sr.left;
-      panelRight = pr.right - sr.left;
       panelLeft = pr.left - sr.left;
       textRight = text.getBoundingClientRect().right - sr.left;
       const gutter = mobile ? 46 : 58;

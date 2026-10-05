@@ -97,6 +97,7 @@ const payload = JSON.stringify({ accounts: spatialAccounts, months: spatialMonth
       const t0 = data.accounts.reduce((s, a) => s + a.k[0], 0);
       root.querySelector('[data-cms-month]')!.textContent = data.months[m];
       root.querySelector('[data-cms-total]')!.textContent = '$' + tot;
+      root.querySelector('[data-cms-delta]')!.classList.toggle('is-down', tot < t0);
       root.querySelector('[data-cms-delta]')!.textContent = m === 0 ? 'Starting point' : `${tot >= t0 ? '▲' : '▼'} $${Math.abs(tot - t0)}k since January`;
       data.accounts.forEach((a) => (root.querySelector(`[data-cms-val="${a.id}"]`)!.textContent = money(a.k[m])));
       scene?.setMonth(m);
@@ -167,6 +168,7 @@ const payload = JSON.stringify({ accounts: spatialAccounts, months: spatialMonth
   .cms-sample { text-transform: none; letter-spacing: 0; color: var(--muted); }
   .cms-total { font-family: var(--font-display); font-weight: 900; font-size: var(--fs-3xl); line-height: 1; letter-spacing: -0.04em; }
   .cms-delta { color: #00cc4b; font: 700 var(--fs-sm) / 1.3 var(--font-ui); }
+  .cms-delta.is-down { color: #ff6a57; }
   .cms-month { display: grid; gap: var(--s-2); }
   .cms-month input { width: 100%; accent-color: #1c6cff; }
   .cms-ticks { display: grid; grid-template-columns: repeat(12, 1fr); font: 500 11px/1 var(--font-ui); color: var(--muted); text-align: center; }
@@ -181,7 +183,7 @@ const payload = JSON.stringify({ accounts: spatialAccounts, months: spatialMonth
 
   @media (max-width: 960px) {
     .cms { grid-template-columns: 1fr; padding: var(--s-3); }
-    .cms-stage { min-height: 380px; }
+    .cms-stage { min-height: 420px; }
     .cms-accts ul { grid-template-columns: 1fr 1fr; }
   }
 </style>

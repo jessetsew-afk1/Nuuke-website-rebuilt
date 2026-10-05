@@ -10,7 +10,7 @@ const payload = JSON.stringify({ cards: cards.map(({ id, label, ours, why }) => 
   <div class="gs-cs-top">
     <div>
       <h3 class="gs-cs-h">Sort Gentler Streak’s features into four tabs.</h3>
-      <p class="t-body">Drag each card into the tab where you’d look for it. On a phone, tap a card, then tap a tab. With a keyboard, pick a card up with <kbd>Enter</kbd> and press <kbd>1</kbd>–<kbd>4</kbd>.</p>
+      <p class="t-body">Drag each card into the tab where you’d look for it. On a phone, tap a card, then tap a tab. With a keyboard, pick a card up with <kbd>Enter</kbd>, press <kbd>1</kbd>–<kbd>4</kbd> to place it, or <kbd>0</kbd> to put it back.</p>
     </div>
     <div class="gs-cs-actions">
       <p class="gs-cs-count t-num" aria-live="polite"><b data-cs-count>0</b> / {cards.length} sorted</p>
@@ -22,7 +22,7 @@ const payload = JSON.stringify({ cards: cards.map(({ id, label, ours, why }) => 
 
   <div class="gs-cs-board">
     <div class="gs-cs-pile" data-zone="pile">
-      <p class="t-label">Unsorted <span class="gs-cs-key">0</span></p>
+      <p class="t-label">Unsorted · <span data-cs-left>{cards.length}</span> left</p>
       <ul class="gs-cs-list" role="list" data-list="pile">
         {
           cards.map((c) => (
@@ -93,6 +93,7 @@ const payload = JSON.stringify({ cards: cards.map(({ id, label, ours, why }) => 
     const drops = [...root.querySelectorAll<HTMLButtonElement>('[data-drop]')];
     const live = root.querySelector<HTMLElement>('[data-cs-live]')!;
     const countEl = root.querySelector<HTMLElement>('[data-cs-count]')!;
+    const leftEl = root.querySelector<HTMLElement>('[data-cs-left]')!;
     const result = root.querySelector<HTMLElement>('[data-cs-result]')!;
     const ring = root.querySelector<SVGCircleElement>('[data-cs-ring]')!;
     const pctEl = root.querySelector<HTMLElement>('[data-cs-pct]')!;
@@ -139,6 +140,7 @@ const payload = JSON.stringify({ cards: cards.map(({ id, label, ours, why }) => 
     const update = () => {
       const n = items.filter((x) => zoneOf(x) !== 'pile').length;
       countEl.textContent = String(n);
+      leftEl.textContent = String(items.length - n);
       if (compared) compare(false);
     };
 
@@ -374,8 +376,8 @@ const payload = JSON.stringify({ cards: cards.map(({ id, label, ours, why }) => 
   .gs-cs-why { display: grid; gap: var(--s-3); }
   .gs-cs-wh { font: 800 var(--fs-lg) / 1.2 var(--font-display); }
   .gs-cs-diffs { list-style: none; padding: 0; display: grid; gap: var(--s-3); }
-  .gs-cs-diffs li { padding: var(--s-3) var(--s-4); border-radius: var(--r-md); background: var(--surface); color: var(--ink-2); font-size: var(--fs-sm); }
-  .gs-cs-diffs strong { color: var(--ink); }
+  .gs-cs-diffs :global(li) { padding: var(--s-3) var(--s-4); border-radius: var(--r-md); background: var(--surface); color: var(--ink-2); font-size: var(--fs-sm); line-height: 1.5; }
+  .gs-cs-diffs :global(strong) { color: var(--ink); }
   :global(.gs-cs-arrow) { color: #ffb089; font-weight: 600; }
 
   @media (max-width: 1100px) {

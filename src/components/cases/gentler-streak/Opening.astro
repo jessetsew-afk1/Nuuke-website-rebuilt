@@ -246,6 +246,7 @@ const marquee = 'REST COUNTS ✶ LISTEN IN ✶ MOVE CONSISTENTLY, NOT CONSTANTLY
 
     let target = 0;
     let cur = 0;
+    const isStatic = reducedMotion;
     let beat = 0;
     let lastBand = -1;
     let lastLit = -1;
@@ -331,7 +332,7 @@ const marquee = 'REST COUNTS ✶ LISTEN IN ✶ MOVE CONSISTENTLY, NOT CONSTANTLY
 
       // Words.
       const lit = Math.round(range(p, 0.04, 0.74) * words.length);
-      if (lit !== lastLit || force) {
+      if (!isStatic && (lit !== lastLit || force)) {
         lastLit = lit;
         words.forEach((w, i) => w.classList.toggle('is-lit', i < lit));
       }
@@ -361,8 +362,10 @@ const marquee = 'REST COUNTS ✶ LISTEN IN ✶ MOVE CONSISTENTLY, NOT CONSTANTLY
         sceneEl.textContent = scene;
       }
       const done = p > 0.8;
-      root.classList.toggle('is-done', done);
-      lockEl.classList.toggle('is-in', done);
+      if (!isStatic) {
+        root.classList.toggle('is-done', done);
+        lockEl.classList.toggle('is-in', done);
+      }
     };
 
     if (reducedMotion) {
@@ -470,9 +473,10 @@ const marquee = 'REST COUNTS ✶ LISTEN IN ✶ MOVE CONSISTENTLY, NOT CONSTANTLY
   @keyframes gs-o-marq { to { transform: translateX(-50%); } }
 
   .gs-o.is-static { height: auto; }
-  .gs-o.is-static .gs-o-sticky { position: relative; height: auto; min-height: 100svh; padding-bottom: 50vh; --sky: #ffe6d6; }
+  .gs-o.is-static .gs-o-sticky { position: relative; height: auto; min-height: 100svh; padding-bottom: 58vh; }
   .gs-o.is-static .gs-o-grid { position: relative; top: 0; padding-top: 9rem; }
-  .gs-o.is-static .gs-lock { position: relative; inset: auto; margin-top: var(--s-8); }
+  .gs-o.is-static .gs-lock { position: relative; inset: auto; margin-top: var(--s-8); color: #fff4ec; }
+  .gs-o.is-static .gs-lock-badges span { border-color: rgb(255 244 236 / 0.5); background: rgb(255 244 236 / 0.08); }
   .gs-o.is-static .gs-o-hud { top: 5rem; }
 
   @media (max-width: 760px) {
@@ -486,6 +490,7 @@ const marquee = 'REST COUNTS ✶ LISTEN IN ✶ MOVE CONSISTENTLY, NOT CONSTANTLY
     .gs-o-text { font-size: clamp(1.4rem, 6.4vw, 1.9rem); max-width: none; }
     .gs-o-hud { flex-direction: column; gap: 6px; }
     .gs-lock-main { font-size: clamp(2.8rem, 15vw, 5rem); }
+    .gs-o.is-static .gs-o-ring { top: 3.4rem; }
   }
   @media (prefers-reduced-motion: reduce) {
     .gs-o-blob, .gs-o-breath, .gs-o-head, .gs-o-heart, .gs-o-marquee-track { animation: none; }

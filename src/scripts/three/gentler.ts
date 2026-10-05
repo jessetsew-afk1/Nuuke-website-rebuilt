@@ -18,9 +18,10 @@ const days = [0.1, 0.4, 0.8, 1.3, 0.6, -0.2, -0.6, 0.1, 0.3, 1.5, 0.7, 0.2, -0.4
 
 export function initHero(canvas: HTMLCanvasElement) {
   const stage = createStage(canvas, { fov: 30, z: 13 });
-  const { scene, onFrame, pointer, reduced } = stage;
+  const { scene, onFrame, pointer, reduced, renderer } = stage;
+  renderer.toneMappingExposure = 0.88;
 
-  scene.add(new THREE.HemisphereLight(0xfff1e6, 0x8a5a7a, 1.4));
+  scene.add(new THREE.HemisphereLight(0xfff1e6, 0x8a5a7a, 0.9));
   const key = new THREE.DirectionalLight(0xffffff, 2.2);
   key.position.set(4, 7, 8);
   scene.add(key);
@@ -32,8 +33,8 @@ export function initHero(canvas: HTMLCanvasElement) {
   scene.add(rig);
 
   // --- The band: area between two smooth curves, extruded into a soft slab.
-  const X0 = -5.2;
-  const X1 = 5.2;
+  const X0 = -4.6;
+  const X1 = 4.2;
   const centre = (t: number) => Math.sin(t * Math.PI * 1.6 + 1.2) * 0.45 + Math.sin(t * Math.PI * 3.1 + 2.4) * 0.15;
   const half = (t: number) => 0.62 * (0.82 + 0.18 * Math.cos(t * Math.PI * 2.2 + 1.2));
   const xs = (t: number) => X0 + (X1 - X0) * t;
@@ -98,7 +99,7 @@ export function initHero(canvas: HTMLCanvasElement) {
   scene.add(sun);
 
   rig.rotation.set(-0.18, -0.42, 0.04);
-  rig.position.set(-0.3, -0.9, 0);
+  rig.position.set(-0.2, -0.8, 0);
   const small = () => canvas.clientWidth < 520;
   const fit = () => {
     const s = small() ? 0.78 : 1;

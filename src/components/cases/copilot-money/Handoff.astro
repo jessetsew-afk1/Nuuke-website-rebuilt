@@ -128,8 +128,7 @@ const jsonHtml = hl(json, 'json');
           <p class="cmd-status">Over by $120 · $35 rolled over</p>
         </div>
         <div class="cmd-red" aria-hidden="true">
-          <i class="cmd-band cmd-band--t"></i><i class="cmd-band cmd-band--b"></i><i class="cmd-band cmd-band--l"></i><i class="cmd-band cmd-band--r"></i>
-          <i class="cmd-band cmd-band--gap"></i>
+          <span class="cmd-bands"><i class="cmd-band cmd-band--t"></i><i class="cmd-band cmd-band--b"></i><i class="cmd-band cmd-band--l"></i><i class="cmd-band cmd-band--r"></i><i class="cmd-band cmd-band--gap"></i></span>
           <span class="cmd-lbl cmd-lbl--pad" data-lbl="pad">16</span>
           <span class="cmd-lbl cmd-lbl--gap" data-lbl="gap">12</span>
           <span class="cmd-lbl cmd-lbl--r">r <b data-lbl="r">18</b></span>
@@ -352,6 +351,7 @@ const jsonHtml = hl(json, 'json');
   .cmd-red { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.3s; border-radius: inherit; }
   .is-red .cmd-red { opacity: 1; }
   .is-red .cmd-card { outline: 1px solid #ff2e88; }
+  .cmd-bands { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; }
   .cmd-band { position: absolute; background: repeating-linear-gradient(45deg, rgb(255 46 136 / 0.35) 0 3px, rgb(255 46 136 / 0.12) 3px 7px); }
   .cmd-band--t { left: 0; right: 0; top: 0; height: var(--pad); }
   .cmd-band--b { left: 0; right: 0; bottom: 0; height: var(--pad); }
@@ -416,6 +416,6 @@ const jsonHtml = hl(json, 'json');
     .cmd-tokens td:last-child { grid-column: 1 / -1; }
     .cmd-tokens td.t-num { width: auto; text-align: right; }
     .cmd-pane pre { font-size: 11.5px; padding: var(--s-4); }
-    .cmd-dim { right: 4px; top: auto; bottom: -26px; transform: none; }
+    .cmd-dim { display: none; }
   }
 </style>

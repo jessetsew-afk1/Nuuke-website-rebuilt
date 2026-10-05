@@ -418,6 +418,8 @@ const odoSlots = ['d3', ',', 'd2', 'd1', 'd0'];
       resize();
       setHud(0.5);
       words.forEach((w) => w.classList.add('is-lit'));
+      nw.textContent = '29';
+      huds.forEach((h) => h.classList.add('is-on'));
       root.classList.remove('is-done');
       lock.classList.add('is-in');
       return;

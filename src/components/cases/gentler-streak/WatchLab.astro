@@ -34,20 +34,20 @@ const jumps = [
             <div class="gs-wl-face">
               <p class="gs-wl-date">TUE 6</p>
               <p class="gs-wl-time">9:41</p>
-              <button type="button" class="gs-wl-comp gs-wl-comp--rect" data-wgo="today" aria-label="Gentler complication: easy walk today, 20 minutes. Open">
+              <button type="button" class="gs-wl-comp gs-wl-comp--rect" data-wgo="today">
                 <span class="gs-wl-c-k">GENTLER</span>
                 <span class="gs-wl-c-t">Easy walk · 20 min</span>
                 <PathChart values={tenDays} w={150} h={34} label="Mini Activity Path" dark />
               </button>
               <div class="gs-wl-comp-row">
-                <button type="button" class="gs-wl-comp gs-wl-comp--circ" data-wgo="today" aria-label="Readiness complication: steady. Open">
+                <button type="button" class="gs-wl-comp gs-wl-comp--circ" data-wgo="today" aria-label="Steady: readiness complication. Open">
                   <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" class="gs-wl-ring-bg" /><circle cx="20" cy="20" r="16" class="gs-wl-ring" style="stroke-dashoffset:30" /></svg>
                   <span>Steady</span>
                 </button>
                 <span class="gs-wl-mini" aria-hidden="true"><b data-wl-streak>12</b><i>streak</i></span>
                 <span class="gs-wl-mini" aria-hidden="true"><b>62</b><i>bpm</i></span>
               </div>
-              <button type="button" class="gs-wl-comp gs-wl-comp--corner" data-wgo="today" aria-label="Corner gauge complication: inside your path. Open">
+              <button type="button" class="gs-wl-comp gs-wl-comp--corner" data-wgo="today" aria-label="In path: corner gauge complication. Open">
                 <svg viewBox="0 0 60 60" aria-hidden="true"><path d="M 6 54 A 48 48 0 0 1 54 6" class="gs-wl-cg-bg" /><path d="M 6 54 A 48 48 0 0 1 54 6" class="gs-wl-cg" /><circle cx="27" cy="19" r="4.5" class="gs-wl-cg-dot" /></svg>
                 <span>In path</span>
               </button>
@@ -57,14 +57,15 @@ const jumps = [
           <!-- TODAY -->
           <section class="gs-wl-scr" data-wscr="today" aria-label="Readiness">
             <div class="gs-wl-scroll" data-wl-scroll>
-              <p class="gs-wl-app">Gentler <span>9:41</span></p>
-              <p class="gs-wl-k">Readiness</p>
+              <p class="gs-wl-app">Readiness <span>9:41</span></p>
               <p class="gs-wl-big">Steady</p>
               <p class="gs-wl-p">A 20-min walk is perfect today.</p>
-              <PathChart values={tenDays} w={170} h={50} label="Activity Path, 10 days" dark />
+              <PathChart values={tenDays} w={190} h={40} label="Activity Path, 10 days" dark />
               <button type="button" class="gs-wl-btn gs-wl-btn--go" data-wgo="live" data-act="Outdoor walk">Start walk</button>
-              <button type="button" class="gs-wl-btn" data-wgo="pick">Other ideas</button>
-              <button type="button" class="gs-wl-btn gs-wl-btn--rest" data-wgo="rest">Rest instead</button>
+              <span class="gs-wl-pair">
+                <button type="button" class="gs-wl-btn gs-wl-btn--sm" data-wgo="pick">Ideas</button>
+                <button type="button" class="gs-wl-btn gs-wl-btn--sm gs-wl-btn--rest" data-wgo="rest">Rest instead</button>
+              </span>
             </div>
           </section>
 
@@ -355,7 +356,7 @@ const jumps = [
   .gs-wl-scr.is-out { visibility: visible; transform: translateX(-35%); opacity: 0; transition: transform 0.45s, opacity 0.45s; }
   .gs-wl-scr.is-out-back { visibility: visible; transform: translateX(100%); transition: transform 0.45s; }
   @keyframes gs-wl-in-back { from { transform: translateX(-35%); opacity: 0; } }
-  .gs-wl-scroll { position: absolute; inset: 0; overflow-y: auto; padding: 14px 14px 18px; display: grid; gap: 7px; align-content: start; scrollbar-width: none; }
+  .gs-wl-scroll { position: absolute; inset: 0; overflow-y: auto; padding: 14px 14px 18px; display: grid; gap: 6px; align-content: start; scrollbar-width: none; }
   .gs-wl-scroll::-webkit-scrollbar { display: none; }
   .gs-wl-app { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #ff9466; padding: 0 6px; }
   .gs-wl-app span:last-child { color: #fff; font-weight: 600; }
@@ -367,6 +368,8 @@ const jumps = [
   .gs-wl-small { font-size: 12px; }
   .gs-wl-btn { min-height: 40px; border-radius: 20px; background: #2a2a2e; color: #fff; font: 700 14px/1 Inter, sans-serif; }
   .gs-wl-btn--go { background: #ff7a45; color: #1d0c04; }
+  .gs-wl-pair { display: grid; grid-template-columns: 1fr 1.4fr; gap: 6px; }
+  .gs-wl-btn--sm { min-height: 34px; font-size: 12px; border-radius: 17px; }
   .gs-wl-btn--rest { background: #3b2a5e; color: #fff; }
   .gs-wl-btn--end { background: #ff453a; color: #1d0505; width: 100%; }
   .gs-wl-item { display: grid; gap: 2px; text-align: left; padding: 10px 12px; border-radius: 16px; background: #1f1f22; color: #fff; }
@@ -413,7 +416,7 @@ const jumps = [
   .gs-wl-zones i.is-on { background: #7ed957; }
   .gs-wl-zl { font-size: 11.5px; line-height: 1.3; color: #d8ccc4; }
   .gs-wl-bars { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; align-items: end; height: 70px; }
-  .gs-wl-bars span { display: grid; align-content: end; justify-items: center; gap: 3px; height: 100%; font-size: 9.5px; color: #c9b8ad; }
+  .gs-wl-bars span { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 3px; height: 100%; font-size: 9.5px; color: #c9b8ad; }
   .gs-wl-bars i { width: 100%; height: var(--v); min-height: 2px; border-radius: 4px; background: linear-gradient(#7ed957, #2f7d32); }
   .gs-wl-rest { position: absolute; inset: 0; padding: 22px 18px; display: grid; gap: 8px; align-content: center; justify-items: start; background: radial-gradient(100% 70% at 50% 0%, #2e1b4e, #000 75%); }
   .gs-wl-moon { width: 40px; height: 40px; border-radius: 50%; background: #e9dcff; -webkit-mask: radial-gradient(circle at 75% 30%, transparent 36%, #000 38%); mask: radial-gradient(circle at 75% 30%, transparent 36%, #000 38%); }
@@ -426,6 +429,7 @@ const jumps = [
   .gs-wl.is-aod .gs-wl-aod { opacity: 1; pointer-events: auto; }
   .gs-wl.is-aod .gs-wl-rig { transform: rotateX(28deg) translateY(10px); }
 
+  .gs-wl-caption { margin-top: 120px; }
   .gs-wl-caption span { color: var(--ink); }
   .gs-wl-side-panel { display: grid; gap: var(--s-5); align-content: start; }
   .gs-wl-taps { padding: var(--s-4) var(--s-5); border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line); display: grid; gap: var(--s-2); }
