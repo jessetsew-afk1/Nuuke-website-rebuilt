@@ -92,10 +92,11 @@ function build() {
   filter.connect(verb).connect(wet).connect(master);
   ducker = ctx.createGain();
   master.connect(ducker).connect(ctx.destination);
-  decks = [0, 1].map(() => {
+  decks = [0, 1].map((i) => {
     const el = new Audio();
     el.src = SRC;
-    el.preload = 'auto';
+    // Only the first deck downloads up front; the second loads when a crossfade needs it.
+    el.preload = i === 0 ? 'auto' : 'none';
     el.crossOrigin = 'anonymous';
     const gain = ctx!.createGain();
     gain.gain.value = 0;
@@ -239,15 +240,36 @@ export const toggle = () => (enabled ? disable() : enable());
  * On pages after the first: if the visitor chose sound, pick the score back up
  * (where they left it) on their first tap/click/key on this page.
  */
-export function resumeOnFirstGesture() {
-  if (!prefersSound() || enabled) return;
+/** Start on the visitor's first tap, click or key (browsers only allow sound after one). */
+export function resumeOnFirstGesture(evenWithoutPref = false) {
+  if (enabled || store.get(KEY_PREF) === 'off' || (!evenWithoutPref && !prefersSound())) return;
   const go = () => {
     off();
-    if (!enabled && prefersSound()) enable();
+    if (!enabled && store.get(KEY_PREF) !== 'off') enable();
   };
-  const evs = ['pointerdown', 'keydown'] as const;
+  const evs = ['pointerdown', 'keydown', 'touchend', 'click'] as const;
   const off = () => evs.forEach((e) => window.removeEventListener(e, go, true));
   evs.forEach((e) => window.addEventListener(e, go, { capture: true, passive: true }));
+}
+
+// A few milliseconds of silence, used to ask the browser whether sound may start without a tap.
+const SILENCE = 'data:audio/wav;base64,UklGRrQBAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YZABAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA';
+
+/**
+ * Play the page's music as soon as the browser allows it, unless the visitor turned sound off.
+ * Most browsers allow it straight away once the visitor has interacted with the site (for example
+ * pressed "Launch with sound" on the homepage); otherwise it starts on the first tap, click or key.
+ */
+export function autoStart() {
+  if (enabled || store.get(KEY_PREF) === 'off') return;
+  const probe = new Audio(SILENCE);
+  probe.play().then(
+    () => {
+      probe.pause();
+      enable().then(() => enabled || resumeOnFirstGesture(true));
+    },
+    () => resumeOnFirstGesture(true),
+  );
 }
 
 /** Map page scroll depth to intensity (base..peak). */

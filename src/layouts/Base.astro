@@ -78,11 +78,11 @@ const org = {
     <script>
       import { initMotion } from '../scripts/motion';
       import { initStarfield } from '../scripts/starfield';
-      import { resumeOnFirstGesture, followScroll } from '../scripts/audio';
+      import { autoStart, followScroll } from '../scripts/audio';
       initStarfield(document.getElementById('starfield') as HTMLCanvasElement);
       initMotion();
       if (document.body.dataset.score !== 'custom') {
-        resumeOnFirstGesture();
+        autoStart();
         followScroll(0.22, 0.8);
       }
     </script>

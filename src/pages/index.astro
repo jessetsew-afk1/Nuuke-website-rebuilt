@@ -265,7 +265,9 @@ const stages = [
         try {
           navigator.vibrate?.([40, 60, 80, 50, 140, 40, 260, 30, 600]);
         } catch {}
+        // "Launch silently" is remembered, so the other pages don't start their music either.
         if (b.dataset.launch === 'sound') audio.enable(0);
+        else audio.disable();
         loader.classList.add('is-launching');
         status.textContent = 'Launching';
         (document.activeElement as HTMLElement | null)?.blur();
