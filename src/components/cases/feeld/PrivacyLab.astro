@@ -1,0 +1,363 @@
+---
+// Privacy lab: controls you can feel working. Flip a control and watch what three different
+// people can see of you (a stranger, someone you liked, a connection), test image blur and
+// screenshot protection in a chat, and try "approximate distance", which is our concept idea.
+// Each control is labelled "On Feeld" (publicly described) or "NUUKE concept".
+import Aura from './Aura.astro';
+const controls = [
+  { id: 'incognito', t: 'Incognito', s: 'Browse without showing up in Discover, unless you like someone first.', src: 'On Feeld · Majestic', on: false },
+  { id: 'private', t: 'Private photos', s: 'Some photos only for connections.', src: 'On Feeld', on: true },
+  { id: 'hidden', t: 'Hidden bio', s: 'A second bio for people you like or Ping.', src: 'On Feeld', on: true },
+  { id: 'blur', t: 'Nudity detection', s: 'Images that may be explicit arrive blurred. You decide if and when to view.', src: 'On Feeld · opt-in', on: true },
+];
+const viewers = [
+  { id: 'stranger', t: 'A stranger' },
+  { id: 'liked', t: 'Sam, you liked them' },
+  { id: 'conn', t: 'Jo, a connection' },
+];
+const dist = ['Exact', 'Rounded', 'Area only'];
+---
+
+<div class="fd-pv" data-fd-pv>
+  <div class="fd-pv-controls">
+    <ul role="list" class="fd-pv-list">
+      {
+        controls.map((c) => (
+          <li>
+            <label class="fd-pv-row">
+              <span class="fd-pv-txt">
+                <span class="fd-pv-t">
+                  {c.t} <em>{c.src}</em>
+                </span>
+                <span class="fd-pv-s">{c.s}</span>
+              </span>
+              <input type="checkbox" role="switch" data-ctl={c.id} checked={c.on} />
+              <span class="fd-pv-sw" aria-hidden="true">
+                <i />
+              </span>
+            </label>
+          </li>
+        ))
+      }
+      <li class="fd-pv-row fd-pv-row--static">
+        <span class="fd-pv-txt">
+          <span class="fd-pv-t">Screenshot protection <em>On Feeld · always on</em></span>
+          <span class="fd-pv-s">Images sent in chat can’t be captured. Try it on the right.</span>
+        </span>
+        <span class="fd-pv-always">Always on</span>
+      </li>
+      <li class="fd-pv-row fd-pv-row--dist">
+        <span class="fd-pv-txt">
+          <span class="fd-pv-t" id="fd-pv-dist-l">Approximate distance <em class="fd-pv-concept">NUUKE concept</em></span>
+          <span class="fd-pv-s">Show how far, never exactly where. An idea we would test, not a confirmed Feeld feature.</span>
+        </span>
+        <span class="fd-pv-seg" role="radiogroup" aria-labelledby="fd-pv-dist-l" data-dist>
+          {dist.map((d, i) => (
+            <button type="button" role="radio" aria-checked={i === 1 ? 'true' : 'false'} data-d={i}>
+              {d}
+            </button>
+          ))}
+        </span>
+      </li>
+    </ul>
+
+    <div class="fd-pv-matrix">
+      <p class="t-label">Who can see what</p>
+      <table>
+        <caption class="visually-hidden">What each viewer can see of your profile</caption>
+        <thead>
+          <tr><th scope="col">Layer</th><th scope="col">Stranger</th><th scope="col">Liked</th><th scope="col">Connection</th></tr>
+        </thead>
+        <tbody data-matrix>
+          <tr data-r="profile"><th scope="row">Your profile</th><td></td><td></td><td></td></tr>
+          <tr data-r="hidden"><th scope="row">Hidden bio</th><td></td><td></td><td></td></tr>
+          <tr data-r="photos"><th scope="row">Private photos</th><td></td><td></td><td></td></tr>
+          <tr data-r="where"><th scope="row">Where you are</th><td></td><td></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="fd-pv-lenses">
+    <div class="fd-pv-lens">
+      <div class="fd-pv-lens-head">
+        <p class="t-label">Your profile, seen by</p>
+        <div class="fd-pv-viewers" role="radiogroup" aria-label="Viewer" data-viewers>
+          {viewers.map((v, i) => (
+            <button type="button" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-v={v.id}>
+              {v.t}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div class="fd-pv-phone" data-phone>
+        <div class="fd-pv-gone" aria-hidden="true">
+          <span class="fd-pv-ghost"></span>
+          <p>You’re not in their Discover.</p>
+          <p class="fd-pv-gone-s">Incognito is on. They’ll only see you if you like them first.</p>
+        </div>
+        <div class="fd-pv-profile">
+          <div class="fd-pv-top">
+            <Aura who="rae" class="fd-pv-portrait" />
+            <div>
+              <p class="fd-pv-name">Rae, 27 <span>she/they</span></p>
+              <p class="fd-pv-where" data-where>~2 km away</p>
+            </div>
+          </div>
+          <p class="fd-pv-bio">Climbing, zines and very strong opinions about dumplings.</p>
+          <div class="fd-pv-hb" data-hb>
+            <p class="fd-pv-k">Hidden bio</p>
+            <p class="fd-pv-hb-t">Looking for something slow and honest. Discretion matters.</p>
+            <p class="fd-pv-hb-l">Rae has a hidden bio</p>
+          </div>
+          <div class="fd-pv-photos" data-photos>
+            <Aura who="noor" class="fd-pv-ph" sil={false} />
+            <span class="fd-pv-ph-wrap"><Aura who="ash" class="fd-pv-ph" sil={false} /><i class="fd-pv-lock"></i></span>
+            <span class="fd-pv-ph-wrap"><Aura who="theo" class="fd-pv-ph" sil={false} /><i class="fd-pv-lock"></i></span>
+          </div>
+          <svg class="fd-pv-map" viewBox="0 0 300 110" aria-hidden="true" data-map>
+            <rect width="300" height="110" rx="14" fill="#17121D" />
+            <g stroke="#2a2133" stroke-width="6" fill="none"><path d="M0 40 H300 M0 82 H300 M70 0 V110 M160 0 V110 M240 0 V110" /><path d="M0 0 L300 110" stroke-width="4" /></g>
+            <circle cx="186" cy="58" r="48" class="fd-pv-fuzz" data-fuzz />
+            <circle cx="172" cy="64" r="6" class="fd-pv-dot" data-dot />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="fd-pv-lens">
+      <p class="t-label">Your chat with Noor</p>
+      <div class="fd-pv-chat" data-chat>
+        <p class="fd-pv-msg fd-pv-msg--in">Here’s the poster I made for the show, tell me what you think.</p>
+        <div class="fd-pv-img" data-img>
+          <Aura who="noor" class="fd-pv-img-art" sil={false} />
+          <div class="fd-pv-img-cover">
+            <p>Hidden: this image may be explicit.</p>
+            <button type="button" data-view>View image</button>
+          </div>
+          <span class="fd-pv-img-note">Sample image: abstract art</span>
+        </div>
+        <p class="fd-pv-msg fd-pv-msg--out">Give me a sec, I’m on the bus 🙂</p>
+        <div class="fd-pv-chat-foot">
+          <button type="button" class="fd-pv-shot" data-shot>📸 Try a screenshot</button>
+          <div class="fd-pv-capture" data-capture aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-fd-pv]').forEach((root) => {
+    const ctl: Record<string, boolean> = {};
+    root.querySelectorAll<HTMLInputElement>('[data-ctl]').forEach((i) => (ctl[i.dataset.ctl!] = i.checked));
+    let viewer = 'stranger';
+    let distMode = 1;
+    let viewed = false;
+    const phone = root.querySelector<HTMLElement>('[data-phone]')!;
+    const where = root.querySelector<HTMLElement>('[data-where]')!;
+    const hb = root.querySelector<HTMLElement>('[data-hb]')!;
+    const photos = root.querySelector<HTMLElement>('[data-photos]')!;
+    const fuzz = root.querySelector<SVGCircleElement>('[data-fuzz]')!;
+    const dot = root.querySelector<SVGCircleElement>('[data-dot]')!;
+    const img = root.querySelector<HTMLElement>('[data-img]')!;
+    const capture = root.querySelector<HTMLElement>('[data-capture]')!;
+    const rows = root.querySelectorAll<HTMLTableRowElement>('[data-matrix] tr');
+
+    const WHERE = ['1.3 km away', '~2 km away', 'In your area'];
+    const R = [0, 26, 52];
+
+    // What viewer v can see of you.
+    const sees = (v: string) => {
+      const visible = !ctl.incognito || v !== 'stranger';
+      return {
+        profile: visible,
+        hidden: visible && ctl.hidden && v !== 'stranger',
+        photos: visible && (!ctl.private || v === 'conn'),
+        where: visible ? WHERE[distMode] : 'Nothing',
+      };
+    };
+
+    const render = () => {
+      const s = sees(viewer);
+      phone.classList.toggle('is-gone', !s.profile);
+      phone.dataset.viewer = viewer;
+      where.textContent = WHERE[distMode];
+      hb.hidden = !ctl.hidden;
+      hb.classList.toggle('is-open', s.hidden);
+      photos.classList.toggle('is-private', ctl.private && viewer !== 'conn');
+      fuzz.setAttribute('r', String(Math.max(0.01, R[distMode])));
+      fuzz.classList.toggle('is-on', distMode > 0);
+      dot.classList.toggle('is-on', distMode === 0);
+      img.classList.toggle('is-blurred', ctl.blur && !viewed);
+      rows.forEach((tr) => {
+        const r = tr.dataset.r as 'profile' | 'hidden' | 'photos' | 'where';
+        ['stranger', 'liked', 'conn'].forEach((v, i) => {
+          const val = sees(v)[r];
+          const td = tr.cells[i + 1];
+          const yes = typeof val === 'string' ? val !== 'Nothing' : val;
+          const shown = document.createElement('span');
+          shown.setAttribute('aria-hidden', 'true');
+          shown.textContent = typeof val === 'string' ? (yes ? val.replace(' away', '') : '·') : yes ? '✓' : '·';
+          const sr = document.createElement('span');
+          sr.className = 'visually-hidden';
+          sr.textContent = typeof val === 'string' ? val : yes ? 'Can see' : 'Cannot see';
+          td.replaceChildren(shown, sr);
+          td.className = yes ? 'is-yes' : 'is-no';
+        });
+      });
+    };
+
+    root.querySelectorAll<HTMLInputElement>('[data-ctl]').forEach((i) =>
+      i.addEventListener('change', () => {
+        ctl[i.dataset.ctl!] = i.checked;
+        if (i.dataset.ctl === 'blur') viewed = false;
+        render();
+      }),
+    );
+    const radios = (sel: string, fn: (b: HTMLButtonElement) => void) => {
+      const g = root.querySelector<HTMLElement>(sel)!;
+      const bs = [...g.querySelectorAll<HTMLButtonElement>('button')];
+      bs.forEach((b) =>
+        b.addEventListener('click', () => {
+          bs.forEach((x) => x.setAttribute('aria-checked', String(x === b)));
+          fn(b);
+          render();
+        }),
+      );
+    };
+    radios('[data-viewers]', (b) => (viewer = b.dataset.v!));
+    radios('[data-dist]', (b) => (distMode = Number(b.dataset.d)));
+    root.querySelector('[data-view]')!.addEventListener('click', () => {
+      viewed = true;
+      render();
+    });
+
+    root.querySelector('[data-shot]')!.addEventListener('click', () => {
+      root.classList.remove('is-flash');
+      void root.offsetWidth;
+      root.classList.add('is-flash');
+      capture.replaceChildren();
+      const shot = document.createElement('div');
+      shot.className = 'fd-pv-shotimg';
+      const a = document.createElement('i');
+      const b = document.createElement('b');
+      b.textContent = 'Image protected';
+      const c = document.createElement('i');
+      shot.append(a, b, c);
+      const p = document.createElement('p');
+      p.textContent = 'Screenshot taken: the image came out blank. Feeld blocks screenshots of chat images. On iOS, message text can still be captured, so we’d say so here, honestly.';
+      capture.append(shot, p);
+    });
+    render();
+  });
+</script>
+
+<style>
+  .fd-pv { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: var(--s-6); align-items: start; }
+  .fd-pv-controls { display: grid; gap: var(--s-5); min-width: 0; }
+  .fd-pv-list { list-style: none; padding: 0; display: grid; gap: 8px; }
+  .fd-pv-row { display: grid; grid-template-columns: 1fr auto; gap: var(--s-4); align-items: center; padding: var(--s-4); border-radius: var(--r-md); border: 1px solid var(--line); background: var(--bg-2); cursor: pointer; position: relative; }
+  .fd-pv-row--static, .fd-pv-row--dist { cursor: default; }
+  .fd-pv-txt { display: grid; gap: 4px; }
+  .fd-pv-t { font: 700 var(--fs-base) var(--font-ui); color: var(--ink); display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+  .fd-pv-t em { font: 600 0.68rem/1 var(--font-ui); font-style: normal; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 7px; border-radius: 99px; background: var(--surface-2); color: var(--ink-2); }
+  .fd-pv-t em.fd-pv-concept { background: #ff9e7a; color: #1a0f1f; }
+  .fd-pv-s { font-size: var(--fs-sm); color: var(--ink-2); }
+  .fd-pv-row input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .fd-pv-sw { position: relative; width: 50px; height: 30px; border-radius: 15px; background: #4a3c58; transition: background 0.25s; }
+  .fd-pv-sw i { position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform 0.35s var(--ease-out); }
+  .fd-pv-row input:checked + .fd-pv-sw { background: linear-gradient(100deg, #c7b6ff, #ff9fcf); }
+  .fd-pv-row input:checked + .fd-pv-sw i { transform: translateX(20px); }
+  .fd-pv-row input:focus-visible + .fd-pv-sw { outline: 2px solid #c7b6ff; outline-offset: 3px; }
+  .fd-pv-always { font: 700 0.78rem var(--font-ui); color: #1a0f1f; background: #9fe3c0; padding: 6px 10px; border-radius: 99px; white-space: nowrap; }
+  .fd-pv-row--dist { grid-template-columns: 1fr; }
+  .fd-pv-seg { display: inline-flex; gap: 4px; padding: 4px; border-radius: 12px; border: 1px solid var(--line); justify-self: start; }
+  .fd-pv-seg button, .fd-pv-viewers button { padding: 0.45rem 0.8rem; border-radius: 9px; font: 600 0.8rem var(--font-ui); color: var(--ink-2); }
+  .fd-pv-seg button[aria-checked='true'], .fd-pv-viewers button[aria-checked='true'] { background: #f5f0ea; color: #1a0f1f; }
+
+  .fd-pv-matrix { display: grid; gap: var(--s-2); }
+  .fd-pv-matrix table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0 4px; font: 500 var(--fs-sm) var(--font-ui); }
+  .fd-pv-matrix thead th:first-child { width: 34%; }
+  .fd-pv-matrix thead th:not(:first-child) { text-align: center; }
+  .fd-pv-matrix th { text-align: left; font-weight: 600; color: var(--ink-2); padding: 4px 8px; }
+  .fd-pv-matrix thead th { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .fd-pv-matrix tbody th { color: var(--ink); }
+  .fd-pv-matrix td { text-align: center; padding: 8px 4px; background: var(--surface); transition: background 0.3s, color 0.3s; }
+  .fd-pv-matrix td:last-child { border-radius: 0 10px 10px 0; }
+  .fd-pv-matrix td.is-yes { color: #1a0f1f; background: #c7b6ff; font-weight: 700; }
+  .fd-pv-matrix td.is-no { color: var(--ink-2); }
+
+  .fd-pv-lenses { display: grid; gap: var(--s-4); min-width: 0; }
+  .fd-pv-lens { display: grid; gap: var(--s-3); padding: var(--s-5); border-radius: var(--r-lg); border: 1px solid var(--line); background: radial-gradient(60% 60% at 90% 0%, rgb(123 77 255 / 0.14), transparent 70%), var(--bg-2); }
+  .fd-pv-lens-head { display: grid; gap: var(--s-2); }
+  .fd-pv-viewers { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 12px; border: 1px solid var(--line); justify-self: start; }
+
+  .fd-pv-phone { position: relative; border-radius: 26px; background: #0e0b12; border: 1px solid #33283f; padding: 14px; color: #f5f0ea; overflow: hidden; }
+  .fd-pv-profile { display: grid; gap: 10px; transition: filter 0.6s, opacity 0.6s, transform 0.6s var(--ease-out); }
+  .fd-pv-phone.is-gone .fd-pv-profile { filter: blur(14px); opacity: 0.12; transform: scale(0.96); }
+  .fd-pv-gone { position: absolute; inset: 0; z-index: 2; display: grid; place-content: center; justify-items: center; gap: 6px; text-align: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+  .fd-pv-phone.is-gone .fd-pv-gone { opacity: 1; }
+  .fd-pv-gone p { font: 800 1.15rem var(--font-display); }
+  .fd-pv-gone .fd-pv-gone-s { font: 500 0.85rem var(--font-ui); color: #d8cfe2; max-width: 30ch; }
+  .fd-pv-ghost { width: 56px; height: 56px; border-radius: 50%; border: 2px dashed #b8aec4; }
+  .fd-pv-top { display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: center; }
+  .fd-pv-top :global(.fd-pv-portrait) { width: 64px; height: 64px; border-radius: 18px; }
+  .fd-pv-name { font: 800 1.2rem var(--font-display); letter-spacing: -0.02em; }
+  .fd-pv-name span { font: 500 0.78rem var(--font-ui); color: #b8aec4; }
+  .fd-pv-where { font: 600 0.8rem var(--font-ui); color: #ffc29d; }
+  .fd-pv-bio { font-size: 0.88rem; color: #f5f0ea; }
+  .fd-pv-hb { display: grid; gap: 4px; padding: 10px 12px; border-radius: 14px; background: #17121d; border: 1px dashed #4a3c58; }
+  .fd-pv-hb.is-open { border-style: solid; border-color: rgb(255 111 181 / 0.5); }
+  .fd-pv-k { font: 700 0.66rem var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; color: #b8aec4; }
+  .fd-pv-hb-t { font-size: 0.85rem; display: none; }
+  .fd-pv-hb-l { font: 600 0.8rem var(--font-ui); color: #d8cfe2; }
+  .fd-pv-hb.is-open .fd-pv-hb-t { display: block; }
+  .fd-pv-hb.is-open .fd-pv-hb-l { display: none; }
+  .fd-pv-photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .fd-pv-photos :global(.fd-pv-ph) { aspect-ratio: 1; border-radius: 12px; transition: filter 0.8s var(--ease-out); }
+  .fd-pv-ph-wrap { position: relative; display: block; }
+  .fd-pv-photos.is-private .fd-pv-ph-wrap :global(.fd-pv-ph) { filter: blur(9px) saturate(0.5) brightness(0.7); }
+  .fd-pv-lock { position: absolute; left: 50%; top: 52%; width: 16px; height: 13px; margin-left: -8px; border-radius: 3px; background: #f5f0ea; opacity: 0; transition: opacity 0.4s; }
+  .fd-pv-lock::before { content: ''; position: absolute; left: 3px; top: -8px; width: 10px; height: 10px; border: 2px solid #f5f0ea; border-bottom: 0; border-radius: 6px 6px 0 0; box-sizing: border-box; }
+  .fd-pv-photos.is-private .fd-pv-lock { opacity: 1; }
+  .fd-pv-map { width: 100%; height: auto; display: block; }
+  .fd-pv-fuzz { fill: rgb(255 111 181 / 0.22); stroke: #ff6fb5; stroke-dasharray: 4 4; opacity: 0; transition: r 0.6s var(--ease-out), opacity 0.4s; }
+  .fd-pv-fuzz.is-on { opacity: 1; }
+  .fd-pv-dot { fill: #ff9e7a; stroke: #fff; stroke-width: 2; opacity: 0; transition: opacity 0.4s; }
+  .fd-pv-dot.is-on { opacity: 1; }
+
+  .fd-pv-chat { display: grid; gap: 8px; padding: 14px; border-radius: 26px; background: #0e0b12; border: 1px solid #33283f; color: #f5f0ea; }
+  .fd-pv-msg { max-width: 80%; padding: 9px 12px; border-radius: 16px; font-size: 0.86rem; line-height: 1.4; }
+  .fd-pv-msg--in { background: #221a2b; border-bottom-left-radius: 4px; }
+  .fd-pv-msg--out { justify-self: end; background: #c7b6ff; color: #1a0f1f; border-bottom-right-radius: 4px; }
+  .fd-pv-img { position: relative; width: 62%; aspect-ratio: 4 / 3; border-radius: 16px; overflow: hidden; }
+  .fd-pv-img :global(.fd-pv-img-art) { position: absolute; inset: 0; transition: filter 0.8s var(--ease-out); }
+  .fd-pv-img.is-blurred :global(.fd-pv-img-art) { filter: blur(22px) saturate(0.6); }
+  .fd-pv-img-cover { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 8px; padding: 10px; text-align: center; background: rgb(14 11 18 / 0.55); opacity: 0; pointer-events: none; transition: opacity 0.4s; }
+  .fd-pv-img.is-blurred .fd-pv-img-cover { opacity: 1; pointer-events: auto; }
+  .fd-pv-img-cover p { font: 600 0.78rem/1.35 var(--font-ui); color: #fff; }
+  .fd-pv-img-cover button { padding: 6px 12px; border-radius: 99px; background: #f5f0ea; color: #1a0f1f; font: 700 0.76rem var(--font-ui); }
+  .fd-pv-img-note { position: absolute; left: 8px; bottom: 8px; padding: 4px 8px; border-radius: 99px; background: rgb(14 11 18 / 0.75); font: 600 0.68rem var(--font-ui); color: #fff; }
+  .fd-pv-img.is-blurred .fd-pv-img-note { display: none; }
+  .fd-pv-chat-foot { display: grid; gap: 10px; margin-top: 4px; }
+  .fd-pv-shot { justify-self: start; padding: 0.55rem 0.9rem; border-radius: 99px; border: 1px solid #c7b6ff; font: 700 0.82rem var(--font-ui); color: #f5f0ea; }
+  .fd-pv-capture { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; }
+  .fd-pv-capture:empty { display: none; }
+  .fd-pv-capture p { font-size: 0.8rem; color: #d8cfe2; }
+  .fd-pv-capture :global(.fd-pv-shotimg) { display: grid; gap: 4px; width: 92px; padding: 6px; border-radius: 10px; background: #f5f0ea; transform: rotate(-4deg); box-shadow: 0 10px 30px -10px #000; animation: fd-pv-drop 0.5s var(--ease-out); }
+  .fd-pv-capture :global(.fd-pv-shotimg i) { height: 8px; border-radius: 4px; background: #b8aec4; }
+  .fd-pv-capture :global(.fd-pv-shotimg b) { display: grid; place-items: center; height: 44px; border-radius: 6px; background: #0e0b12; color: #fff; font: 700 8px var(--font-ui); text-align: center; }
+  @keyframes fd-pv-drop { from { opacity: 0; transform: translateY(-10px) rotate(-12deg) scale(1.2); } }
+  .fd-pv.is-flash .fd-pv-chat { animation: fd-pv-flash 0.5s ease-out; }
+  @keyframes fd-pv-flash { 0% { box-shadow: 0 0 0 0 #fff, inset 0 0 0 400px rgb(255 255 255 / 0.6); } 100% { box-shadow: 0 0 0 0 transparent, inset 0 0 0 400px transparent; } }
+
+  @media (max-width: 1000px) { .fd-pv { grid-template-columns: 1fr; } }
+  @media (max-width: 560px) {
+    .fd-pv-img { width: 82%; }
+    .fd-pv-matrix th, .fd-pv-matrix td { padding: 6px 3px; font-size: 0.75rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fd-pv.is-flash .fd-pv-chat, .fd-pv-capture :global(.fd-pv-shotimg) { animation: none; }
+  }
+</style>

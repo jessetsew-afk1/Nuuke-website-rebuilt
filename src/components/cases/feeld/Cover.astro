@@ -1,0 +1,83 @@
+---
+// Cover art for the Feeld concept (800 × 600). Original NUUKE SVG: a heat-map aura on ink,
+// two profile cards leaning in, a pair of private photos still blurred, and the one rule.
+import type { Project } from '../../../data/projects';
+interface Props {
+  project: Project;
+}
+const { project: _p } = Astro.props;
+const chips = [
+  { t: 'Non-binary', x: 470, y: 92, r: 4 },
+  { t: 'Heteroflexible', x: 604, y: 150, r: -5 },
+  { t: 'Nesting partner', x: 520, y: 476, r: -3 },
+];
+---
+
+<svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs>
+    <filter id="fd-cv-soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="46" /></filter>
+    <filter id="fd-cv-blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="9" /></filter>
+    <radialGradient id="fd-cv-p1" cx="38%" cy="34%" r="80%">
+      <stop offset="0" stop-color="#FFC9A3" /><stop offset=".45" stop-color="#FF6FB5" /><stop offset="1" stop-color="#7B4DFF" />
+    </radialGradient>
+    <radialGradient id="fd-cv-p2" cx="62%" cy="40%" r="80%">
+      <stop offset="0" stop-color="#C7B6FF" /><stop offset=".5" stop-color="#FF9E7A" /><stop offset="1" stop-color="#FF5A3C" />
+    </radialGradient>
+    <radialGradient id="fd-cv-core" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#FFF3E6" /><stop offset=".35" stop-color="#FFB280" /><stop offset=".7" stop-color="#E85CB0" stop-opacity=".6" /><stop offset="1" stop-color="#7B4DFF" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="fd-cv-pill" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#C7B6FF" /><stop offset=".5" stop-color="#FF9FCF" /><stop offset="1" stop-color="#FFC29D" />
+    </linearGradient>
+    <clipPath id="fd-cv-c1"><rect x="0" y="0" width="210" height="300" rx="28" /></clipPath>
+    <clipPath id="fd-cv-c2"><rect x="0" y="0" width="210" height="300" rx="28" /></clipPath>
+  </defs>
+  <rect width="800" height="600" fill="#0E0B12" />
+  <g filter="url(#fd-cv-soft)">
+    <circle cx="230" cy="250" r="190" fill="#7B4DFF" opacity=".8" />
+    <circle cx="560" cy="300" r="200" fill="#FF5A3C" opacity=".65" />
+    <circle cx="400" cy="270" r="150" fill="#E85CB0" opacity=".9" />
+    <circle cx="640" cy="90" r="110" fill="#C7B6FF" opacity=".5" />
+    <circle cx="140" cy="520" r="140" fill="#FF9E7A" opacity=".35" />
+  </g>
+  <circle cx="400" cy="260" r="150" fill="url(#fd-cv-core)" opacity=".9" />
+
+  <!-- two profile cards leaning in -->
+  <g transform="translate(150 90) rotate(-8 105 150)">
+    <rect x="-6" y="-6" width="222" height="372" rx="34" fill="#17121D" />
+    <g clip-path="url(#fd-cv-c1)"><rect width="210" height="300" fill="url(#fd-cv-p1)" /><ellipse cx="105" cy="128" rx="40" ry="46" fill="#0E0B12" opacity=".22" /><ellipse cx="105" cy="300" rx="92" ry="70" fill="#0E0B12" opacity=".22" /></g>
+    <text x="16" y="334" font-family="Montserrat, sans-serif" font-weight="800" font-size="24" fill="#F5F0EA">Rae, 27</text>
+    <text x="16" y="354" font-family="Inter, sans-serif" font-size="12" fill="#B8AEC4">they / them</text>
+  </g>
+  <g transform="translate(440 120) rotate(7 105 150)">
+    <rect x="-6" y="-6" width="222" height="372" rx="34" fill="#17121D" />
+    <g clip-path="url(#fd-cv-c2)"><rect width="210" height="300" fill="url(#fd-cv-p2)" /><ellipse cx="105" cy="128" rx="40" ry="46" fill="#0E0B12" opacity=".2" /><ellipse cx="105" cy="300" rx="92" ry="70" fill="#0E0B12" opacity=".2" /></g>
+    <text x="16" y="334" font-family="Montserrat, sans-serif" font-weight="800" font-size="24" fill="#F5F0EA">Sam, 34</text>
+    <g transform="translate(150 316)">
+      <g filter="url(#fd-cv-blur)"><rect width="22" height="22" rx="6" fill="#FF6FB5" /><rect x="26" width="22" height="22" rx="6" fill="#7B4DFF" /></g>
+    </g>
+    <g transform="translate(166 330)" fill="#F5F0EA"><rect x="0" y="4" width="16" height="12" rx="3" /><path d="M3 4 v-3 a5 5 0 0 1 10 0 v3" fill="none" stroke="#F5F0EA" stroke-width="2" /></g>
+  </g>
+
+  <!-- the join: two hearts of light meeting -->
+  <g transform="translate(400 300)">
+    <circle r="40" fill="#FFF3E6" opacity=".18" />
+    <circle r="26" fill="url(#fd-cv-pill)" />
+    <path d="M -7 0 l 5 6 l 10 -12" fill="none" stroke="#1A0F1F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+
+  <g font-family="Inter, sans-serif" font-size="14" font-weight="600">
+    {
+      chips.map((c) => (
+        <g transform={`translate(${c.x} ${c.y}) rotate(${c.r})`}>
+          <rect x="0" y="-20" width={c.t.length * 8 + 28} height="32" rx="16" fill="#0E0B12" fill-opacity=".72" stroke="#F5F0EA" stroke-opacity=".3" />
+          <text x="14" y="1" fill="#F5F0EA">{c.t}</text>
+        </g>
+      ))
+    }
+  </g>
+  <g transform="translate(40 556)">
+    <rect x="0" y="-36" width="250" height="50" rx="25" fill="url(#fd-cv-pill)" />
+    <text x="24" y="-4" font-family="Montserrat, sans-serif" font-weight="900" font-size="26" letter-spacing="-1" fill="#1A0F1F">Both say yes.</text>
+  </g>
+</svg>

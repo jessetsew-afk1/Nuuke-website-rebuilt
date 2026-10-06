@@ -1,0 +1,362 @@
+---
+// "In your own words": an identity builder with no forced binaries. Pick none, one or many
+// options per group, read a plain-English definition for every word you tap, add your own
+// words, choose who sees each group, and watch a live profile card (and its history) update.
+// Vocabulary is a clean subset of public identity language; definitions are NUUKE's wording.
+import Aura from './Aura.astro';
+import { GENDERS, SEXUALITIES, STYLES, LOOKING } from '../../../data/cases/feeld';
+
+const PRONOUNS = [
+  { t: 'she/her', d: 'Pronouns: use these when you talk about Maya.' },
+  { t: 'they/them', d: 'Pronouns: singular they, used for one person.' },
+  { t: 'he/him', d: 'Pronouns: use these when you talk about this person.' },
+  { t: 'Ask me', d: 'Pronouns: no assumption. Ask, it’s polite and easy.' },
+];
+const groups = [
+  { id: 'gender', label: 'Gender', title: 'Gender', terms: GENDERS, extra: { id: 'pronouns', label: 'Pronouns', terms: PRONOUNS } },
+  { id: 'sexuality', label: 'Sexuality', title: 'Sexuality', terms: SEXUALITIES },
+  { id: 'style', label: 'Relationships', title: 'Relationship style', terms: STYLES },
+  { id: 'looking', label: 'Looking for', title: 'Looking for', terms: LOOKING },
+];
+const initial: Record<string, string[]> = {
+  gender: ['Woman'],
+  pronouns: ['she/her'],
+  sexuality: ['Straight', 'Curious'],
+  style: ['Exploring'],
+  looking: ['Conversation first', 'Slow burn'],
+};
+const vis = [
+  { id: 'profile', label: 'On my profile' },
+  { id: 'connections', label: 'Connections only' },
+  { id: 'matching', label: 'Matching only' },
+];
+---
+
+<div class="fd-id" data-fd-id data-initial={JSON.stringify(initial)}>
+  <div class="fd-id-builder">
+    <div class="fd-id-tabs" role="tablist" aria-label="Identity sections">
+      {
+        groups.map((g, i) => (
+          <button type="button" role="tab" id={`fd-id-tab-${g.id}`} aria-controls={`fd-id-panel-${g.id}`} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1} data-tab={g.id}>
+            {g.label}
+          </button>
+        ))
+      }
+    </div>
+
+    {
+      groups.map((g, i) => (
+        <div class="fd-id-panel" role="tabpanel" id={`fd-id-panel-${g.id}`} aria-labelledby={`fd-id-tab-${g.id}`} hidden={i !== 0} data-panel={g.id}>
+          <div class="fd-id-head">
+            <h3 class="fd-id-h">{g.title}</h3>
+            <p class="t-small">Pick none, one or several. Tap a word to read what it means.</p>
+          </div>
+          <div class="fd-id-chips" data-group={g.id} role="group" aria-label={g.title}>
+            {g.terms.map((t) => (
+              <button type="button" class="fd-id-chip" aria-pressed={initial[g.id]?.includes(t.t) ? 'true' : 'false'} data-term={t.t} data-def={t.d}>
+                {t.t}
+              </button>
+            ))}
+          </div>
+          {g.extra && (
+            <>
+              <p class="t-label fd-id-sub">{g.extra.label}</p>
+              <div class="fd-id-chips" data-group={g.extra.id} role="group" aria-label={g.extra.label}>
+                {g.extra.terms.map((t) => (
+                  <button type="button" class="fd-id-chip fd-id-chip--sm" aria-pressed={initial[g.extra.id]?.includes(t.t) ? 'true' : 'false'} data-term={t.t} data-def={t.d}>
+                    {t.t}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+          <form class="fd-id-own" data-own={g.id}>
+            <label class="visually-hidden" for={`fd-id-own-${g.id}`}>
+              Add your own words to {g.title}
+            </label>
+            <input id={`fd-id-own-${g.id}`} type="text" maxlength="24" placeholder="In your own words…" autocomplete="off" />
+            <button type="submit">Add</button>
+          </form>
+          <div class="fd-id-vis" role="radiogroup" aria-label={`Who sees your ${g.title.toLowerCase()}`} data-vis={g.id}>
+            {vis.map((v) => (
+              <button type="button" role="radio" aria-checked={(g.id === 'looking' ? 'connections' : 'profile') === v.id ? 'true' : 'false'} data-v={v.id}>
+                {v.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))
+    }
+    <p class="fd-id-def" aria-live="polite" data-def-out><strong>Glossary.</strong> Tap any word to see it explained in plain English.</p>
+  </div>
+
+  <div class="fd-id-preview">
+    <p class="t-label">Live profile · as a stranger sees it in Discover</p>
+    <article class="fd-id-card" data-card>
+      <div class="fd-id-photo">
+        <Aura who="maya" class="fd-id-aura" />
+        <span class="fd-id-verified">✓ Verified</span>
+      </div>
+      <div class="fd-id-body">
+        <p class="fd-id-name">Maya, 43 <span data-out="pronouns"></span></p>
+        <div class="fd-id-out" data-out="gender"></div>
+        <div class="fd-id-out" data-out="sexuality"></div>
+        <div class="fd-id-out" data-out="style"></div>
+        <div class="fd-id-out" data-out="looking"></div>
+        <p class="fd-id-bio">Recently back in the world. Into long walks, loud dinners and good questions.</p>
+      </div>
+    </article>
+    <div class="fd-id-history">
+      <div class="fd-id-history-head">
+        <p class="t-label">Identity over time</p>
+        <button type="button" class="fd-id-replay" data-replay>▶ Replay a sample year</button>
+      </div>
+      <ol class="fd-id-log" role="list" data-log>
+        <li><span>Today</span>Profile created</li>
+      </ol>
+    </div>
+  </div>
+
+  <ul class="fd-id-facts" role="list">
+    <li><strong>90%</strong><span>of members update their bios, and 92% adjust their search settings (Feeld, State of Dating Vol. IV, 2025).</span></li>
+    <li><strong>+193%</strong><span>heteroflexible, the fastest-growing sexuality on Feeld in 2025; members often move between it and straight (Feeld Raw 2025).</span></li>
+    <li><strong>20+ · 20+</strong><span>gender and sexuality options on Feeld, which says you can change them “as many times as you like”.</span></li>
+  </ul>
+</div>
+
+<script>
+  type State = Record<string, Set<string>>;
+  const YEAR: { at: string; s: Record<string, string[]> }[] = [
+    { at: 'Month 1', s: { gender: ['Woman'], pronouns: ['she/her'], sexuality: ['Straight'], style: ['Monogamous'], looking: ['Conversation first'] } },
+    { at: 'Month 4', s: { gender: ['Woman'], pronouns: ['she/her'], sexuality: ['Heteroflexible', 'Curious'], style: ['Exploring'], looking: ['Conversation first', 'Dates'] } },
+    { at: 'Month 7', s: { gender: ['Woman'], pronouns: ['she/her', 'they/them'], sexuality: ['Heteroflexible'], style: ['Ethically non-monogamous'], looking: ['Dates', 'New friends'] } },
+    { at: 'Month 12', s: { gender: ['Woman'], pronouns: ['she/her', 'they/them'], sexuality: ['Bisexual'], style: ['Ethically non-monogamous'], looking: ['Something long-term', 'New friends'] } },
+  ];
+
+  document.querySelectorAll<HTMLElement>('[data-fd-id]').forEach((root) => {
+    const init = JSON.parse(root.dataset.initial || '{}') as Record<string, string[]>;
+    const state: State = {};
+    Object.keys(init).forEach((k) => (state[k] = new Set(init[k])));
+    const visOf: Record<string, string> = { gender: 'profile', sexuality: 'profile', style: 'profile', looking: 'connections' };
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const panels = [...root.querySelectorAll<HTMLElement>('[data-panel]')];
+    const defOut = root.querySelector<HTMLElement>('[data-def-out]')!;
+    const log = root.querySelector<HTMLOListElement>('[data-log]')!;
+    const card = root.querySelector<HTMLElement>('[data-card]')!;
+    const outs: Record<string, HTMLElement> = {};
+    root.querySelectorAll<HTMLElement>('[data-out]').forEach((el) => (outs[el.dataset.out!] = el));
+
+    const addLog = (text: string, when = 'Just now') => {
+      const li = document.createElement('li');
+      const s = document.createElement('span');
+      s.textContent = when;
+      li.append(s, document.createTextNode(text));
+      li.classList.add('is-new');
+      log.prepend(li);
+      while (log.children.length > 5) log.lastElementChild?.remove();
+    };
+
+    const render = () => {
+      outs.pronouns.textContent = [...state.pronouns].join(' · ');
+      ['gender', 'sexuality', 'style', 'looking'].forEach((g) => {
+        const el = outs[g];
+        el.replaceChildren();
+        const v = visOf[g];
+        el.dataset.vis = v;
+        const items = [...state[g]];
+        if (!items.length) return;
+        if (v === 'matching') {
+          const n = document.createElement('span');
+          n.className = 'fd-id-note';
+          n.textContent = `${g === 'style' ? 'Relationship style' : g[0].toUpperCase() + g.slice(1)}: used for matching, not shown`;
+          el.append(n);
+          return;
+        }
+        items.forEach((t) => {
+          const c = document.createElement('span');
+          c.className = 'fd-id-tag';
+          if (v === 'connections') c.classList.add('is-private');
+          c.textContent = t;
+          el.append(c);
+        });
+      });
+      card.classList.remove('is-pulse');
+      void card.offsetWidth;
+      card.classList.add('is-pulse');
+    };
+
+    const syncChips = () => {
+      root.querySelectorAll<HTMLElement>('[data-group]').forEach((grp) => {
+        const g = grp.dataset.group!;
+        grp.querySelectorAll<HTMLButtonElement>('.fd-id-chip').forEach((b) => b.setAttribute('aria-pressed', String(state[g].has(b.dataset.term!))));
+      });
+    };
+
+    const selectTab = (i: number, focus = false) => {
+      tabs.forEach((t, j) => {
+        t.setAttribute('aria-selected', String(i === j));
+        t.tabIndex = i === j ? 0 : -1;
+      });
+      panels.forEach((p, j) => (p.hidden = i !== j));
+      if (focus) tabs[i].focus();
+    };
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => selectTab(i));
+      t.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          selectTab((i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length, true);
+        }
+      });
+    });
+
+    const chipClick = (b: HTMLButtonElement, g: string) => {
+      const term = b.dataset.term!;
+      const on = !state[g].has(term);
+      if (on) state[g].add(term);
+      else state[g].delete(term);
+      b.setAttribute('aria-pressed', String(on));
+      defOut.replaceChildren();
+      const s = document.createElement('strong');
+      s.textContent = term + '. ';
+      defOut.append(s, document.createTextNode(b.dataset.def || 'Your own words. No definition needed.'));
+      addLog(`${on ? 'Added' : 'Removed'} “${term}”`);
+      render();
+    };
+    root.querySelectorAll<HTMLElement>('[data-group]').forEach((grp) => {
+      const g = grp.dataset.group!;
+      grp.addEventListener('click', (e) => {
+        const b = (e.target as HTMLElement).closest<HTMLButtonElement>('.fd-id-chip');
+        if (b) chipClick(b, g);
+      });
+    });
+
+    root.querySelectorAll<HTMLFormElement>('[data-own]').forEach((form) => {
+      const g = form.dataset.own!;
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const input = form.querySelector('input')!;
+        const v = input.value.replace(/\s+/g, ' ').trim().slice(0, 24);
+        if (!v) return;
+        const grp = root.querySelector<HTMLElement>(`[data-group="${g}"]`)!;
+        let b = [...grp.querySelectorAll<HTMLButtonElement>('.fd-id-chip')].find((x) => x.dataset.term!.toLowerCase() === v.toLowerCase());
+        if (!b) {
+          b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'fd-id-chip fd-id-chip--own';
+          b.dataset.term = v;
+          b.dataset.def = 'In your own words. Feeld-style profiles let people describe themselves beyond any list.';
+          b.textContent = v;
+          b.setAttribute('aria-pressed', 'false');
+          grp.append(b);
+        }
+        if (b.getAttribute('aria-pressed') !== 'true') chipClick(b, g);
+        input.value = '';
+      });
+    });
+
+    root.querySelectorAll<HTMLElement>('[data-vis]').forEach((rg) => {
+      const g = rg.dataset.vis!;
+      const btns = [...rg.querySelectorAll<HTMLButtonElement>('[data-v]')];
+      btns.forEach((b) =>
+        b.addEventListener('click', () => {
+          btns.forEach((x) => x.setAttribute('aria-checked', String(x === b)));
+          visOf[g] = b.dataset.v!;
+          addLog(`${g === 'style' ? 'Relationships' : g[0].toUpperCase() + g.slice(1)}: ${b.textContent!.trim().toLowerCase()}`);
+          render();
+        }),
+      );
+    });
+
+    // Replay a sample year: identity is allowed to move.
+    let timer = 0;
+    root.querySelector('[data-replay]')?.addEventListener('click', () => {
+      window.clearTimeout(timer);
+      let k = 0;
+      const step = () => {
+        const y = YEAR[k];
+        Object.keys(y.s).forEach((g) => (state[g] = new Set(y.s[g])));
+        syncChips();
+        addLog(`${[...state.sexuality].join(', ')} · ${[...state.style].join(', ')}`, y.at);
+        render();
+        k++;
+        if (k < YEAR.length) timer = window.setTimeout(step, 1300);
+      };
+      step();
+    });
+
+    render();
+  });
+</script>
+
+<style>
+  .fd-id { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: var(--s-6); align-items: start; }
+  .fd-id-builder { display: grid; gap: var(--s-4); padding: var(--s-6); border-radius: var(--r-lg); border: 1px solid var(--line); background: var(--bg-2); min-width: 0; }
+  .fd-id-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: var(--r-pill); background: var(--surface); border: 1px solid var(--line); justify-self: start; max-width: 100%; }
+  .fd-id-tabs button { padding: 0.55rem 1rem; border-radius: var(--r-pill); font: 600 var(--fs-sm) var(--font-ui); color: var(--ink-2); transition: background var(--dur-1), color var(--dur-1); }
+  .fd-id-tabs button[aria-selected='true'] { background: #c7b6ff; color: #1a0f1f; }
+  .fd-id-panel { display: grid; gap: var(--s-4); }
+  .fd-id-head { display: grid; gap: 4px; }
+  .fd-id-h { font: 800 var(--fs-xl) / 1.1 var(--font-display); letter-spacing: -0.02em; }
+  .fd-id-sub { margin-top: var(--s-2); }
+  .fd-id-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .fd-id-chips :global(.fd-id-chip) { padding: 0.6rem 1rem; border-radius: 99px; border: 1.5px solid #4a3c58; color: var(--ink); font: 600 var(--fs-sm) / 1 var(--font-ui); transition: background var(--dur-1), border-color var(--dur-1), color var(--dur-1), transform var(--dur-2) var(--ease-out); }
+  .fd-id-chips :global(.fd-id-chip--sm) { padding: 0.5rem 0.85rem; }
+  .fd-id-chips :global(.fd-id-chip:hover) { border-color: #c7b6ff; }
+  .fd-id-chips :global(.fd-id-chip[aria-pressed='true']) { background: linear-gradient(110deg, #c7b6ff, #ffb3d9 55%, #ffc9a3); border-color: transparent; color: #1a0f1f; }
+  .fd-id-chips :global(.fd-id-chip[aria-pressed='true']::before) { content: '✓ '; font-weight: 800; }
+  .fd-id-chips :global(.fd-id-chip--own) { border-style: dashed; }
+  .fd-id-own { display: flex; gap: 8px; max-width: 420px; }
+  .fd-id-own input { flex: 1; min-width: 0; height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); font: 500 var(--fs-sm) var(--font-ui); }
+  .fd-id-own input::placeholder { color: var(--muted); }
+  .fd-id-own button { height: 44px; padding: 0 16px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line-strong); color: var(--ink); font: 700 var(--fs-sm) var(--font-ui); }
+  .fd-id-vis { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 14px; border: 1px solid var(--line); justify-self: start; }
+  .fd-id-vis button { padding: 0.45rem 0.8rem; border-radius: 10px; font: 600 0.8rem var(--font-ui); color: var(--ink-2); }
+  .fd-id-vis button[aria-checked='true'] { background: var(--surface-2); color: var(--ink); box-shadow: inset 0 0 0 1px #c7b6ff; }
+  .fd-id-def { padding: var(--s-4); border-radius: var(--r-md); background: linear-gradient(120deg, rgb(123 77 255 / 0.16), rgb(255 111 181 / 0.08)); border: 1px solid rgb(199 182 255 / 0.3); color: var(--ink-2); font-size: var(--fs-sm); min-height: 3.4em; }
+  .fd-id-def strong { color: var(--ink); }
+
+  .fd-id-preview { display: grid; gap: var(--s-4); min-width: 0; }
+  .fd-id-card { border-radius: 28px; overflow: hidden; background: #17121d; border: 1px solid #33283f; box-shadow: 0 30px 80px -30px rgb(123 77 255 / 0.5); color: #f5f0ea; }
+  .fd-id-card.is-pulse .fd-id-body { animation: fd-id-pulse 0.6s var(--ease-out); }
+  @keyframes fd-id-pulse { from { opacity: 0.6; } }
+  .fd-id-photo { position: relative; aspect-ratio: 16 / 10; }
+  .fd-id-photo :global(.fd-id-aura) { position: absolute; inset: 0; }
+  .fd-id-verified { position: absolute; left: 14px; bottom: 14px; padding: 6px 10px; border-radius: 99px; background: rgb(14 11 18 / 0.75); color: #f5f0ea; font: 700 0.72rem/1 var(--font-ui); }
+  .fd-id-body { display: grid; gap: 10px; padding: 18px 20px 22px; }
+  .fd-id-name { font: 800 1.5rem/1.1 var(--font-display); letter-spacing: -0.02em; }
+  .fd-id-name span { font: 500 0.85rem var(--font-ui); color: #b8aec4; margin-left: 6px; letter-spacing: 0; }
+  .fd-id-out { display: flex; flex-wrap: wrap; gap: 6px; }
+  .fd-id-out:empty { display: none; }
+  .fd-id-out :global(.fd-id-tag) { padding: 5px 10px; border-radius: 99px; background: #221a2b; font: 600 0.78rem/1.2 var(--font-ui); color: #f5f0ea; animation: fd-id-in 0.45s var(--ease-out); }
+  .fd-id-out[data-vis='connections'] :global(.fd-id-tag) { background: transparent; border: 1px dashed #6c5b7d; color: #d8cfe2; }
+  .fd-id-out[data-vis='connections'] :global(.fd-id-tag)::before { content: '🔒 '; font-size: 0.85em; }
+  .fd-id-out :global(.fd-id-note) { font: 500 0.78rem var(--font-ui); color: #b8aec4; font-style: italic; }
+  @keyframes fd-id-in { from { opacity: 0; transform: translateY(4px) scale(0.96); } }
+  .fd-id-bio { font-size: 0.9rem; color: #d8cfe2; line-height: 1.5; }
+  .fd-id-history { padding: var(--s-4) var(--s-5); border-radius: var(--r-md); border: 1px solid var(--line); background: var(--bg-2); display: grid; gap: var(--s-3); }
+  .fd-id-history-head { display: flex; justify-content: space-between; align-items: center; gap: var(--s-3); flex-wrap: wrap; }
+  .fd-id-replay { padding: 0.45rem 0.8rem; border-radius: 99px; border: 1px solid #c7b6ff; color: var(--ink); font: 600 0.8rem var(--font-ui); }
+  .fd-id-replay:hover { background: rgb(199 182 255 / 0.12); }
+  .fd-id-log { list-style: none; padding: 0; display: grid; gap: 6px; font-size: var(--fs-sm); color: var(--ink-2); }
+  .fd-id-log :global(li) { display: grid; grid-template-columns: 5.2rem 1fr; gap: 8px; }
+  .fd-id-log :global(li.is-new) { animation: fd-id-in 0.45s var(--ease-out); }
+  .fd-id-log :global(span) { font: 600 0.72rem/1.6 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: #c7b6ff; }
+
+  .fd-id-facts { grid-column: 1 / -1; list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); }
+  .fd-id-facts li { display: grid; gap: 6px; padding: var(--s-5); border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface); }
+  .fd-id-facts strong { font: 900 var(--fs-2xl) / 1 var(--font-display); letter-spacing: -0.04em; background: linear-gradient(100deg, #c7b6ff, #ff9fcf 50%, #ffc29d); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .fd-id-facts span { font-size: var(--fs-sm); color: var(--ink-2); }
+
+  @media (max-width: 1000px) {
+    .fd-id { grid-template-columns: 1fr; }
+    .fd-id-facts { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .fd-id-builder { padding: var(--s-4); }
+    .fd-id-tabs button { padding: 0.5rem 0.75rem; font-size: 0.8rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fd-id-card.is-pulse .fd-id-body, .fd-id-out :global(.fd-id-tag), .fd-id-log :global(li.is-new) { animation: none; }
+  }
+</style>

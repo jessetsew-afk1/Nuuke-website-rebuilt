@@ -1,0 +1,64 @@
+---
+// Case hero: a live heat-map aura you can warm with your pointer, and a constellation of
+// three linked profiles as glassy orbs (Three.js, hardware GL only). The code-drawn cover
+// is the designed static fallback underneath.
+import type { Project } from '../../../data/projects';
+import Cover from './Cover.astro';
+interface Props {
+  project: Project;
+}
+const { project } = Astro.props;
+---
+
+<div class="fd-hero" data-fd-hero>
+  <div class="fd-hero-fb"><Cover project={project} /></div>
+  <canvas class="fd-hero-canvas" data-fd-hero-canvas aria-hidden="true"></canvas>
+  <div class="fd-hero-chips" aria-hidden="true">
+    <span class="fd-chip fd-chip--a"><i class="fd-chip-dot"></i>Linked · 3 people</span>
+    <span class="fd-chip fd-chip--b"><i class="fd-chip-lock"></i>Hidden bio · opens when it’s mutual</span>
+    <span class="fd-chip fd-chip--c"><i class="fd-chip-eye"></i>Incognito · on</span>
+  </div>
+  <p class="fd-hero-hint" aria-hidden="true">Touch the aura</p>
+</div>
+
+<script>
+  import { whenNear } from '../../../scripts/motion';
+  import { hasHardwareGL } from '../../../scripts/gl-support';
+  document.querySelectorAll<HTMLElement>('[data-fd-hero]').forEach((root) => {
+    const canvas = root.querySelector<HTMLCanvasElement>('[data-fd-hero-canvas]')!;
+    if (!hasHardwareGL()) return;
+    whenNear(root, () =>
+      import('../../../scripts/three/feeld-hero')
+        .then((m) => {
+          m.initHero(canvas, root);
+          requestAnimationFrame(() => root.classList.add('is-live'));
+        })
+        .catch(() => root.classList.remove('is-live')),
+    );
+  });
+</script>
+
+<style>
+  .fd-hero { position: relative; width: 100%; aspect-ratio: 5 / 4.4; border-radius: 28px; overflow: hidden; background: #0e0b12; box-shadow: 0 40px 100px -30px rgb(123 77 255 / 0.5), 0 0 0 1px rgb(255 255 255 / 0.08); touch-action: pan-y; }
+  .fd-hero-fb { position: absolute; inset: 0; transition: opacity 1.2s cubic-bezier(0.45, 0, 0.55, 1); }
+  .fd-hero-fb :global(svg) { width: 100%; height: 100%; display: block; }
+  .fd-hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 1.2s cubic-bezier(0.45, 0, 0.55, 1); }
+  .fd-hero.is-live .fd-hero-canvas { opacity: 1; }
+  .fd-hero.is-live .fd-hero-fb { opacity: 0; }
+  .fd-hero-chips { position: absolute; inset: 0; pointer-events: none; }
+  .fd-chip { position: absolute; display: inline-flex; align-items: center; gap: 8px; padding: 0.5rem 0.85rem; border-radius: var(--r-pill); background: rgb(14 11 18 / 0.72); border: 1px solid rgb(255 255 255 / 0.16); color: #f5f0ea; font: 600 clamp(0.62rem, 0.5rem + 0.4vw, 0.8rem) / 1 var(--font-ui); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); animation: fd-hero-float 5.5s cubic-bezier(0.45, 0, 0.55, 1) infinite; white-space: nowrap; }
+  .fd-chip--a { left: 5%; top: 7%; }
+  .fd-chip--b { right: 4%; bottom: 13%; animation-delay: -1.8s; }
+  .fd-chip--c { left: 6%; bottom: 6%; animation-delay: -3.6s; }
+  .fd-hero:not(.is-live) .fd-chip { display: none; }
+  .fd-chip-dot { width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffc9a3, #ff6fb5 55%, #7b4dff); }
+  .fd-chip-lock { width: 9px; height: 8px; border-radius: 2px; background: #ff9e7a; position: relative; margin-top: 3px; }
+  .fd-chip-lock::before { content: ''; position: absolute; left: 1.5px; top: -5px; width: 6px; height: 6px; border: 1.5px solid #ff9e7a; border-bottom: 0; border-radius: 4px 4px 0 0; box-sizing: border-box; }
+  .fd-chip-eye { width: 12px; height: 7px; border-radius: 50%; border: 1.5px solid #c7b6ff; position: relative; }
+  .fd-chip-eye::after { content: ''; position: absolute; left: -2px; right: -2px; top: 50%; height: 1.5px; background: #c7b6ff; transform: rotate(-30deg); }
+  .fd-hero-hint { position: absolute; right: 5%; top: 7%; font: 600 0.66rem/1 var(--font-ui); letter-spacing: 0.14em; text-transform: uppercase; color: #f5f0ea; opacity: 0; transition: opacity 0.6s; pointer-events: none; text-shadow: 0 1px 8px rgb(14 11 18 / 0.7); }
+  .fd-hero.is-live .fd-hero-hint { opacity: 1; }
+  @media (max-width: 560px) { .fd-chip--b { bottom: 17%; } .fd-chip--c { bottom: 5%; } }
+  @keyframes fd-hero-float { 50% { transform: translateY(-6px); } }
+  @media (prefers-reduced-motion: reduce) { .fd-chip { animation: none; } }
+</style>

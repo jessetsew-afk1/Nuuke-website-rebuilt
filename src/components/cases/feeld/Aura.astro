@@ -1,0 +1,37 @@
+---
+// An "aura portrait": a sample person drawn as a soft heat-map gradient with a faint
+// head-and-shoulders silhouette. No faces, no photos. Used in mock screens and labs.
+import { AURAS, auraBg } from '../../../data/cases/feeld';
+interface Props {
+  who: keyof typeof AURAS | string;
+  class?: string;
+  sil?: boolean;
+}
+const { who, class: cls, sil = true } = Astro.props;
+const seed = AURAS[who] ?? AURAS.rae;
+---
+
+<span class:list={['fd-aura', 'img', cls]} style={`background:${auraBg(seed)}`} aria-hidden="true">
+  {sil && <i class="fd-aura-sil"></i>}
+  <i class="fd-aura-grain"></i>
+</span>
+
+<style>
+  .fd-aura { position: relative; display: block; overflow: hidden; isolation: isolate; }
+  .fd-aura-sil {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(17% 15% at 50% 42%, rgb(14 11 18 / 0.24), transparent 100%),
+      radial-gradient(42% 26% at 50% 100%, rgb(14 11 18 / 0.24), transparent 100%);
+    filter: blur(6px);
+    mix-blend-mode: multiply;
+  }
+  .fd-aura-grain {
+    position: absolute;
+    inset: 0;
+    opacity: 0.22;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+</style>

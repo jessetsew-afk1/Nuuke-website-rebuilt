@@ -1,0 +1,289 @@
+---
+import Case from '../../layouts/Case.astro';
+import Chapter from '../../components/case/Chapter.astro';
+import Brief from '../../components/case/Brief.astro';
+import Personas from '../../components/case/Personas.astro';
+import JourneyMap from '../../components/case/JourneyMap.astro';
+import FlowMap from '../../components/case/FlowMap.astro';
+import ScreenStack from '../../components/case/ScreenStack.astro';
+import Prototype from '../../components/case/Prototype.astro';
+import DesignSystem from '../../components/case/DesignSystem.astro';
+import Metrics from '../../components/case/Metrics.astro';
+import Hero from '../../components/cases/feeld/Hero.astro';
+import Opening from '../../components/cases/feeld/Opening.astro';
+import Roadmap from '../../components/cases/feeld/Roadmap.astro';
+import IdentityLab from '../../components/cases/feeld/IdentityLab.astro';
+import ConsentLab from '../../components/cases/feeld/ConsentLab.astro';
+import Constellation from '../../components/cases/feeld/Constellation.astro';
+import PrivacyLab from '../../components/cases/feeld/PrivacyLab.astro';
+import Screens from '../../components/cases/feeld/Screens.astro';
+import { bySlug } from '../../data/projects';
+import { feeldLayers } from '../../data/cases/feeld';
+
+const p = bySlug('feeld');
+const chapters = [
+  { id: 'brief', label: 'Brief & plan' },
+  { id: 'research', label: 'Personas' },
+  { id: 'journey', label: 'Journey map' },
+  { id: 'identity', label: 'Identity, in your words' },
+  { id: 'consent', label: 'Mutual reveal' },
+  { id: 'constellation', label: 'Linked profiles' },
+  { id: 'flow', label: 'User flow' },
+  { id: 'layers', label: '3D wireframe' },
+  { id: 'prototype', label: 'Prototype' },
+  { id: 'privacy', label: 'Privacy lab' },
+  { id: 'system', label: 'Design system' },
+  { id: 'measure', label: 'Measure' },
+];
+const sources = [
+  { label: 'Feeld: homepage', url: 'https://feeld.co' },
+  { label: 'Feeld: about', url: 'https://feeld.co/about' },
+  { label: 'Feeld: the app', url: 'https://feeld.co/the-app' },
+  { label: 'Feeld: Pings and Uplift', url: 'https://feeld.co/the-app/pings-and-uplift' },
+  { label: 'Feeld: trust and safety', url: 'https://feeld.co/the-app/trust-and-safety' },
+  { label: 'Ask Feeld: privacy and safety features', url: 'https://feeld.co/ask-feeld/how-to/privacy-and-safety-features-on-feeld' },
+  { label: 'Feeld: press', url: 'https://feeld.co/press' },
+  { label: 'Feeld: Constellation press release (June 2024)', url: 'https://feeld.co/press/releases/feeld-introduces-constellation-multi-partner-profile-linking-new-app-feature' },
+  { label: 'Feeld Raw 2025', url: 'https://feeld.co/press/releases/feeld-raw-2025' },
+  { label: 'Feeld: State of Dating Vol. IV', url: 'https://feeld.co/press/releases/state-of-dating-vol-4' },
+  { label: 'Feeld: State of Dating Vol. II', url: 'https://feeld.co/news/state-of-dating-volume-2' },
+  { label: 'Feeld help centre: hidden bio', url: 'https://support.feeld.co/hc/en-gb/articles/22526912812572-Hidden-bio-explained' },
+  { label: 'App Store listing', url: 'https://apps.apple.com/us/app/feeld-dating-for-the-curious/id887914690' },
+  { label: 'Wikipedia: Feeld', url: 'https://en.wikipedia.org/wiki/Feeld' },
+  { label: 'Wikipedia: Ana Kirova', url: 'https://en.wikipedia.org/wiki/Ana_Kirova' },
+  { label: 'It’s Nice That: the Feeld rebrand', url: 'https://www.itsnicethat.com/news/feeld-rebrand-graphic-design-141123' },
+  { label: 'The Brand Identity: Feeld by Made Thought', url: 'https://the-brandidentity.com/project/turning-up-the-heat-feelds-rebrand-born-of-collaboration-is-charged-with-electricity-and-energy' },
+  { label: 'Fonts In Use: Feeld', url: 'https://fontsinuse.com/uses/78852/feeld' },
+  { label: 'Global Dating Insights: rebrand', url: 'https://www.globaldatinginsights.com/news/feeld-announces-major-rebrand/' },
+  { label: 'The Guardian (via finwire): 2025 accounts', url: 'https://finwire.io/news/business-news/kinky-dating-app-feeld-pays-founders-record-38m-after-sales-jump' },
+];
+const meta = [
+  { label: 'Brand', value: 'Feeld Ltd, London' },
+  { label: 'Discipline', value: 'Mobile app · UX/UI · trust & safety' },
+  { label: 'Our role', value: 'Research, language, consent model, prototype, privacy' },
+  { label: 'Timeline (concept)', value: 'Eight-week design sprint' },
+];
+const personas = [
+  {
+    name: 'Newly curious Maya',
+    meta: '43 · out of a long marriage',
+    quote: 'I know I want something different. I don’t have the words for it yet.',
+    goals: ['Words she can try on without committing', 'Browse without being spotted by people she knows', 'Know exactly what a like shares'],
+    pains: ['Forms that make her pick one box', 'Jargon nobody explains', 'Feeling watched'],
+    color: '#FF9E7A',
+  },
+  {
+    name: 'Opening-up Jo & Theo',
+    meta: '30s · nesting partners',
+    quote: 'We want to be honest from the very first screen.',
+    goals: ['One profile that shows they’re linked', 'Plans made in one group chat', 'Labels in their own words'],
+    pains: ['Couple profiles nobody can verify', 'Being messaged separately, behind each other’s backs', 'Explaining their relationship every time'],
+    color: '#C7B6FF',
+  },
+  {
+    name: 'Privacy-first Rae',
+    meta: '27 · she/they · not out at work',
+    quote: 'I want to be seen by the right people, and invisible to everyone else.',
+    goals: ['Choose who sees which photo', 'Report fast, without drama', 'Verification that keeps fake profiles out'],
+    pains: ['Images she didn’t ask for', 'Distance that gives away where she lives', 'Screenshots of private photos'],
+    color: '#FF6FB5',
+  },
+];
+const stages = [
+  { label: 'Signs up', doing: 'Downloads it after a friend mentions it and reaches the identity step.', feeling: 'Curious, a little exposed.', score: 0.4, opportunity: 'Plural chips and a glossary, so she can pick “Curious” without committing to a label.' },
+  { label: 'First browse', doing: 'Opens Discover at lunch and freezes: what if a colleague sees her?', feeling: 'Anxious.', score: -1.3, opportunity: 'Incognito one tap from Discover, with plain words about who can still see her.' },
+  { label: 'A first like', doing: 'Likes someone, then wonders what they now know about her.', feeling: 'Unsure.', score: -0.4, opportunity: 'Say exactly what a like shares: her hidden bio, nothing else, until it’s mutual.' },
+  { label: 'It’s mutual', doing: 'A connection. Private photos and chat open on both sides at once.', feeling: 'Relieved, excited.', score: 1.5, opportunity: 'Make the reveal a moment. The aura belongs here, and only here.' },
+  { label: 'An unwanted image', doing: 'A new connection sends an image she didn’t ask for.', feeling: 'Upset.', score: -1.8, opportunity: 'Blurred until she chooses, and report or block in one calm screen.' },
+  { label: 'Month one', doing: 'Updates her profile to heteroflexible and meets a couple for coffee.', feeling: 'Confident.', score: 1.8, opportunity: 'Quiet, easy edits; a group chat keeps a three-way plan transparent.' },
+];
+const nodes = [
+  { id: 'welcome', label: 'Welcome', x: 90, y: 70, kind: 'start' as const },
+  { id: 'identity', label: 'Identity', x: 265, y: 70 },
+  { id: 'desires', label: 'Looking for', x: 440, y: 70 },
+  { id: 'glossary', label: 'Glossary', x: 440, y: 190 },
+  { id: 'verify', label: 'Verify it’s you', x: 615, y: 70 },
+  { id: 'discover', label: 'Discover', x: 790, y: 190, kind: 'key' as const },
+  { id: 'profile', label: 'Profile', x: 965, y: 70 },
+  { id: 'ping', label: 'Ping + note', x: 965, y: 190 },
+  { id: 'privacy', label: 'Privacy', x: 965, y: 320 },
+  { id: 'match', label: 'It’s mutual', x: 1140, y: 130, kind: 'key' as const },
+  { id: 'chat', label: 'Chat', x: 1315, y: 130 },
+  { id: 'group', label: 'Group chat', x: 1140, y: 320 },
+  { id: 'report', label: 'Report / block', x: 1315, y: 320, kind: 'end' as const },
+];
+const edges = [
+  { from: 'welcome', to: 'identity' },
+  { from: 'identity', to: 'desires' },
+  { from: 'identity', to: 'glossary', label: 'what’s this?' },
+  { from: 'desires', to: 'verify' },
+  { from: 'verify', to: 'discover' },
+  { from: 'discover', to: 'profile', label: 'open' },
+  { from: 'discover', to: 'ping', label: 'Ping' },
+  { from: 'discover', to: 'privacy', label: 'incognito' },
+  { from: 'profile', to: 'match', label: 'like' },
+  { from: 'ping', to: 'match' },
+  { from: 'match', to: 'chat', label: 'say hi' },
+  { from: 'chat', to: 'group', label: 'linked' },
+  { from: 'profile', to: 'report', label: '⋯' },
+];
+const tasks = [
+  { label: 'Describe yourself, no boxes', screen: 'identity' },
+  { label: 'Look up a word you’re unsure of', screen: 'glossary' },
+  { label: 'Verify it’s really you', screen: 'verify' },
+  { label: 'Open a profile: what’s still hidden?', screen: 'profile' },
+  { label: 'Send a Ping with a note', screen: 'ping' },
+  { label: 'See what opens when it’s mutual', screen: 'match' },
+  { label: 'Make a plan with a linked couple', screen: 'group' },
+  { label: 'Turn on Incognito', screen: 'privacy' },
+  { label: 'Find how to report or block', screen: 'report' },
+];
+---
+
+<Case project={p} chapters={chapters} sources={sources} meta={meta}>
+  <Hero slot="hero" project={p} />
+
+  <Opening />
+
+  <Chapter id="brief" n="01" label="Discover · The brief" title="A dating app where every yes has to be mutual.">
+    <Brief
+      story="Feeld is a London dating app “for the curious”: singles, couples and constellations of partners who are “open to experiencing people and relationships in new ways.” Designer <strong>Dimo Trifonov</strong> launched it in July 2014 as 3nder, after his then-partner <strong>Ana Kirova</strong> told him she had feelings for other people; a trademark suit from Tinder’s parent company led to the name Feeld in 2016. Kirova joined in 2016 and has been CEO since 2021. Members choose from 20+ genders and 20+ sexualities, keep a public bio <em>and a hidden one</em>, and can link their profile with up to five people. It’s ad-free and promises it “will never rank profiles.” In 2023 a rebrand by Made Thought, with type by Charlotte Rohde, gave it an <em>Aura</em> of heat-map gradients and motion modelled on breath, heartbeat and touch."
+      facts={[
+        { v: '14M+', k: 'Registered accounts, as of February 2026' },
+        { v: '2014', k: 'Launched as 3nder; renamed Feeld in 2016' },
+        { v: '£64m', k: '2025 revenue, up 24% (The Guardian, Oct 2026)' },
+        { v: '20+ · 20+', k: 'Gender and sexuality options; 50+ desires' },
+        { v: 'Up to 5', k: 'Linked profiles per member (Constellation, 2024)' },
+        { v: '80+', k: 'People on the Feeld team, worldwide' },
+      ]}
+      problems={[
+        { title: 'Identity without boxes', text: 'Twenty-plus genders, twenty-plus sexualities and fifty-plus desires have to feel like a conversation, not a form. Nine in ten members update their bios, so change has to be easy too.' },
+        { title: 'Consent you can see', text: 'Hidden bios, private photos and chat open at different moments. People should always know what a like shares, and that the closest layers open only on a mutual yes.' },
+        { title: 'Privacy you can feel', text: 'In Feeld’s own survey, 58% of member respondents said they highly value control over their personal information. Incognito, blur and private photos should show their effect, not hide in settings.' },
+      ]}
+      goal="Every layer of a profile says who can see it, and the closest layers open only when both people say yes."
+    />
+    <h3 class="t-h4 fd-sub">How this app gets made: nine phases in eight weeks</h3>
+    <p class="t-body measure">This page follows the path we’d take with the Feeld team, from listening to launch. Pick a star to see what happens in that phase, what you get and how much of your time it takes.</p>
+    <Roadmap />
+  </Chapter>
+
+  <Chapter id="research" n="02" label="Define · Personas" title="Three people, three kinds of careful." intro="Built from the audience Feeld describes publicly: people exploring non-monogamy and queer identities, couples who meet people together, and a fast-growing group of newcomers, including women over 40. Tap a card to see goals and frustrations.">
+    <Personas personas={personas} />
+  </Chapter>
+
+  <Chapter id="journey" n="03" label="Define · Journey map" title="Maya’s first month, and the moments that ask for trust." intro="Tap each moment to see what she’s doing, how she feels and the design opportunity we found. Every low point is about <strong>not knowing who can see what</strong>.">
+    <JourneyMap stages={stages} />
+  </Chapter>
+
+  <Chapter id="identity" n="04" label="Language · Identity builder" title="Describe yourself in your own words." intro="No dropdowns, no either/or. Pick none, one or several words per group, <strong>tap any word to read what it means</strong>, add your own, and choose who sees each part. Then replay a sample year: identity is allowed to move.">
+    <IdentityLab />
+  </Chapter>
+
+  <Chapter id="consent" n="05" label="Consent · Mutual reveal" title="Some of you opens only when both say yes." intro="Two sample members, two phones. Like, Ping, turn Ping notes off, or withdraw, and watch exactly what each person can see. <strong>Your hidden bio opens to people you choose; private photos and chat open only when it’s mutual.</strong>">
+    <ConsentLab />
+  </Chapter>
+
+  <Chapter id="constellation" n="06" label="Structure · Linked profiles" title="A profile for more than one person." intro="Feeld lets members link with up to five people. Every link here is an invitation the other person has to accept, it expires after 72 hours, and either side can undo it. <strong>Invite, accept, decline or let one expire</strong>, and see how it reads in Discover.">
+    <Constellation />
+  </Chapter>
+
+  <Chapter id="flow" n="07" label="Structure · User flow" title="Thirteen screens, one path from curious to connected." intro="Onboarding happens once. The daily loop is <strong>Discover → a like or a Ping → it’s mutual → chat</strong>, with privacy and safety one tap away. Tap any screen to open it in the prototype below.">
+    <FlowMap nodes={nodes} edges={edges} width={1400} height={420} />
+  </Chapter>
+
+  <Chapter id="layers" n="08" label="Design · 3D wireframe" title="The profile screen, taken apart." intro="Each screen is built in five layers, from grid to consent states and motion. Scroll and the exploded view assembles into the final UI; drag to look around it.">
+    <ScreenStack layers={feeldLayers} accent={p.accent} />
+  </Chapter>
+
+  <Chapter id="prototype" n="09" label="Prototype & test" title="From curious to connected. Tap through it." intro="This is the prototype we’d put in front of five people per round. Follow the tasks on the left and switch between <strong>Sketch</strong>, <strong>Wireframe</strong> and <strong>Hi-fi</strong> to see how each screen evolved. Everyone in it is a sample person drawn as an aura.">
+    <Prototype title="Feeld · curious to connected" start="welcome" tasks={tasks} note="Nine tasks, fourteen screens. Everything that glows is tappable.">
+      <Screens />
+    </Prototype>
+  </Chapter>
+
+  <Chapter id="privacy" n="10" label="Trust & safety · Privacy lab" title="Privacy controls you can feel working." intro="Flip a control and watch what a stranger, someone you liked and a connection can each see. Test the image blur and try a screenshot. Each control says whether it’s <strong>on Feeld today</strong> or a <strong>NUUKE concept</strong>.">
+    <PrivacyLab />
+  </Chapter>
+
+  <Chapter id="system" n="11" label="Ship · Design system" title="Ink and bone, with the aura saved for yes.">
+    <DesignSystem
+      colors={[
+        { name: 'Ink', hex: '#0E0B12', use: 'App background' },
+        { name: 'Night', hex: '#17121D', use: 'Cards, sheets, chat bubbles' },
+        { name: 'Bone', hex: '#F5F0EA', use: 'Text and the primary button (with ink text)' },
+        { name: 'Lilac', hex: '#C7B6FF', use: 'Selection, your messages' },
+        { name: 'Coral', hex: '#FF9E7A', use: 'Pings, gentle attention' },
+        { name: 'Rose', hex: '#FF6FB5', use: 'The aura’s heart: likes, mutual moments' },
+        { name: 'Violet', hex: '#7B4DFF', use: 'The aura’s depth' },
+        { name: 'Mint', hex: '#9FE3C0', use: 'Safety, verified, always-on protection' },
+      ]}
+      type={[
+        { role: 'Display', sample: 'It’s mutual.', spec: 'Montserrat 800 · 40/42 (stand-in for FEELD Edge Rounded)', style: 'font-family:Montserrat;font-weight:800;font-size:2.4rem;letter-spacing:-0.035em' },
+        { role: 'Title', sample: 'Describe yourself.', spec: 'Montserrat 800 · 27/30', style: 'font-family:Montserrat;font-weight:800;font-size:1.6rem;letter-spacing:-0.025em' },
+        { role: 'Body', sample: 'Shown only to people you like or Ping.', spec: 'Inter 400 · 15/22 (stand-in for ABC Diatype)', style: 'font-family:Inter;font-size:1rem' },
+        { role: 'Label', sample: 'HIDDEN BIO · CONNECTIONS ONLY', spec: 'Inter 700 · 11.5/14 · +0.1em', style: 'font-family:Inter;font-weight:700;font-size:.74rem;letter-spacing:.1em' },
+      ]}
+      note="Hex values are our working approximation of the 2023 Aura identity as described publicly (heat-map gradients in pink, purple, orange and green on black and white); Feeld publishes no official values. Feeld’s real typefaces are a custom New Edge 666 Rounded by Charlotte Rohde and ABC Diatype. We use Montserrat and Inter as stand-ins and don’t recreate the wordmark."
+    >
+      <h3 class="t-label fd-ds-h">Components</h3>
+      <div class="fd-ds">
+        <div class="fd-ds-card">
+          <p class="fd-ds-k">The aura rule</p>
+          <span class="fd-ds-aura" aria-hidden="true"></span>
+          <p class="t-small">The gradient appears only for emotive moments (a like, a mutual connection), as Feeld’s identity intends. Everything else is ink and bone.</p>
+        </div>
+        <div class="fd-ds-card">
+          <p class="fd-ds-k">Consent layer</p>
+          <span class="fd-ds-layer"><b>Hidden bio</b><em>Opens if Sam likes you</em></span>
+          <p class="t-small">Every hidden layer names who can see it and why. Locked layers use a dashed edge; open ones turn solid.</p>
+        </div>
+        <div class="fd-ds-card">
+          <p class="fd-ds-k">Identity chips</p>
+          <span class="fd-ds-chips"><i class="is-on">✓ Queer</i><i>Bisexual</i><i class="is-on">✓ Curious</i></span>
+          <p class="t-small">Multi-select by default. Never a binary toggle, never a required field.</p>
+        </div>
+        <div class="fd-ds-card">
+          <p class="fd-ds-k">Motion</p>
+          <span class="fd-ds-breath" aria-hidden="true"><i></i><i></i></span>
+          <p class="t-small">Breath (5.5 s) for calm states, one heartbeat for a like, a slow merge for mutual. All of it stops with Reduce Motion.</p>
+        </div>
+      </div>
+    </DesignSystem>
+  </Chapter>
+
+  <Chapter id="measure" n="12" label="Ship · Measure" title="How we’d know it worked.">
+    <Metrics
+      metrics={[
+        { name: 'Consent is legible', hypothesis: 'After one use, people can say what a like shares and what opens on a mutual yes, without help.', how: 'Comprehension questions after the mutual-reveal task, five people per round, until 5 of 5 answer correctly.' },
+        { name: 'Identity without drop-off', hypothesis: 'More people finish the identity step, and more of them pick several words or add their own.', how: 'Funnel from identity start to finish; share of multi-select and custom entries, by cohort.' },
+        { name: 'Privacy controls found and trusted', hypothesis: 'People find Incognito in under ten seconds and correctly predict who can see them.', how: 'First-click test, plus a prediction task scored against the visibility matrix.' },
+        { name: 'Feeling safe, for everyone', hypothesis: 'Self-reported safety rises, with no gap for trans and non-binary members.', how: 'Short in-app pulse survey each quarter, segmented by gender identity, with an opt-out.' },
+        { name: 'Linked profiles that hold', hypothesis: 'Most link invites are accepted within the 72-hour window, and few are unlinked within a week.', how: 'Invite acceptance and early-unlink rates; follow-up interviews with couples and constellations.' },
+      ]}
+    />
+  </Chapter>
+</Case>
+
+<style>
+  .fd-sub { margin-top: var(--s-9); margin-bottom: var(--s-3); }
+  .fd-ds-h { margin-bottom: var(--s-3); }
+  .fd-ds { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s-3); }
+  .fd-ds-card { display: grid; gap: var(--s-3); align-content: start; padding: var(--s-5); border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface); }
+  .fd-ds-k { font: 700 var(--fs-sm) var(--font-ui); color: var(--ink); }
+  .fd-ds-aura { height: 56px; border-radius: 16px; background: radial-gradient(60% 90% at 30% 40%, #ffc9a3, transparent 70%), radial-gradient(70% 90% at 75% 60%, #ff6fb5, transparent 75%), #7b4dff; }
+  .fd-ds-layer { display: grid; gap: 4px; padding: 10px 12px; border-radius: 14px; background: #17121d; border: 1px dashed #6c5b7d; font: 600 0.8rem var(--font-ui); color: #f5f0ea; }
+  .fd-ds-layer em { font-style: normal; color: #ffc29d; font-weight: 600; }
+  .fd-ds-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .fd-ds-chips i { font-style: normal; padding: 6px 11px; border-radius: 99px; border: 1.5px solid #4a3c58; font: 600 0.8rem/1 var(--font-ui); color: var(--ink); }
+  .fd-ds-chips i.is-on { background: linear-gradient(110deg, #c7b6ff, #ffb3d9 55%, #ffc9a3); border-color: transparent; color: #1a0f1f; }
+  .fd-ds-breath { position: relative; height: 56px; display: block; }
+  .fd-ds-breath i { position: absolute; top: 8px; width: 40px; height: 40px; border-radius: 50%; mix-blend-mode: screen; }
+  .fd-ds-breath i:first-child { left: calc(50% - 46px); background: radial-gradient(circle at 35% 35%, #ffc9a3, #ff6fb5 55%, #7b4dff); animation: fd-ds-merge-a 5.5s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+  .fd-ds-breath i:last-child { left: calc(50% + 6px); background: radial-gradient(circle at 35% 35%, #c7b6ff, #ff9e7a 55%, #ff5a3c); animation: fd-ds-merge-b 5.5s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+  @keyframes fd-ds-merge-a { 50% { transform: translateX(16px) scale(1.1); } }
+  @keyframes fd-ds-merge-b { 50% { transform: translateX(-16px) scale(1.1); } }
+  @media (max-width: 1000px) { .fd-ds { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .fd-ds { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) { .fd-ds-breath i { animation: none !important; } }
+</style>

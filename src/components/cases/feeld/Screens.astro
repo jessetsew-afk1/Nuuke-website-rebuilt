@@ -1,0 +1,450 @@
+---
+// The tappable screens for the Feeld concept prototype (slotted into <Prototype>).
+// Fidelity classes: .ui container · .t text · .img illustration · .btn button · .ico icon.
+// Every person is a sample person drawn as an aura; all copy is ours and deliberately clean.
+import Aura from './Aura.astro';
+const tabs = (on: string) =>
+  [
+    { id: 'discover', l: 'Discover', i: '◎' },
+    { id: 'match', l: 'Likes', i: '♡' },
+    { id: 'chat', l: 'Chats', i: '◌' },
+    { id: 'privacy', l: 'You', i: '◐' },
+  ].map((t) => ({ ...t, on: t.id === on }));
+const genders = [['Woman', false], ['Man', false], ['Non-binary', true], ['Genderfluid', false], ['Agender', false], ['Trans woman', false], ['Trans man', false], ['Questioning', false]] as const;
+const sexes = [['Queer', true], ['Bisexual', false], ['Pansexual', false], ['Heteroflexible', false], ['Straight', false], ['Asexual', false], ['Curious', true]] as const;
+const looking = [['Conversation first', true], ['Dates', true], ['Slow burn', false], ['Something long-term', false], ['New friends', false], ['Exploring as a couple', false]] as const;
+---
+
+<!-- 1 · Welcome -->
+<section class="scr fds fds-welcome" data-screen="welcome" data-title="Welcome">
+  <Aura who="rae" class="fds-welcome-aura" sil={false} />
+  <div class="fds-pad fds-bottom">
+    <p class="t fds-kicker">Feeld · NUUKE concept</p>
+    <h4 class="t fds-h1">Dating for the curious.</h4>
+    <p class="t fds-p">Describe yourself in your own words. Share more only with people you choose, and only when it’s mutual.</p>
+    <button class="btn fds-cta" data-go="identity"><span class="t">Join Feeld</span></button>
+    <button class="fds-link t" data-go="discover">I already have an account</button>
+  </div>
+</section>
+
+<!-- 2 · Identity -->
+<section class="scr fds" data-screen="identity" data-title="Identity, in your words">
+  <div class="fds-scroll" data-scroll>
+    <div class="fds-pad fds-top">
+      <p class="t fds-kicker">Step 1 of 3 · About you</p>
+      <h4 class="t fds-h2">How do you describe yourself?</h4>
+      <p class="t fds-p">Pick as many as fit. Change them whenever you like.</p>
+      <p class="t fds-label">Gender</p>
+      <div class="fds-chips">{genders.map(([t, on]) => <button class:list={['ui', 'fds-chip', { 'is-on': on }]} data-toggle><span class="t">{t}</span></button>)}</div>
+      <p class="t fds-label">Sexuality</p>
+      <div class="fds-chips">{sexes.map(([t, on]) => <button class:list={['ui', 'fds-chip', { 'is-on': on }]} data-toggle><span class="t">{t}</span></button>)}</div>
+      <button class="ui fds-help" data-go="glossary" data-sheet><span class="ico fds-help-i">?</span><span class="t">Not sure what a word means? Open the glossary</span></button>
+      <button class="btn fds-cta" data-go="desires"><span class="t">Next</span></button>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · Glossary (sheet) -->
+<section class="scr fds fds-sheet-scr" data-screen="glossary" data-title="Glossary (sheet)">
+  <div class="fds-sheet ui">
+    <div class="fds-grab"></div>
+    <h4 class="t fds-h2">Glossary</h4>
+    <p class="t fds-p">Plain words, written with members.</p>
+    <div class="fds-scroll fds-sheet-list" data-scroll>
+      {
+        [
+          ['Non-binary', 'A gender outside the either/or of man and woman.'],
+          ['Heteroflexible', 'Mostly straight, and open to more.'],
+          ['Pansexual', 'Attraction that isn’t decided by gender.'],
+          ['Demisexual', 'Attraction that grows after an emotional bond.'],
+          ['Metamour', 'Your partner’s partner.'],
+          ['Ethically non-monogamous', 'More than one relationship, with everyone’s knowledge and consent.'],
+        ].map(([t, d]) => (
+          <div class="ui fds-def">
+            <p class="t fds-row-t">{t}</p>
+            <p class="t fds-row-s">{d}</p>
+          </div>
+        ))
+      }
+    </div>
+    <button class="btn fds-cta" data-back><span class="t">Got it</span></button>
+  </div>
+</section>
+
+<!-- 4 · Desires / looking for -->
+<section class="scr fds" data-screen="desires" data-title="What you’re looking for">
+  <div class="fds-scroll" data-scroll>
+    <div class="fds-pad fds-top">
+      <p class="t fds-kicker">Step 2 of 3 · Looking for</p>
+      <h4 class="t fds-h2">What are you curious about?</h4>
+      <div class="fds-chips">{looking.map(([t, on]) => <button class:list={['ui', 'fds-chip', { 'is-on': on }]} data-toggle><span class="t">{t}</span></button>)}</div>
+      <div class="ui fds-card">
+        <p class="t fds-label">Who sees this</p>
+        <div class="fds-seg">
+          <button class="ui" data-toggle><span class="t">Everyone</span></button>
+          <button class="ui is-on" data-toggle><span class="t">Connections</span></button>
+          <button class="ui" data-toggle><span class="t">Matching only</span></button>
+        </div>
+        <p class="t fds-row-s">You can choose differently for every part of your profile.</p>
+      </div>
+      <div class="ui fds-card">
+        <p class="t fds-label">Hidden bio</p>
+        <p class="t fds-row-t">Something you’d only tell people you like.</p>
+        <p class="t fds-row-s fds-quote">“Looking for something slow and honest. Discretion matters.”</p>
+        <p class="t fds-row-s">Shown only to people you like or Ping.</p>
+      </div>
+      <button class="btn fds-cta" data-go="verify"><span class="t">Next</span></button>
+    </div>
+  </div>
+</section>
+
+<!-- 5 · Verify -->
+<section class="scr fds" data-screen="verify" data-title="Verify it’s you">
+  <div class="fds-pad fds-top fds-center">
+    <p class="t fds-kicker">Step 3 of 3 · Trust</p>
+    <h4 class="t fds-h2">Show it’s really you.</h4>
+    <div class="fds-oval img"><Aura who="rae" class="fds-oval-aura" /><span class="fds-oval-ring"></span></div>
+    <p class="t fds-p">A quick selfie confirms your photos are you. It isn’t shown on your profile.</p>
+    <ul class="fds-ticks" role="list">
+      <li class="t">Good light, face the camera</li>
+      <li class="t">Takes about ten seconds</li>
+      <li class="t">Verified profiles get a badge</li>
+    </ul>
+    <button class="btn fds-cta" data-go="discover"><span class="t">Take a selfie</span></button>
+  </div>
+</section>
+
+<!-- 6 · Discover -->
+<section class="scr fds" data-screen="discover" data-title="Discover">
+  <div class="fds-scroll fds-scroll--tabs" data-scroll>
+    <div class="fds-pad fds-top">
+      <div class="fds-headrow"><h4 class="t fds-h2">Discover</h4><button class="ui fds-pill" data-go="privacy"><span class="t">◐ Incognito off</span></button></div>
+      <button class="ui fds-dcard" data-go="profile">
+        <Aura who="sam" class="fds-dcard-aura" />
+        <span class="fds-dcard-meta">
+          <span class="t fds-dcard-name">Sam, 34 <small>they/them</small></span>
+          <span class="t fds-dcard-tags">Non-binary · Pansexual · Polyamorous</span>
+          <span class="t fds-dcard-link">Linked with Jo · nesting partner</span>
+        </span>
+        <span class="t fds-badge">✓ Verified</span>
+      </button>
+      <div class="fds-actions">
+        <button class="ui fds-round" data-toggle aria-label="Not for me"><span class="ico">✕</span></button>
+        <button class="ui fds-round fds-round--ping" data-go="ping" data-sheet aria-label="Ping Sam with a note"><span class="ico">✦</span></button>
+        <button class="ui fds-round fds-round--like" data-go="match" aria-label="Like Sam"><span class="ico">♥</span></button>
+      </div>
+      <p class="t fds-row-s fds-centered">No ranking. Everyone gets seen.</p>
+    </div>
+  </div>
+  <nav class="fds-tabs ui">{tabs('discover').map((t) => <button class:list={[{ 'is-on': t.on }]} data-go={t.id}><span class="ico">{t.i}</span><span class="t">{t.l}</span></button>)}</nav>
+</section>
+
+<!-- 7 · Profile -->
+<section class="scr fds" data-screen="profile" data-title="Sam’s profile">
+  <div class="fds-scroll" data-scroll>
+    <Aura who="sam" class="fds-cover" />
+    <div class="fds-pad fds-prof">
+      <button class="fds-back t" data-back>‹ Back</button>
+      <p class="t fds-h2">Sam, 34 <span class="fds-pro">they/them</span></p>
+      <div class="fds-chips fds-chips--sm"><span class="ui fds-tag"><span class="t">Non-binary</span></span><span class="ui fds-tag"><span class="t">Pansexual</span></span><span class="ui fds-tag"><span class="t">Polyamorous</span></span></div>
+      <div class="ui fds-card">
+        <p class="t fds-label">Bio · everyone</p>
+        <p class="t fds-row-t">Ceramics on Sundays, terrible at karaoke, great at listening.</p>
+      </div>
+      <div class="ui fds-card fds-locked">
+        <p class="t fds-label">Hidden bio · opens if Sam likes you</p>
+        <p class="t fds-blur">Newly polyamorous and still learning. Patience appreciated.</p>
+        <span class="ico fds-lock"></span>
+      </div>
+      <div class="ui fds-card fds-locked">
+        <p class="t fds-label">Private photos · connections only</p>
+        <div class="fds-ph3 img"><Aura who="theo" class="fds-ph" sil={false} /><Aura who="jo" class="fds-ph" sil={false} /><Aura who="sam" class="fds-ph" sil={false} /></div>
+      </div>
+      <div class="ui fds-card">
+        <p class="t fds-label">Linked profile</p>
+        <div class="fds-linked"><Aura who="jo" class="fds-mini" sil={false} /><span><span class="t fds-row-t">Jo</span><br /><span class="t fds-row-s">Nesting partner · accepted the link</span></span></div>
+      </div>
+      <div class="fds-actions fds-actions--row">
+        <button class="ui fds-round fds-round--ping" data-go="ping" data-sheet aria-label="Ping Sam"><span class="ico">✦</span></button>
+        <button class="ui fds-round fds-round--like" data-go="match" aria-label="Like Sam"><span class="ico">♥</span></button>
+        <button class="ui fds-round" data-go="report" aria-label="Report or block Sam"><span class="ico">⋯</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 · Ping (sheet) -->
+<section class="scr fds fds-sheet-scr" data-screen="ping" data-title="Ping with a note (sheet)">
+  <div class="fds-sheet ui">
+    <div class="fds-grab"></div>
+    <p class="t fds-kicker">Ping Sam</p>
+    <h4 class="t fds-h2">Say hello first.</h4>
+    <p class="t fds-p">A Ping puts you at the top of Sam’s new connections, with a note.</p>
+    <div class="ui fds-note"><p class="t">Fellow Sunday-ceramics person here. Your bowls look great. Coffee sometime?</p></div>
+    <p class="t fds-row-s">Sam accepts Ping notes. People can turn notes off at any time.</p>
+    <button class="btn fds-cta fds-cta--aura" data-go="match"><span class="t">Send Ping</span></button>
+    <button class="fds-link t" data-back>Not now</button>
+  </div>
+</section>
+
+<!-- 9 · Mutual -->
+<section class="scr fds fds-match" data-screen="match" data-title="It’s mutual">
+  <div class="fds-pad fds-top fds-center">
+    <div class="fds-join img" aria-hidden="true">
+      <Aura who="rae" class="fds-join-a" sil={false} />
+      <Aura who="sam" class="fds-join-b" sil={false} />
+      <span class="fds-join-ring"></span>
+    </div>
+    <h4 class="t fds-h1">It’s mutual.</h4>
+    <p class="t fds-p">You and Sam both said yes. Hidden bios and private photos are now open to each other, and only to each other.</p>
+    <div class="ui fds-card fds-opened">
+      <p class="t fds-label">Now open</p>
+      <p class="t fds-row-t">✓ Hidden bio · ✓ Private photos · ✓ Chat</p>
+    </div>
+    <button class="btn fds-cta" data-go="chat"><span class="t">Say hi</span></button>
+    <button class="fds-link t" data-go="discover">Keep exploring</button>
+  </div>
+</section>
+
+<!-- 10 · Chat -->
+<section class="scr fds" data-screen="chat" data-title="Chat with Sam">
+  <div class="fds-chathead ui">
+    <button class="fds-back t" data-back>‹</button>
+    <Aura who="sam" class="fds-mini" sil={false} />
+    <span class="t fds-row-t">Sam</span>
+    <button class="ui fds-shield" data-go="report" aria-label="Safety: report or block"><span class="ico">⛨</span></button>
+  </div>
+  <div class="fds-scroll fds-chatscroll" data-scroll>
+    <div class="fds-pad fds-msgs">
+      <p class="t fds-day">Today</p>
+      <p class="ui fds-msg fds-msg--out"><span class="t">Fellow Sunday-ceramics person here. Coffee sometime?</span></p>
+      <p class="ui fds-msg fds-msg--in"><span class="t">Yes! Saturday? Jo might come too, if that’s okay with you.</span></p>
+      <div class="ui fds-img-msg">
+        <div class="fds-img-blur img"><Aura who="ash" class="fds-img-art" sil={false} /></div>
+        <span class="t fds-img-tag">🔒 Can’t be screenshot</span>
+      </div>
+      <p class="ui fds-msg fds-msg--in"><span class="t">My latest bowl. The glaze went pink, I’m calling it a feature.</span></p>
+      <button class="ui fds-groupcta" data-go="group"><span class="t">Start a group chat with Sam and Jo</span><span class="t">›</span></button>
+    </div>
+  </div>
+  <div class="fds-compose ui"><span class="t">Message Sam</span><span class="ico">↑</span></div>
+</section>
+
+<!-- 11 · Group chat -->
+<section class="scr fds" data-screen="group" data-title="Group chat">
+  <div class="fds-chathead ui">
+    <button class="fds-back t" data-back>‹</button>
+    <span class="fds-stack"><Aura who="sam" class="fds-mini" sil={false} /><Aura who="jo" class="fds-mini" sil={false} /></span>
+    <span class="t fds-row-t">Sam, Jo and you</span>
+  </div>
+  <div class="fds-scroll fds-chatscroll" data-scroll>
+    <div class="fds-pad fds-msgs">
+      <p class="t fds-day">Sam started a group</p>
+      <p class="ui fds-msg fds-msg--in"><span class="t"><b>Jo</b> Hi! Sam’s told me about you. Saturday coffee, all three of us?</span></p>
+      <p class="ui fds-msg fds-msg--in"><span class="t"><b>Sam</b> No pressure at all. Happy to start with just two if you’d prefer.</span></p>
+      <p class="ui fds-msg fds-msg--out"><span class="t">Three sounds lovely. The place by the park at 11?</span></p>
+      <div class="ui fds-card fds-safety">
+        <p class="t fds-label">Meeting up</p>
+        <p class="t fds-row-t">Pick somewhere public, and tell a friend where you’ll be.</p>
+        <button class="ui fds-pill" data-toggle><span class="t">Share plan with a friend</span></button>
+      </div>
+    </div>
+  </div>
+  <div class="fds-compose ui"><span class="t">Message the group</span><span class="ico">↑</span></div>
+</section>
+
+<!-- 12 · Privacy -->
+<section class="scr fds" data-screen="privacy" data-title="Privacy">
+  <div class="fds-scroll fds-scroll--tabs" data-scroll>
+    <div class="fds-pad fds-top">
+      <h4 class="t fds-h2">Privacy</h4>
+      <p class="t fds-p">Each control says who it hides you from.</p>
+      {
+        [
+          ['Incognito', 'Hidden from Discover. Only people you like can see you.', false],
+          ['Private photos', 'Two photos only for connections.', true],
+          ['Ping notes', 'Let people attach a note to a Ping.', true],
+          ['Nudity detection', 'Blur images that may be explicit.', true],
+          ['Approximate distance', 'Show “about 2 km”, never exact. (Concept)', true],
+        ].map(([t, s, on]) => (
+          <div class="ui fds-set">
+            <span><span class="t fds-row-t">{t}</span><br /><span class="t fds-row-s">{s}</span></span>
+            <button class:list={['ui', 'fds-switch', { 'is-on': on }]} data-toggle aria-label={`Toggle ${t}`}><i></i></button>
+          </div>
+        ))
+      }
+      <div class="ui fds-card">
+        <p class="t fds-label">Screenshot protection</p>
+        <p class="t fds-row-s">Always on for images in chat.</p>
+      </div>
+    </div>
+  </div>
+  <nav class="fds-tabs ui">{tabs('privacy').map((t) => <button class:list={[{ 'is-on': t.on }]} data-go={t.id}><span class="ico">{t.i}</span><span class="t">{t.l}</span></button>)}</nav>
+</section>
+
+<!-- 13 · Report -->
+<section class="scr fds" data-screen="report" data-title="Report or block">
+  <div class="fds-scroll" data-scroll>
+    <div class="fds-pad fds-top">
+      <button class="fds-back t" data-back>‹ Back</button>
+      <h4 class="t fds-h2">Is something wrong?</h4>
+      <p class="t fds-p">You’re in control. Nothing you choose here is shown to the other person.</p>
+      <div class="ui fds-set">
+        <span><span class="t fds-row-t">Block this member</span><br /><span class="t fds-row-s">Takes effect straight away.</span></span>
+        <button class="ui fds-switch" data-toggle aria-label="Block this member"><i></i></button>
+      </div>
+      <p class="t fds-label">What happened? (optional)</p>
+      <div class="fds-chips">
+        {['Unwanted image', 'Pressure or harassment', 'Fake profile', 'Hateful language', 'I feel unsafe', 'Something else'].map((t) => <button class="ui fds-chip" data-toggle><span class="t">{t}</span></button>)}
+      </div>
+      <button class="btn fds-cta" data-go="safe"><span class="t">Send to the safety team</span></button>
+      <button class="fds-link t" data-back>Cancel</button>
+    </div>
+  </div>
+</section>
+
+<!-- 14 · Safe -->
+<section class="scr fds" data-screen="safe" data-title="Report sent">
+  <div class="fds-pad fds-top fds-center">
+    <span class="ico fds-big-ico">⛨</span>
+    <h4 class="t fds-h2">Thank you for telling us.</h4>
+    <p class="t fds-p">Feeld’s global safety team works around the clock. We’ll message you here when we’ve looked into it.</p>
+    <div class="ui fds-card">
+      <p class="t fds-row-t">While you wait</p>
+      <p class="t fds-row-s">You can keep the chat hidden, and your photos stay protected.</p>
+    </div>
+    <button class="btn fds-cta" data-go="discover"><span class="t">Back to Discover</span></button>
+  </div>
+</section>
+
+<style>
+  .fds { background: #0e0b12; color: #f5f0ea; font-family: Inter, system-ui, sans-serif; }
+  .fds-scroll { position: absolute; inset: 0; padding-bottom: 40px; }
+  .fds-scroll--tabs { inset: 0 0 86px; padding-bottom: 16px; }
+  .fds-pad { padding: 0 22px; }
+  .fds-top { padding-top: 66px; display: grid; gap: 12px; }
+  .fds-bottom { position: absolute; left: 0; right: 0; bottom: 0; padding-bottom: 46px; display: grid; gap: 12px; }
+  .fds-center { justify-items: center; text-align: center; }
+  .fds-kicker { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #b8aec4; font-weight: 600; }
+  .fds-h1 { font-family: Montserrat, system-ui, sans-serif; font-size: 40px; line-height: 1.02; font-weight: 800; letter-spacing: -0.035em; }
+  .fds-h2 { font-family: Montserrat, system-ui, sans-serif; font-size: 27px; line-height: 1.1; font-weight: 800; letter-spacing: -0.025em; }
+  .fds-p { font-size: 15px; line-height: 1.45; color: #d8cfe2; }
+  .fds-label { font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #b8aec4; font-weight: 700; }
+  .fds-row-t { font-weight: 700; font-size: 15px; line-height: 1.35; }
+  .fds-row-s { font-size: 13px; color: #b8aec4; line-height: 1.4; }
+  .fds-centered { text-align: center; }
+  .fds-cta { display: flex; justify-content: center; align-items: center; width: 100%; height: 54px; border-radius: 27px; background: #f5f0ea; color: #1a0f1f; font-weight: 800; font-size: 16px; margin-top: 4px; }
+  .fds-cta--aura { background: linear-gradient(100deg, #c7b6ff, #ff9fcf 50%, #ffc29d); }
+  .fds-link { justify-self: center; color: #d8cfe2; font-size: 14px; font-weight: 600; padding: 6px; text-decoration: underline; text-underline-offset: 3px; }
+  .fds-back { justify-self: start; color: #d8cfe2; font-size: 15px; }
+
+  .fds-welcome :global(.fds-welcome-aura) { position: absolute; inset: 0 0 30%; mask-image: linear-gradient(#000 55%, transparent); -webkit-mask-image: linear-gradient(#000 55%, transparent); animation: fds-breathe 5.5s ease-in-out infinite; }
+  @keyframes fds-breathe { 50% { transform: scale(1.06); filter: saturate(1.2); } }
+
+  .fds-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .fds-chip { padding: 9px 14px; border-radius: 99px; border: 1.5px solid #4a3c58; color: #f5f0ea; font-size: 14px; font-weight: 600; transition: background 0.2s, border-color 0.2s, color 0.2s; }
+  .fds-chip.is-on { background: linear-gradient(110deg, #c7b6ff, #ffb3d9 55%, #ffc9a3); border-color: transparent; color: #1a0f1f; }
+  .fds-chips--sm { gap: 6px; }
+  .fds-tag { padding: 5px 10px; border-radius: 99px; background: #221a2b; font-size: 12.5px; font-weight: 600; }
+  .fds-help { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 16px; background: #17121d; border: 1px solid #33283f; color: #f5f0ea; font-size: 14px; text-align: left; }
+  .fds-help-i { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #c7b6ff; color: #1a0f1f; font-weight: 800; flex: none; }
+  .fds-card { display: grid; gap: 6px; padding: 14px; border-radius: 18px; background: #17121d; border: 1px solid #33283f; width: 100%; text-align: left; position: relative; }
+  .fds-quote { font-style: italic; color: #d8cfe2; }
+  .fds-seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 3px; border-radius: 12px; background: #0e0b12; }
+  .fds-seg button { padding: 8px 4px; border-radius: 9px; font-size: 12.5px; font-weight: 600; color: #b8aec4; }
+  .fds-seg button.is-on { background: #f5f0ea; color: #1a0f1f; }
+
+  .fds-sheet-scr { background: rgb(8 6 10 / 0.6); }
+  .fds-sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 86%; padding: 14px 22px 40px; border-radius: 30px 30px 0 0; background: #17121d; display: grid; gap: 10px; }
+  .fds-grab { width: 40px; height: 5px; border-radius: 3px; background: #4a3c58; justify-self: center; }
+  .fds-sheet-list { position: relative; inset: auto; max-height: 380px; display: grid; gap: 8px; padding-bottom: 0; }
+  .fds-def { padding: 12px 14px; border-radius: 14px; background: #221a2b; display: grid; gap: 2px; }
+  .fds-note { padding: 14px; border-radius: 16px; background: #221a2b; box-shadow: inset 0 0 0 1.5px #ff9e7a; font-size: 15px; line-height: 1.45; }
+
+  .fds-oval { position: relative; width: 190px; height: 240px; border-radius: 50%; overflow: hidden; margin: 6px 0; }
+  .fds-oval :global(.fds-oval-aura) { position: absolute; inset: 0; }
+  .fds-oval-ring { position: absolute; inset: 0; border-radius: 50%; box-shadow: inset 0 0 0 4px #f5f0ea; }
+  .fds-ticks { list-style: none; padding: 0; display: grid; gap: 6px; font-size: 14px; color: #d8cfe2; justify-items: center; }
+  .fds-ticks li::before { content: '✓ '; color: #9fe3c0; font-weight: 800; }
+
+  .fds-headrow { display: flex; justify-content: space-between; align-items: center; }
+  .fds-pill { padding: 7px 12px; border-radius: 99px; background: #221a2b; font-size: 12.5px; font-weight: 600; color: #f5f0ea; }
+  .fds-pill.is-on { background: #9fe3c0; color: #1a0f1f; }
+  .fds-dcard { position: relative; display: block; width: 100%; height: 470px; border-radius: 28px; overflow: hidden; text-align: left; }
+  .fds-dcard :global(.fds-dcard-aura) { position: absolute; inset: 0; }
+  .fds-dcard-meta { position: absolute; left: 0; right: 0; bottom: 0; display: grid; gap: 4px; padding: 60px 18px 18px; background: linear-gradient(transparent, rgb(14 11 18 / 0.85)); color: #fff; }
+  .fds-dcard-name { font-family: Montserrat, system-ui, sans-serif; font-weight: 800; font-size: 28px; letter-spacing: -0.02em; }
+  .fds-dcard-name small { font-family: Inter, sans-serif; font-size: 13px; font-weight: 500; letter-spacing: 0; }
+  .fds-dcard-tags { font-size: 14px; font-weight: 600; }
+  .fds-dcard-link { font-size: 13px; color: #ffd9c4; }
+  .fds-badge { position: absolute; left: 16px; top: 16px; padding: 6px 10px; border-radius: 99px; background: rgb(14 11 18 / 0.75); color: #fff; font-size: 12px; font-weight: 700; }
+  .fds-actions { display: flex; justify-content: center; gap: 18px; margin-top: 2px; }
+  .fds-actions--row { margin-top: 6px; }
+  .fds-round { display: grid; place-items: center; width: 58px; height: 58px; border-radius: 50%; background: #221a2b; border: 1px solid #33283f; color: #f5f0ea; font-size: 22px; transition: transform 0.3s var(--ease-out); }
+  .fds-round.is-on { transform: scale(0.9); background: #33283f; }
+  .fds-round--ping { background: #ff9e7a; color: #1a0f1f; border-color: transparent; }
+  .fds-round--like { width: 66px; height: 66px; background: linear-gradient(135deg, #c7b6ff, #ff6fb5 55%, #ffb280); color: #1a0f1f; border-color: transparent; font-size: 26px; }
+
+  .fds-tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 86px; padding: 8px 10px 26px; display: grid; grid-template-columns: repeat(4, 1fr); background: #120e16; border-top: 1px solid #33283f; }
+  .fds-tabs button { display: grid; justify-items: center; gap: 2px; color: #b8aec4; font-size: 11px; font-weight: 600; }
+  .fds-tabs .ico { font-size: 18px; line-height: 24px; width: 26px; height: 24px; }
+  .fds-tabs .is-on { color: #f5f0ea; }
+  .fds-tabs .is-on .ico { color: #ff9fcf; }
+
+  .fds :global(.fds-cover) { height: 300px; }
+  .fds-prof { display: grid; gap: 12px; margin-top: -250px; position: relative; padding-bottom: 20px; }
+  .fds-prof > .fds-back { margin-bottom: 170px; color: #fff; text-shadow: 0 1px 8px rgb(0 0 0 / 0.5); }
+  .fds-pro { font-family: Inter, sans-serif; font-size: 14px; font-weight: 500; color: #b8aec4; letter-spacing: 0; }
+  .fds-locked { border-style: dashed; border-color: #4a3c58; }
+  .fds-blur { filter: blur(5px); user-select: none; font-size: 14px; }
+  .fds-lock { position: absolute; right: 16px; top: 14px; width: 14px; height: 11px; border-radius: 3px; background: #f5f0ea; }
+  .fds-lock::before { content: ''; position: absolute; left: 2px; top: -7px; width: 10px; height: 9px; border: 2px solid #f5f0ea; border-bottom: 0; border-radius: 6px 6px 0 0; box-sizing: border-box; }
+  .fds-ph3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .fds-ph3 :global(.fds-ph) { aspect-ratio: 1; border-radius: 12px; filter: blur(8px) saturate(0.6); }
+  .fds-linked { display: flex; gap: 12px; align-items: center; }
+  .fds :global(.fds-mini) { width: 38px; height: 38px; border-radius: 50%; flex: none; }
+
+  .fds-match { background: radial-gradient(70% 50% at 50% 30%, #2b1747, #0e0b12 70%); }
+  .fds-join { position: relative; width: 240px; height: 190px; margin-top: 10px; }
+  .fds-join :global(.fds-join-a), .fds-join :global(.fds-join-b) { position: absolute; top: 40px; width: 110px; height: 110px; border-radius: 50%; filter: blur(2px); mix-blend-mode: screen; }
+  .fds-join :global(.fds-join-a) { left: 18px; animation: fds-meet-a 1.4s var(--ease-out) both; }
+  .fds-join :global(.fds-join-b) { right: 18px; animation: fds-meet-b 1.4s var(--ease-out) both; }
+  @keyframes fds-meet-a { from { transform: translateX(-60px); opacity: 0; } }
+  @keyframes fds-meet-b { from { transform: translateX(60px); opacity: 0; } }
+  .fds-join-ring { position: absolute; left: 50%; top: 50%; width: 170px; height: 170px; margin: -85px 0 0 -85px; border-radius: 50%; border: 2px solid #ffc29d; animation: fds-ring 2.4s var(--ease-out) 0.9s infinite; opacity: 0; }
+  @keyframes fds-ring { 0% { opacity: 0.8; transform: scale(0.6); } 100% { opacity: 0; transform: scale(1.4); } }
+  .fds-opened { background: linear-gradient(120deg, rgb(123 77 255 / 0.25), rgb(255 111 181 / 0.12)); border-color: rgb(255 159 207 / 0.5); text-align: center; }
+
+  .fds-chathead { position: absolute; left: 0; right: 0; top: 0; z-index: 3; height: 104px; padding: 54px 18px 10px; display: flex; align-items: center; gap: 10px; background: #120e16; border-bottom: 1px solid #33283f; }
+  .fds-chathead .fds-back { font-size: 26px; line-height: 1; padding-right: 4px; }
+  .fds-shield { margin-left: auto; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: #221a2b; color: #9fe3c0; font-size: 18px; }
+  .fds-stack { display: flex; }
+  .fds-stack :global(.fds-mini + .fds-mini) { margin-left: -12px; box-shadow: 0 0 0 2px #120e16; }
+  .fds-chatscroll { top: 104px; bottom: 80px; padding-bottom: 12px; }
+  .fds-msgs { display: grid; gap: 10px; padding-top: 14px; }
+  .fds-day { justify-self: center; font-size: 12px; color: #b8aec4; font-weight: 600; }
+  .fds-msg { max-width: 82%; padding: 10px 14px; border-radius: 18px; font-size: 15px; line-height: 1.4; }
+  .fds-msg b { display: block; font-size: 12px; color: #ffc29d; }
+  .fds-msg--in { background: #221a2b; border-bottom-left-radius: 6px; }
+  .fds-msg--out { justify-self: end; background: #c7b6ff; color: #1a0f1f; border-bottom-right-radius: 6px; }
+  .fds-img-msg { position: relative; width: 70%; height: 170px; border-radius: 18px; overflow: hidden; }
+  .fds-img-blur { position: absolute; inset: 0; }
+  .fds-img-blur :global(.fds-img-art) { position: absolute; inset: 0; }
+  .fds-img-tag { position: absolute; left: 10px; bottom: 10px; padding: 5px 9px; border-radius: 99px; background: rgb(14 11 18 / 0.78); color: #fff; font-size: 11.5px; font-weight: 600; }
+  .fds-groupcta { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 16px; background: #17121d; border: 1px solid rgb(199 182 255 / 0.5); color: #f5f0ea; font-size: 14px; font-weight: 700; }
+  .fds-compose { position: absolute; left: 14px; right: 14px; bottom: 30px; height: 46px; padding: 0 6px 0 16px; display: flex; align-items: center; justify-content: space-between; border-radius: 23px; background: #221a2b; color: #b8aec4; font-size: 14px; }
+  .fds-compose .ico { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #f5f0ea; color: #1a0f1f; font-weight: 800; }
+  .fds-safety { border-color: rgb(159 227 192 / 0.5); }
+  .fds-safety .fds-pill { justify-self: start; }
+
+  .fds-set { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: #17121d; border: 1px solid #33283f; }
+  .fds-switch { flex: none; width: 52px; height: 32px; border-radius: 16px; background: #4a3c58; position: relative; transition: background 0.25s; }
+  .fds-switch i { position: absolute; left: 3px; top: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  .fds-switch.is-on { background: #ff9e7a; }
+  .fds-switch.is-on i { transform: translateX(20px); }
+  .fds-big-ico { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; background: rgb(159 227 192 / 0.16); color: #9fe3c0; font-size: 40px; margin-top: 30px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fds-welcome :global(.fds-welcome-aura), .fds-join :global(.fds-join-a), .fds-join :global(.fds-join-b), .fds-join-ring { animation: none; }
+  }
+</style>

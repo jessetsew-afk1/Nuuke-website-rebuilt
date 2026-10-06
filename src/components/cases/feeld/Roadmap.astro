@@ -1,0 +1,137 @@
+---
+// How this app gets made: an eight-week path drawn as a constellation. Each star is a phase
+// (a real button); the panel says what happens, what the client gets, how much of their time
+// it takes and where to see the output on this page. The path draws up to the chosen star.
+const phases = [
+  { n: 'Discover', w: 'Week 1', at: 'brief', what: 'Desk research, App Store review mining, a teardown of the current app, and Feeld’s own published research on identity, safety and self-expression.', get: ['Sourced fact sheet', 'Review themes', 'Risk register'], you: 'One 60-min kickoff' },
+  { n: 'Listen', w: 'Weeks 1–2', at: 'research', what: 'Paid interviews across identities and relationship styles: newcomers, couples, trans and non-binary members. Opt-out at any moment, no photos recorded.', get: ['3 personas', 'Journey map', 'Interview guide'], you: 'Help recruiting' },
+  { n: 'Language', w: 'Week 2', at: 'identity', what: 'An audit of every identity word in the product, a plain-English glossary and copy rules, reviewed with community members.', get: ['Vocabulary audit', 'Glossary', 'Inclusive copy guide'], you: 'A 45-min review' },
+  { n: 'Consent model', w: 'Week 3', at: 'consent', what: 'Every layer of a profile mapped to who can see it and when. The rules become a spec engineers can test.', get: ['Visibility matrix', 'Consent rules', 'Edge cases'], you: 'Product + legal, 60 min' },
+  { n: 'Structure', w: 'Weeks 3–4', at: 'flow', what: 'Flows for joining, discovering, connecting, linking profiles and staying safe, including what happens when someone withdraws.', get: ['Flow map', 'Linked-profile rules', 'IA'], you: 'Two crits' },
+  { n: 'Design', w: 'Weeks 4–6', at: 'layers', what: 'Wireframes first, then layered screens: grid, language, colour and the aura, consent states and motion.', get: ['Wireframes', 'Hi-fi screens', 'Motion specs'], you: 'Two design reviews' },
+  { n: 'Prototype & test', w: 'Weeks 5–7', at: 'prototype', what: 'A tappable prototype with guided tasks, tested with five people per round. Sample people only; nobody shares their own profile.', get: ['Clickable prototype', 'Test script', 'Findings & fixes'], you: 'Watch one session live' },
+  { n: 'Trust & safety', w: 'Weeks 6–7', at: 'privacy', what: 'Abuse-case reviews (outing, stalking, unwanted images) for every feature, a privacy pass and a calm report flow with the safety team.', get: ['Abuse-case review', 'Privacy controls spec', 'Report flow'], you: 'Safety team, 2 × 45 min' },
+  { n: 'Ship & learn', w: 'Week 8', at: 'measure', what: 'Design system handoff, a staged rollout and the measures we’d watch, including how safe people feel, not only how many connect.', get: ['Tokens & components', 'Dev handoff', 'Measurement plan'], you: 'Sign-off and launch plan' },
+];
+// Star positions along a gentle wave (viewBox 1000 × 200).
+const pts = phases.map((_, i) => {
+  const x = 40 + (i * 920) / (phases.length - 1);
+  const y = 100 + Math.sin(i * 1.15 + 0.4) * 52;
+  return [x, y] as const;
+});
+let d = `M ${pts[0][0]} ${pts[0][1]}`;
+for (let i = 1; i < pts.length; i++) {
+  const [x0, y0] = pts[i - 1];
+  const [x1, y1] = pts[i];
+  const mx = (x0 + x1) / 2;
+  d += ` C ${mx} ${y0}, ${mx} ${y1}, ${x1} ${y1}`;
+}
+---
+
+<div class="fd-road" data-fd-road>
+  <div class="fd-road-sky">
+    <svg viewBox="0 0 1000 200" class="fd-road-svg" aria-hidden="true" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="fd-road-g" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#7B4DFF" /><stop offset=".5" stop-color="#FF6FB5" /><stop offset="1" stop-color="#FFB280" />
+        </linearGradient>
+      </defs>
+      <path d={d} fill="none" stroke="#33283F" stroke-width="2" stroke-dasharray="3 7" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+      <path d={d} fill="none" stroke="url(#fd-road-g)" stroke-width="3" stroke-linecap="round" pathLength="1" class="fd-road-lit" data-fd-road-lit vector-effect="non-scaling-stroke" />
+    </svg>
+    <ol class="fd-road-stars" role="list">
+      {
+        phases.map((p, i) => (
+          <li style={`left:${(pts[i][0] / 1000) * 100}%;top:${(pts[i][1] / 200) * 100}%`}>
+            <button type="button" class="fd-road-star" aria-pressed={i === 0 ? 'true' : 'false'} data-i={i}>
+              <span class="visually-hidden">Phase </span>
+              <span class="fd-road-dot">{i + 1}</span>
+              <span class="fd-road-name">{p.n}</span>
+            </button>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+  <div class="fd-road-panel" aria-live="polite">
+    {
+      phases.map((p, i) => (
+        <article class:list={['fd-road-card', { 'is-on': i === 0 }]} data-card={i} hidden={i !== 0}>
+          <div class="fd-road-head">
+            <p class="t-label">
+              Phase {i + 1} of {phases.length} · {p.w}
+            </p>
+            <h4 class="fd-road-h">{p.n}</h4>
+            <p class="t-body">{p.what}</p>
+          </div>
+          <div class="fd-road-meta">
+            <p class="t-label">What you get</p>
+            <ul role="list" class="fd-road-get">
+              {p.get.map((g) => <li>{g}</li>)}
+            </ul>
+            <p class="t-small fd-road-you">
+              <strong>Your time:</strong> {p.you}
+            </p>
+            <a class="fd-road-jump" href={`#${p.at}`}>
+              See it on this page <span aria-hidden="true">↓</span>
+            </a>
+          </div>
+        </article>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-fd-road]').forEach((root) => {
+    const stars = [...root.querySelectorAll<HTMLButtonElement>('.fd-road-star')];
+    const cards = [...root.querySelectorAll<HTMLElement>('[data-card]')];
+    const lit = root.querySelector<SVGPathElement>('[data-fd-road-lit]');
+    const pick = (i: number) => {
+      stars.forEach((s, j) => {
+        s.setAttribute('aria-pressed', String(i === j));
+        s.classList.toggle('is-past', j < i);
+      });
+      cards.forEach((c, j) => {
+        c.hidden = i !== j;
+        c.classList.toggle('is-on', i === j);
+      });
+      if (lit) lit.style.strokeDashoffset = String(1 - i / (stars.length - 1));
+    };
+    stars.forEach((s, i) => s.addEventListener('click', () => pick(i)));
+    pick(0);
+  });
+</script>
+
+<style>
+  .fd-road { display: grid; gap: var(--s-5); margin-top: var(--s-6); }
+  .fd-road-sky { position: relative; height: clamp(170px, 14vw + 80px, 250px); border-radius: var(--r-lg); border: 1px solid var(--line); background: radial-gradient(60% 120% at 50% 0%, rgb(123 77 255 / 0.16), transparent 70%), var(--bg-2); overflow: hidden; }
+  .fd-road-svg { position: absolute; inset: 14% 3% 22%; width: 94%; height: 64%; }
+  .fd-road-lit { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 0.9s var(--ease-out); }
+  .fd-road-stars { list-style: none; padding: 0; position: absolute; inset: 14% 3% 22%; }
+  .fd-road-stars li { position: absolute; transform: translate(-50%, -50%); }
+  .fd-road-star { display: grid; justify-items: center; gap: 6px; padding: 4px; border-radius: 12px; color: var(--ink-2); }
+  .fd-road-dot { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--surface-2); border: 1.5px solid #4a3c58; font: 700 0.8rem/1 var(--font-ui); color: var(--ink); transition: transform var(--dur-2) var(--ease-out), background var(--dur-1), box-shadow var(--dur-2); }
+  .fd-road-name { position: absolute; top: calc(100% + 2px); font: 600 0.78rem/1.1 var(--font-ui); white-space: nowrap; color: var(--ink-2); }
+  .fd-road-stars li:nth-child(even) .fd-road-name { top: auto; bottom: calc(100% + 2px); }
+  .fd-road-star:hover .fd-road-dot { transform: scale(1.1); }
+  .fd-road-star.is-past .fd-road-dot { background: #2a1f35; border-color: #7b4dff; }
+  .fd-road-star[aria-pressed='true'] .fd-road-dot { background: linear-gradient(135deg, #c7b6ff, #ff9fcf 50%, #ffc29d); color: #1a0f1f; border-color: transparent; transform: scale(1.18); box-shadow: 0 0 0 6px rgb(255 159 207 / 0.18), 0 0 30px rgb(255 111 181 / 0.55); }
+  .fd-road-star[aria-pressed='true'] .fd-road-name { color: var(--ink); }
+  .fd-road-card { display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--s-6); padding: var(--s-6); border-radius: var(--r-lg); border: 1px solid rgb(199 182 255 / 0.3); background: radial-gradient(80% 80% at 100% 0%, rgb(255 111 181 / 0.12), transparent 70%), var(--bg-2); }
+  .fd-road-card.is-on { animation: fd-road-in 0.6s var(--ease-out); }
+  @keyframes fd-road-in { from { opacity: 0; transform: translateY(10px); } }
+  .fd-road-head, .fd-road-meta { display: grid; gap: var(--s-3); align-content: start; }
+  .fd-road-h { font: 800 var(--fs-xl) / 1.1 var(--font-display); letter-spacing: -0.02em; }
+  .fd-road-get { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .fd-road-get li { padding: 0.35rem 0.7rem; border-radius: 99px; background: var(--surface-2); font-size: var(--fs-sm); color: var(--ink); }
+  .fd-road-jump { justify-self: start; font: 600 var(--fs-sm) var(--font-ui); color: var(--ink); text-decoration: underline; text-decoration-color: #ff6fb5; text-underline-offset: 4px; text-decoration-thickness: 2px; }
+  @media (max-width: 900px) {
+    .fd-road-card { grid-template-columns: 1fr; padding: var(--s-5); gap: var(--s-4); }
+    .fd-road-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .fd-road-dot { width: 30px; height: 30px; font-size: 0.72rem; }
+    .fd-road-sky { height: 150px; }
+    .fd-road-svg, .fd-road-stars { inset: 18% 5% 18%; width: 90%; height: 64%; }
+  }
+  @media (prefers-reduced-motion: reduce) { .fd-road-lit { transition: none; } }
+</style>

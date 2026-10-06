@@ -1,0 +1,342 @@
+---
+// The mutual reveal: consent as an interaction. Two sample members, two phones. Each layer of a
+// profile says who can see it and why. Your hidden bio opens to people you choose (like or Ping);
+// private photos and chat open only when it's mutual. Withdraw, and every layer closes again.
+// Rules follow Feeld's public descriptions; the visible "who can see this" labels are our concept.
+import Aura from './Aura.astro';
+const people = [
+  {
+    id: 'r',
+    who: 'rae',
+    other: 's',
+    name: 'Rae',
+    age: 27,
+    pro: 'she/they',
+    tags: ['Queer', 'Exploring'],
+    bio: 'Climbing, zines and very strong opinions about dumplings.',
+    hidden: 'Looking for something slow and honest. Out to friends, not yet at work, so discretion matters.',
+    photos: ['rae', 'noor', 'ash'],
+  },
+  {
+    id: 's',
+    who: 'sam',
+    other: 'r',
+    name: 'Sam',
+    age: 34,
+    pro: 'they/them',
+    tags: ['Non-binary', 'Pansexual', 'Polyamorous'],
+    bio: 'Ceramics on Sundays, terrible at karaoke, great at listening.',
+    hidden: 'Newly polyamorous and still learning. Patience appreciated, honesty essential.',
+    photos: ['sam', 'theo', 'jo'],
+  },
+];
+---
+
+<div class="fd-cx" data-fd-cx>
+  <ol class="fd-cx-rules" role="list">
+    <li><span class="fd-cx-k">Public profile</span><span>Anyone in Discover</span></li>
+    <li><span class="fd-cx-k">Hidden bio</span><span>People you’ve liked or Pinged</span></li>
+    <li><span class="fd-cx-k">Private photos</span><span>Connections only (mutual)</span></li>
+    <li><span class="fd-cx-k">Chat</span><span>Connections only (mutual)</span></li>
+  </ol>
+
+  <div class="fd-cx-stage">
+    {
+      people.map((p, i) => {
+        const o = people[1 - i];
+        return (
+          <section class="fd-cx-phone" data-side={p.id} aria-labelledby={`fd-cx-h-${p.id}`}>
+            <h3 class="fd-cx-owner" id={`fd-cx-h-${p.id}`}>
+              <span class="fd-cx-owner-dot" aria-hidden="true" data-dot={p.who} />
+              {p.name}’s phone · viewing {o.name}
+            </h3>
+            <div class="fd-cx-screen">
+              <p class="fd-cx-banner" data-banner hidden />
+              <div class="fd-cx-hero">
+                <Aura who={o.who} class="fd-cx-aura" />
+                <p class="fd-cx-name">
+                  {o.name}, {o.age} <span>{o.pro}</span>
+                </p>
+              </div>
+              <div class="fd-cx-tags">
+                {o.tags.map((t) => (
+                  <span>{t}</span>
+                ))}
+              </div>
+              <div class="fd-cx-layer is-open" data-layer="public">
+                <p class="fd-cx-lk">Public bio <em>Everyone</em></p>
+                <p class="fd-cx-txt">{o.bio}</p>
+              </div>
+              <div class="fd-cx-layer" data-layer="hidden">
+                <p class="fd-cx-lk">
+                  Hidden bio <em data-why>Opens if {o.name} likes you</em>
+                </p>
+                <p class="fd-cx-txt fd-cx-secret">{o.hidden}</p>
+                <span class="fd-cx-lock" aria-hidden="true" />
+              </div>
+              <div class="fd-cx-layer" data-layer="photos">
+                <p class="fd-cx-lk">
+                  Private photos <em data-why>Opens when it’s mutual</em>
+                </p>
+                <div class="fd-cx-photos">
+                  {o.photos.map((w) => (
+                    <Aura who={w} class="fd-cx-ph" sil={false} />
+                  ))}
+                </div>
+                <span class="fd-cx-lock" aria-hidden="true" />
+              </div>
+              <div class="fd-cx-layer" data-layer="chat">
+                <p class="fd-cx-lk">
+                  Chat <em data-why>Opens when it’s mutual</em>
+                </p>
+                <p class="fd-cx-txt fd-cx-chat">Say hi to {o.name} 👋</p>
+                <span class="fd-cx-lock" aria-hidden="true" />
+              </div>
+            </div>
+            <div class="fd-cx-actions">
+              <button type="button" class="fd-cx-btn fd-cx-like" data-act="like" aria-pressed="false">
+                <span aria-hidden="true">♥</span> Like {o.name}
+              </button>
+              <button type="button" class="fd-cx-btn" data-act="ping" aria-pressed="false">
+                <span aria-hidden="true">✦</span> Ping with a note
+              </button>
+              <button type="button" class="fd-cx-btn fd-cx-btn--ghost" data-act="withdraw" disabled>
+                Withdraw
+              </button>
+            </div>
+            <label class="fd-cx-switch">
+              <input type="checkbox" role="switch" data-act="notes" checked />
+              <span class="fd-cx-switch-ui" aria-hidden="true"><i /></span>
+              {p.name} accepts Ping notes
+            </label>
+          </section>
+        );
+      })
+    }
+
+    <div class="fd-cx-join" data-join aria-hidden="true">
+      <span class="fd-cx-orb fd-cx-orb--r" data-orb="r"></span>
+      <span class="fd-cx-orb fd-cx-orb--s" data-orb="s"></span>
+      <span class="fd-cx-burst"></span>
+      <span class="fd-cx-mutual">It’s mutual</span>
+    </div>
+  </div>
+
+  <div class="fd-cx-foot">
+    <div class="fd-cx-logwrap">
+      <p class="t-label">What just changed</p>
+      <ol class="fd-cx-log" role="list" aria-live="polite" data-log>
+        <li>Nothing shared yet. Each of you sees only the other’s public profile.</li>
+      </ol>
+    </div>
+    <button type="button" class="fd-cx-reset" data-reset>↺ Start again</button>
+  </div>
+</div>
+
+<script>
+  type Side = 'r' | 's';
+  const NAME: Record<Side, string> = { r: 'Rae', s: 'Sam' };
+  const other = (x: Side): Side => (x === 'r' ? 's' : 'r');
+
+  document.querySelectorAll<HTMLElement>('[data-fd-cx]').forEach((root) => {
+    const st = {
+      like: { r: false, s: false } as Record<Side, boolean>,
+      ping: { r: false, s: false } as Record<Side, boolean>,
+      notes: { r: true, s: true } as Record<Side, boolean>,
+    };
+    let wasMutual = false;
+    const phones = {} as Record<Side, HTMLElement>;
+    root.querySelectorAll<HTMLElement>('[data-side]').forEach((el) => (phones[el.dataset.side as Side] = el));
+    const join = root.querySelector<HTMLElement>('[data-join]')!;
+    const log = root.querySelector<HTMLOListElement>('[data-log]')!;
+
+    const say = (text: string) => {
+      const li = document.createElement('li');
+      li.textContent = text;
+      li.className = 'is-new';
+      log.prepend(li);
+      while (log.children.length > 4) log.lastElementChild?.remove();
+    };
+    const chose = (x: Side) => st.like[x] || st.ping[x];
+    const mutual = () => chose('r') && chose('s');
+
+    const render = () => {
+      const m = mutual();
+      (['r', 's'] as Side[]).forEach((me) => {
+        const them = other(me);
+        const ph = phones[me];
+        // What "me" can see of "them".
+        const hiddenOpen = chose(them);
+        const set = (layer: string, open: boolean, why: string) => {
+          const el = ph.querySelector<HTMLElement>(`[data-layer="${layer}"]`)!;
+          el.classList.toggle('is-open', open);
+          el.querySelectorAll('.fd-cx-txt, .fd-cx-photos').forEach((x) => (open ? x.removeAttribute('aria-hidden') : x.setAttribute('aria-hidden', 'true')));
+          const w = el.querySelector<HTMLElement>('[data-why]');
+          if (w) w.textContent = why;
+        };
+        set('hidden', hiddenOpen, hiddenOpen ? `Visible: ${NAME[them]} ${st.ping[them] ? 'Pinged' : 'liked'} you` : `Opens if ${NAME[them]} likes you`);
+        set('photos', m, m ? 'Visible: you’re connected' : 'Opens when it’s mutual');
+        set('chat', m, m ? 'Open: you’re connected' : 'Opens when it’s mutual');
+        // Banner: the other person reached out.
+        const banner = ph.querySelector<HTMLElement>('[data-banner]')!;
+        if (m) {
+          banner.hidden = false;
+          banner.textContent = `You and ${NAME[them]} are connected`;
+          banner.dataset.kind = 'mutual';
+        } else if (st.ping[them]) {
+          banner.hidden = false;
+          banner.textContent = st.notes[me] ? `${NAME[them]} Pinged you: “Your zine table at the fair was the best thing there.”` : `${NAME[them]} Pinged you (Ping notes are off, so no message)`;
+          banner.dataset.kind = 'ping';
+        } else if (st.like[them]) {
+          banner.hidden = false;
+          banner.textContent = `${NAME[them]} is in your Likes`;
+          banner.dataset.kind = 'like';
+        } else banner.hidden = true;
+        // Buttons.
+        ph.querySelector('[data-act="like"]')!.setAttribute('aria-pressed', String(st.like[me]));
+        ph.querySelector('[data-act="ping"]')!.setAttribute('aria-pressed', String(st.ping[me]));
+        (ph.querySelector('[data-act="withdraw"]') as HTMLButtonElement).disabled = !chose(me);
+        join.classList.toggle(`is-${me}`, chose(me));
+      });
+      join.classList.toggle('is-mutual', m);
+      root.classList.toggle('is-mutual', m);
+      if (m && !wasMutual) say('It’s mutual. Private photos and chat open for both of you, at the same moment.');
+      if (!m && wasMutual) say('The connection is closed. Private photos and chat are locked again for both of you.');
+      wasMutual = m;
+    };
+
+    (['r', 's'] as Side[]).forEach((me) => {
+      const ph = phones[me];
+      const them = other(me);
+      ph.querySelector('[data-act="like"]')!.addEventListener('click', () => {
+        st.like[me] = !st.like[me];
+        if (st.like[me]) say(`${NAME[me]} liked ${NAME[them]}. ${NAME[them]} can now read ${NAME[me]}’s hidden bio. Nothing else changes until ${NAME[them]} says yes too.`);
+        else if (!st.ping[me]) say(`${NAME[me]} took back the like. ${NAME[me]}’s hidden bio is private again.`);
+        render();
+      });
+      ph.querySelector('[data-act="ping"]')!.addEventListener('click', () => {
+        st.ping[me] = !st.ping[me];
+        if (st.ping[me]) say(`${NAME[me]} Pinged ${NAME[them]}: ${NAME[me]} moves to the top of ${NAME[them]}’s new connections${st.notes[them] ? ', with a note' : '. ' + NAME[them] + ' has Ping notes off, so no message is sent'}.`);
+        else if (!st.like[me]) say(`${NAME[me]} took back the Ping.`);
+        render();
+      });
+      ph.querySelector('[data-act="withdraw"]')!.addEventListener('click', () => {
+        st.like[me] = false;
+        st.ping[me] = false;
+        say(`${NAME[me]} withdrew. No reason needed, and ${NAME[them]} isn’t told why.`);
+        render();
+      });
+      ph.querySelector<HTMLInputElement>('[data-act="notes"]')!.addEventListener('change', (e) => {
+        st.notes[me] = (e.target as HTMLInputElement).checked;
+        say(st.notes[me] ? `${NAME[me]} accepts Ping notes again.` : `${NAME[me]} turned Ping notes off. Pings can still arrive, without a message.`);
+        render();
+      });
+    });
+
+    root.querySelector('[data-reset]')!.addEventListener('click', () => {
+      st.like.r = st.like.s = st.ping.r = st.ping.s = false;
+      st.notes.r = st.notes.s = true;
+      root.querySelectorAll<HTMLInputElement>('[data-act="notes"]').forEach((i) => (i.checked = true));
+      wasMutual = false;
+      log.replaceChildren();
+      say('Nothing shared yet. Each of you sees only the other’s public profile.');
+      render();
+    });
+    render();
+  });
+</script>
+
+<style>
+  .fd-cx { display: grid; gap: var(--s-5); }
+  .fd-cx-rules { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s-2); }
+  .fd-cx-rules li { display: grid; gap: 4px; padding: var(--s-3) var(--s-4); border-radius: var(--r-md); border: 1px solid var(--line); background: var(--bg-2); font-size: var(--fs-sm); color: var(--ink-2); }
+  .fd-cx-rules li:nth-child(n + 3) { border-color: rgb(255 111 181 / 0.35); }
+  .fd-cx-k { font: 700 var(--fs-sm) var(--font-ui); color: var(--ink); }
+
+  .fd-cx-stage { position: relative; display: grid; grid-template-columns: 1fr 150px 1fr; gap: var(--s-4); align-items: start; padding: var(--s-6); border-radius: calc(var(--r-lg) + 8px); border: 1px solid var(--line); background: radial-gradient(40% 60% at 50% 45%, rgb(123 77 255 / 0.14), transparent 70%), var(--bg-2); overflow: hidden; }
+  .fd-cx-phone[data-side='s'] { grid-column: 3; grid-row: 1; }
+  .fd-cx-join { grid-column: 2; grid-row: 1; align-self: center; position: relative; height: 220px; }
+  .fd-cx-phone { display: grid; gap: var(--s-3); min-width: 0; }
+  .fd-cx-owner { display: flex; align-items: center; gap: 8px; font: 700 var(--fs-sm) var(--font-ui); color: var(--ink-2); }
+  .fd-cx-owner-dot { width: 14px; height: 14px; border-radius: 50%; }
+  .fd-cx-owner-dot[data-dot='rae'] { background: radial-gradient(circle at 35% 35%, #ffc9a3, #ff6fb5 50%, #7b4dff); }
+  .fd-cx-owner-dot[data-dot='sam'] { background: radial-gradient(circle at 35% 35%, #c7b6ff, #ff9e7a 50%, #ff5a3c); }
+
+  .fd-cx-screen { position: relative; display: grid; gap: 8px; padding: 12px; border-radius: 30px; background: #0e0b12; border: 1px solid #33283f; box-shadow: 0 30px 70px -40px rgb(0 0 0 / 0.9); color: #f5f0ea; font-family: var(--font-ui); }
+  .fd-cx-banner { padding: 9px 12px; border-radius: 14px; background: #221a2b; font: 600 0.8rem/1.35 var(--font-ui); color: #f5f0ea; animation: fd-cx-in 0.5s var(--ease-out); }
+  .fd-cx-banner[data-kind='ping'] { box-shadow: inset 0 0 0 1.5px #ff9e7a; }
+  .fd-cx-banner[data-kind='mutual'] { background: linear-gradient(100deg, #c7b6ff, #ff9fcf 50%, #ffc29d); color: #1a0f1f; }
+  .fd-cx-hero { position: relative; aspect-ratio: 16 / 9; border-radius: 20px; overflow: hidden; }
+  .fd-cx-hero :global(.fd-cx-aura) { position: absolute; inset: 0; }
+  .fd-cx-name { position: absolute; left: 14px; bottom: 10px; font: 800 1.3rem/1 var(--font-display); letter-spacing: -0.02em; color: #fff; text-shadow: 0 1px 10px rgb(14 11 18 / 0.6); }
+  .fd-cx-name span { font: 600 0.75rem var(--font-ui); letter-spacing: 0; margin-left: 4px; }
+  .fd-cx-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .fd-cx-tags span { padding: 4px 9px; border-radius: 99px; background: #221a2b; font: 600 0.72rem/1.3 var(--font-ui); }
+  .fd-cx-layer { position: relative; display: grid; gap: 6px; padding: 10px 12px; border-radius: 16px; background: #17121d; border: 1px dashed #4a3c58; transition: border-color 0.5s, background 0.5s; }
+  .fd-cx-layer.is-open { border-style: solid; border-color: #33283f; }
+  .fd-cx-layer[data-layer='photos'].is-open, .fd-cx-layer[data-layer='chat'].is-open { border-color: rgb(255 111 181 / 0.55); background: linear-gradient(140deg, rgb(123 77 255 / 0.14), #17121d 60%); }
+  .fd-cx-lk { display: flex; justify-content: space-between; gap: 8px; font: 700 0.68rem/1.3 var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; color: #b8aec4; }
+  .fd-cx-lk em { font-style: normal; letter-spacing: 0.02em; text-transform: none; font-weight: 600; color: #d8cfe2; text-align: right; }
+  .fd-cx-layer.is-open .fd-cx-lk em { color: #ffc29d; }
+  .fd-cx-layer[data-layer='public'] .fd-cx-lk em { color: #b8aec4; }
+  .fd-cx-txt { font-size: 0.86rem; line-height: 1.45; color: #f5f0ea; transition: filter 0.9s var(--ease-out), opacity 0.9s; }
+  .fd-cx-layer:not(.is-open) .fd-cx-txt { filter: blur(6px); user-select: none; }
+  .fd-cx-photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .fd-cx-photos :global(.fd-cx-ph) { aspect-ratio: 1; border-radius: 12px; transition: filter 1.2s var(--ease-out); }
+  .fd-cx-layer:not(.is-open) .fd-cx-photos :global(.fd-cx-ph) { filter: blur(10px) saturate(0.6); }
+  .fd-cx-lock { position: absolute; right: 50%; top: 58%; width: 18px; height: 14px; margin-right: -9px; border-radius: 4px; background: #f5f0ea; transition: opacity 0.4s, transform 0.5s var(--ease-out); }
+  .fd-cx-lock::before { content: ''; position: absolute; left: 3px; top: -9px; width: 12px; height: 11px; border: 2.5px solid #f5f0ea; border-bottom: 0; border-radius: 7px 7px 0 0; box-sizing: border-box; transition: transform 0.5s var(--ease-out); transform-origin: right bottom; }
+  .fd-cx-layer.is-open .fd-cx-lock { opacity: 0; transform: translateY(-6px); }
+  .fd-cx-layer.is-open .fd-cx-lock::before { transform: rotate(30deg); }
+
+  .fd-cx-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+  .fd-cx-btn { display: inline-flex; align-items: center; gap: 6px; padding: 0.6rem 0.95rem; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--line-strong); color: var(--ink); font: 700 var(--fs-sm) / 1 var(--font-ui); transition: background var(--dur-1), transform var(--dur-2) var(--ease-out), color var(--dur-1); }
+  .fd-cx-btn:hover:not(:disabled) { transform: translateY(-2px); }
+  .fd-cx-btn[aria-pressed='true'] { background: linear-gradient(100deg, #c7b6ff, #ff9fcf 50%, #ffc29d); color: #1a0f1f; border-color: transparent; }
+  .fd-cx-like[aria-pressed='true'] span { animation: fd-cx-beat 0.6s var(--ease-out); display: inline-block; }
+  @keyframes fd-cx-beat { 30% { transform: scale(1.5); } }
+  .fd-cx-btn--ghost { background: transparent; }
+  .fd-cx-btn:disabled { color: var(--muted); border-color: var(--line); cursor: not-allowed; }
+  .fd-cx-switch { display: inline-flex; align-items: center; gap: 10px; font: 500 var(--fs-sm) var(--font-ui); color: var(--ink-2); cursor: pointer; justify-self: start; }
+  .fd-cx-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .fd-cx-switch-ui { position: relative; width: 40px; height: 24px; border-radius: 12px; background: #4a3c58; transition: background 0.25s; }
+  .fd-cx-switch-ui i { position: absolute; left: 3px; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform 0.3s var(--ease-out); }
+  .fd-cx-switch input:checked + .fd-cx-switch-ui { background: #ff9e7a; }
+  .fd-cx-switch input:checked + .fd-cx-switch-ui i { transform: translateX(16px); }
+  .fd-cx-switch input:focus-visible + .fd-cx-switch-ui { outline: 2px solid #c7b6ff; outline-offset: 2px; }
+
+  /* The join: two auras drift toward each other as each person chooses; they merge only on a mutual yes. */
+  .fd-cx-orb { position: absolute; top: 50%; width: 56px; height: 56px; margin-top: -28px; border-radius: 50%; filter: blur(1px); transition: left 0.9s var(--ease-out), right 0.9s var(--ease-out), transform 0.6s var(--ease-out), box-shadow 0.6s; opacity: 0.85; }
+  .fd-cx-orb--r { left: -6px; background: radial-gradient(circle at 35% 35%, #ffc9a3, #ff6fb5 50%, #7b4dff); }
+  .fd-cx-orb--s { right: -6px; background: radial-gradient(circle at 35% 35%, #c7b6ff, #ff9e7a 50%, #ff5a3c); }
+  .fd-cx-join.is-r .fd-cx-orb--r { left: 22px; box-shadow: 0 0 30px #ff6fb5; }
+  .fd-cx-join.is-s .fd-cx-orb--s { right: 22px; box-shadow: 0 0 30px #ff9e7a; }
+  .fd-cx-join.is-mutual .fd-cx-orb--r { left: calc(50% - 40px); transform: scale(1.25); }
+  .fd-cx-join.is-mutual .fd-cx-orb--s { right: calc(50% - 40px); transform: scale(1.25); }
+  .fd-cx-burst { position: absolute; left: 50%; top: 50%; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; border: 2px solid #ffc29d; opacity: 0; transform: scale(0.4); }
+  .fd-cx-join.is-mutual .fd-cx-burst { animation: fd-cx-burst 1.2s var(--ease-out) 0.5s both; }
+  @keyframes fd-cx-burst { 0% { opacity: 0.9; transform: scale(0.4); } 100% { opacity: 0; transform: scale(1.8); } }
+  .fd-cx-mutual { position: absolute; left: 50%; top: calc(50% + 52px); transform: translate(-50%, 8px); padding: 6px 10px; border-radius: 99px; background: #f5f0ea; color: #1a0f1f; font: 800 0.72rem/1 var(--font-ui); white-space: nowrap; opacity: 0; transition: opacity 0.4s 0.5s, transform 0.5s var(--ease-out) 0.5s; }
+  .fd-cx-join.is-mutual .fd-cx-mutual { opacity: 1; transform: translate(-50%, 0); }
+
+  .fd-cx-foot { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--s-5); }
+  .fd-cx-logwrap { display: grid; gap: var(--s-2); flex: 1; }
+  .fd-cx-log { list-style: none; padding: 0; display: grid; gap: 6px; font-size: var(--fs-sm); color: var(--ink-2); max-width: 80ch; }
+  .fd-cx-log :global(li:first-child) { color: var(--ink); }
+  .fd-cx-log :global(li.is-new:first-child) { animation: fd-cx-in 0.5s var(--ease-out); }
+  .fd-cx-reset { flex: none; padding: 0.55rem 0.95rem; border-radius: 99px; border: 1px solid var(--line-strong); font: 600 var(--fs-sm) var(--font-ui); color: var(--ink-2); }
+  .fd-cx-reset:hover { color: var(--ink); }
+  @keyframes fd-cx-in { from { opacity: 0; transform: translateY(6px); } }
+
+  @media (max-width: 960px) {
+    .fd-cx-rules { grid-template-columns: 1fr 1fr; }
+    .fd-cx-stage { grid-template-columns: 1fr; padding: var(--s-4); }
+    .fd-cx-phone[data-side='s'] { grid-column: 1; grid-row: 3; }
+    .fd-cx-join { grid-column: 1; grid-row: 2; height: 124px; }
+    .fd-cx-mutual { top: calc(50% + 36px); }
+    .fd-cx-foot { flex-direction: column; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fd-cx-join.is-mutual .fd-cx-burst, .fd-cx-like[aria-pressed='true'] span, .fd-cx-banner, .fd-cx-log :global(li.is-new:first-child) { animation: none; }
+  }
+</style>

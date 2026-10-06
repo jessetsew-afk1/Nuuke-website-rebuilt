@@ -1,0 +1,296 @@
+---
+// Profiles for more than one: build a constellation of linked profiles. Every link is an
+// invitation that the other person must accept (and that expires after 72 hours, as on Feeld),
+// carries a relationship label in the members' own terms, and can be undone by either side.
+// The Discover preview shows how a linked profile reads to a stranger at a glance.
+import { RELS } from '../../../data/cases/feeld';
+const names = [
+  { n: 'Theo', c: ['#FFB280', '#7B4DFF'] },
+  { n: 'Ash', c: ['#C7B6FF', '#FF5A3C'] },
+  { n: 'Noor', c: ['#FF6FB5', '#9FE3C0'] },
+  { n: 'Kit', c: ['#9FE3C0', '#7B4DFF'] },
+  { n: 'Sam', c: ['#C7B6FF', '#FF9E7A'] },
+  { n: 'Ruth', c: ['#FFC9A3', '#E85CB0'] },
+];
+---
+
+<div class="fd-cn" data-fd-cn data-names={JSON.stringify(names)}>
+  <div class="fd-cn-sky">
+    <svg viewBox="0 0 600 460" class="fd-cn-svg" role="img" aria-labelledby="fd-cn-svg-t" data-svg>
+      <title id="fd-cn-svg-t">Jo’s constellation of linked profiles</title>
+      <defs>
+        <linearGradient id="fd-cn-link" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C7B6FF" /><stop offset=".5" stop-color="#FF9FCF" /><stop offset="1" stop-color="#FFC29D" /></linearGradient>
+        <radialGradient id="fd-cn-me" cx="38%" cy="34%" r="70%"><stop offset="0" stop-color="#FF9E7A" /><stop offset=".55" stop-color="#7B4DFF" /><stop offset="1" stop-color="#9FE3C0" /></radialGradient>
+        {
+          names.map((p) => (
+            <radialGradient id={`fd-cn-g-${p.n}`} cx="38%" cy="34%" r="70%">
+              <stop offset="0" stop-color={p.c[0]} />
+              <stop offset="1" stop-color={p.c[1]} />
+            </radialGradient>
+          ))
+        }
+      </defs>
+      <g class="fd-cn-slots" data-slots></g>
+      <g data-links></g>
+      <g data-nodes></g>
+      <g class="fd-cn-me">
+        <circle cx="300" cy="230" r="64" fill="url(#fd-cn-me)" opacity=".18" class="fd-cn-halo" />
+        <circle cx="300" cy="230" r="46" fill="url(#fd-cn-me)" />
+        <text x="300" y="236" text-anchor="middle" class="fd-cn-me-t">Jo</text>
+      </g>
+    </svg>
+    <p class="fd-cn-count t-label" aria-live="polite" data-fd-cnt>0 of 5 linked</p>
+  </div>
+
+  <div class="fd-cn-side">
+    <form class="fd-cn-invite" data-invite>
+      <p class="t-label">Invite someone to link with Jo</p>
+      <div class="fd-cn-row">
+        <label class="fd-cn-field">
+          <span>Who</span>
+          <select data-who></select>
+        </label>
+        <label class="fd-cn-field">
+          <span>Relationship, in your terms</span>
+          <select data-rel>
+            {RELS.map((r) => <option>{r}</option>)}
+          </select>
+        </label>
+      </div>
+      <button type="submit" class="fd-cn-send" data-send>Send invite link</button>
+      <p class="t-small fd-cn-hint" data-hint>They have to accept. Links last 72 hours.</p>
+    </form>
+
+    <div class="fd-cn-lists">
+      <div>
+        <p class="t-label">Waiting for a yes</p>
+        <ul role="list" class="fd-cn-list" data-pending><li class="fd-cn-empty">No open invites.</li></ul>
+        <button type="button" class="fd-cn-skip" data-skip>⏩ Skip ahead 72 hours</button>
+      </div>
+      <div>
+        <p class="t-label">Linked</p>
+        <ul role="list" class="fd-cn-list" data-linked><li class="fd-cn-empty">Nobody yet. Solo is a complete profile too.</li></ul>
+      </div>
+    </div>
+
+    <div class="fd-cn-preview">
+      <p class="t-label">How it reads in Discover</p>
+      <div class="fd-cn-card">
+        <span class="fd-cn-av" aria-hidden="true"></span>
+        <div>
+          <p class="fd-cn-card-name">Jo, 36 <span>he/they</span></p>
+          <p class="fd-cn-card-links" data-preview>Solo profile</p>
+        </div>
+      </div>
+      <button type="button" class="fd-cn-group" data-group disabled>Say hello to everyone, in one group chat</button>
+      <p class="fd-cn-groupnote t-small" data-groupnote aria-live="polite"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+  type Link = { name: string; rel: string; state: 'pending' | 'linked'; slot: number; c: string[] };
+  const NS = 'http://www.w3.org/2000/svg';
+  const MAX = 5;
+  const CX = 300, CY = 230, R = 168;
+  const slotXY = (i: number) => {
+    const a = (-90 + i * 72) * (Math.PI / 180);
+    return [CX + Math.cos(a) * R, CY + Math.sin(a) * R * 0.92] as const;
+  };
+  const el = <K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, string | number>) => {
+    const e = document.createElementNS(NS, tag);
+    Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, String(v)));
+    return e;
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-fd-cn]').forEach((root) => {
+    const names = JSON.parse(root.dataset.names || '[]') as { n: string; c: string[] }[];
+    // Jo starts linked with Theo, their nesting partner (the persona couple).
+    const theo = names.find((x) => x.n === 'Theo')!;
+    const links: Link[] = [{ name: theo.n, rel: 'Nesting partner', state: 'linked', slot: 0, c: theo.c }];
+    const gLinks = root.querySelector<SVGGElement>('[data-links]')!;
+    const gNodes = root.querySelector<SVGGElement>('[data-nodes]')!;
+    const gSlots = root.querySelector<SVGGElement>('[data-slots]')!;
+    const who = root.querySelector<HTMLSelectElement>('[data-who]')!;
+    const rel = root.querySelector<HTMLSelectElement>('[data-rel]')!;
+    const send = root.querySelector<HTMLButtonElement>('[data-send]')!;
+    const hint = root.querySelector<HTMLElement>('[data-hint]')!;
+    const pendingUl = root.querySelector<HTMLUListElement>('[data-pending]')!;
+    const linkedUl = root.querySelector<HTMLUListElement>('[data-linked]')!;
+    const count = root.querySelector<HTMLElement>('[data-fd-cnt]')!;
+    const preview = root.querySelector<HTMLElement>('[data-preview]')!;
+    const groupBtn = root.querySelector<HTMLButtonElement>('[data-group]')!;
+    const groupNote = root.querySelector<HTMLElement>('[data-groupnote]')!;
+    const skip = root.querySelector<HTMLButtonElement>('[data-skip]')!;
+
+    for (let i = 0; i < MAX; i++) {
+      const [x, y] = slotXY(i);
+      gSlots.append(el('circle', { cx: x, cy: y, r: 30, class: 'fd-cn-slot' }));
+    }
+
+    const freeSlot = () => [0, 1, 2, 3, 4].find((s) => !links.some((l) => l.slot === s)) ?? -1;
+    const fillWho = () => {
+      const used = new Set(links.map((l) => l.name));
+      who.replaceChildren(...names.filter((p) => !used.has(p.n)).map((p) => new Option(p.n, p.n)));
+    };
+    const item = (text: string, btns: [string, () => void][]) => {
+      const li = document.createElement('li');
+      const s = document.createElement('span');
+      s.textContent = text;
+      li.append(s);
+      const wrap = document.createElement('span');
+      wrap.className = 'fd-cn-btns';
+      btns.forEach(([label, fn]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = label;
+        b.addEventListener('click', fn);
+        wrap.append(b);
+      });
+      li.append(wrap);
+      return li;
+    };
+
+    const draw = () => {
+      gLinks.replaceChildren();
+      gNodes.replaceChildren();
+      links.forEach((l) => {
+        const [x, y] = slotXY(l.slot);
+        const mx = (CX + x) / 2 + (y - CY) * 0.12;
+        const my = (CY + y) / 2 - (x - CX) * 0.12;
+        const p = el('path', { d: `M ${CX} ${CY} Q ${mx} ${my} ${x} ${y}`, class: `fd-cn-link fd-cn-link--${l.state}` });
+        gLinks.append(p);
+        if (l.state === 'linked') {
+          const tw = l.rel.length * 6.6 + 18;
+          const g = el('g', { class: 'fd-cn-pill', transform: `translate(${mx} ${my})` });
+          g.append(el('rect', { x: -tw / 2, y: -11, width: tw, height: 22, rx: 11 }));
+          const t = el('text', { x: 0, y: 4, 'text-anchor': 'middle' });
+          t.textContent = l.rel;
+          g.append(t);
+          gLinks.append(g);
+        }
+        const n = el('g', { class: `fd-cn-node fd-cn-node--${l.state}`, transform: `translate(${x} ${y})` });
+        if (l.state === 'pending') n.append(el('circle', { r: 36, class: 'fd-cn-timer' }));
+        n.append(el('circle', { r: 28, fill: `url(#fd-cn-g-${l.name})` }));
+        const t = el('text', { y: 48, 'text-anchor': 'middle', class: 'fd-cn-node-t' });
+        t.textContent = l.state === 'pending' ? `${l.name} · invited` : l.name;
+        n.append(t);
+        gNodes.append(n);
+      });
+
+      const pend = links.filter((l) => l.state === 'pending');
+      const done = links.filter((l) => l.state === 'linked');
+      pendingUl.replaceChildren(
+        ...(pend.length
+          ? pend.map((l) =>
+              item(`${l.name} · ${l.rel}`, [
+                [`Accept as ${l.name}`, () => { l.state = 'linked'; update(`${l.name} accepted. Linked as ${l.rel.toLowerCase()}.`); }],
+                ['Decline', () => { links.splice(links.indexOf(l), 1); update(`${l.name} declined. Nothing is shown, and nobody else is told.`); }],
+              ]),
+            )
+          : [Object.assign(document.createElement('li'), { className: 'fd-cn-empty', textContent: 'No open invites.' })]),
+      );
+      linkedUl.replaceChildren(
+        ...(done.length
+          ? done.map((l) => item(`${l.name} · ${l.rel}`, [['Unlink', () => { links.splice(links.indexOf(l), 1); update(`Unlinked from ${l.name}. Either person can do this at any time.`); }]]))
+          : [Object.assign(document.createElement('li'), { className: 'fd-cn-empty', textContent: 'Nobody yet. Solo is a complete profile too.' })]),
+      );
+      count.textContent = `${done.length} of ${MAX} linked${pend.length ? ` · ${pend.length} waiting` : ''}`;
+      preview.textContent = done.length ? 'Linked with ' + done.map((l) => `${l.name} (${l.rel.toLowerCase()})`).join(', ') : 'Solo profile';
+      groupBtn.disabled = done.length === 0;
+      skip.disabled = pend.length === 0;
+      const full = links.length >= MAX;
+      send.disabled = full;
+      fillWho();
+    };
+    const update = (msg?: string) => {
+      draw();
+      if (msg) hint.textContent = msg;
+      groupNote.textContent = '';
+    };
+
+    root.querySelector<HTMLFormElement>('[data-invite]')!.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const slot = freeSlot();
+      if (slot < 0 || !who.value) {
+        hint.textContent = 'Up to 5 linked profiles, the same limit Feeld uses.';
+        return;
+      }
+      const p = names.find((x) => x.n === who.value)!;
+      links.push({ name: p.n, rel: rel.value, state: 'pending', slot, c: p.c });
+      update(`Invite sent to ${p.n}. Nothing appears on Jo’s profile until ${p.n} says yes.`);
+      if (links.length >= MAX) hint.textContent += ' That’s five: the limit.';
+    });
+    skip.addEventListener('click', () => {
+      const n = links.filter((l) => l.state === 'pending').map((l) => l.name);
+      for (let i = links.length - 1; i >= 0; i--) if (links[i].state === 'pending') links.splice(i, 1);
+      update(`72 hours later: ${n.join(' and ')}’s invite expired. Send a new link if you both still want it.`);
+    });
+    groupBtn.addEventListener('click', () => {
+      const done = links.filter((l) => l.state === 'linked').map((l) => l.name);
+      groupNote.textContent = `In our concept, a hello to a linked profile opens one group chat with Jo, ${done.join(', ')} and you, so nobody is talked about behind their back.`;
+    });
+    // Narrow screens: crop the empty margins so names and labels stay legible.
+    const svg = root.querySelector<SVGSVGElement>('[data-svg]')!;
+    const fitBox = () => svg.setAttribute('viewBox', svg.clientWidth < 500 ? '96 26 408 412' : '0 0 600 460');
+    new ResizeObserver(fitBox).observe(svg);
+    fitBox();
+    draw();
+  });
+</script>
+
+<style>
+  .fd-cn { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: var(--s-6); align-items: start; }
+  .fd-cn-sky { position: relative; border-radius: calc(var(--r-lg) + 8px); border: 1px solid var(--line); background: radial-gradient(50% 50% at 50% 50%, rgb(123 77 255 / 0.18), transparent 70%), radial-gradient(1px 1px at 20% 30%, #fff 50%, transparent), radial-gradient(1px 1px at 80% 20%, #fff 50%, transparent), radial-gradient(1px 1px at 70% 80%, #fff 50%, transparent), radial-gradient(1px 1px at 30% 75%, #fff 50%, transparent), #0e0b12; overflow: hidden; }
+  .fd-cn-svg { display: block; width: 100%; height: auto; }
+  .fd-cn-svg :global(.fd-cn-slot) { fill: none; stroke: #33283f; stroke-width: 1.5; stroke-dasharray: 3 5; }
+  .fd-cn-me-t { font: 800 20px var(--font-display); fill: #fff; }
+  .fd-cn-halo { animation: fd-cn-breathe 5.5s ease-in-out infinite; transform-origin: 300px 230px; }
+  @keyframes fd-cn-breathe { 50% { transform: scale(1.12); opacity: 0.32; } }
+  .fd-cn-svg :global(.fd-cn-link) { fill: none; stroke-width: 3; stroke-linecap: round; }
+  .fd-cn-svg :global(.fd-cn-link--pending) { stroke: #b8aec4; stroke-dasharray: 4 8; animation: fd-cn-dash 1s linear infinite; }
+  .fd-cn-svg :global(.fd-cn-link--linked) { stroke: url(#fd-cn-link); animation: fd-cn-draw 0.9s var(--ease-out); stroke-dasharray: 400; }
+  @keyframes fd-cn-dash { to { stroke-dashoffset: -12; } }
+  @keyframes fd-cn-draw { from { stroke-dashoffset: 400; } to { stroke-dashoffset: 0; } }
+  .fd-cn-svg :global(.fd-cn-pill rect) { fill: #f5f0ea; }
+  .fd-cn-svg :global(.fd-cn-pill text) { font: 700 11px var(--font-ui); fill: #1a0f1f; }
+  .fd-cn-svg :global(.fd-cn-node) { animation: fd-cn-pop 0.6s var(--ease-out); }
+  @keyframes fd-cn-pop { from { opacity: 0; } }
+  .fd-cn-svg :global(.fd-cn-node--pending circle:not(.fd-cn-timer)) { opacity: 0.55; }
+  .fd-cn-svg :global(.fd-cn-timer) { fill: none; stroke: #ff9e7a; stroke-width: 2.5; stroke-dasharray: 226; stroke-dashoffset: 40; transform: rotate(-90deg); }
+  .fd-cn-svg :global(.fd-cn-node-t) { font: 600 12.5px var(--font-ui); fill: #f5f0ea; }
+  .fd-cn-count { position: absolute; left: var(--s-4); top: var(--s-4); color: var(--ink); }
+
+  .fd-cn-side { display: grid; gap: var(--s-4); min-width: 0; }
+  .fd-cn-invite, .fd-cn-preview { display: grid; gap: var(--s-3); padding: var(--s-5); border-radius: var(--r-lg); border: 1px solid var(--line); background: var(--bg-2); }
+  .fd-cn-row { display: grid; grid-template-columns: 0.7fr 1.3fr; gap: var(--s-3); }
+  .fd-cn-field { display: grid; gap: 6px; font: 600 0.78rem var(--font-ui); color: var(--ink-2); }
+  .fd-cn-field select { height: 44px; padding: 0 10px; border-radius: 12px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); font: 600 var(--fs-sm) var(--font-ui); min-width: 0; }
+  .fd-cn-send { height: 46px; border-radius: 14px; background: linear-gradient(100deg, #c7b6ff, #ff9fcf 50%, #ffc29d); color: #1a0f1f; font: 800 var(--fs-sm) var(--font-ui); }
+  .fd-cn-send:disabled { background: var(--surface-2); color: var(--muted); }
+  .fd-cn-hint { min-height: 2.6em; }
+  .fd-cn-lists { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
+  .fd-cn-lists > div { display: grid; gap: var(--s-2); align-content: start; }
+  .fd-cn-list { list-style: none; padding: 0; display: grid; gap: 6px; }
+  .fd-cn-list :global(li) { display: grid; gap: 6px; padding: 10px 12px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); font-size: var(--fs-sm); color: var(--ink); }
+  .fd-cn-list :global(li.fd-cn-empty) { background: none; border-style: dashed; color: var(--muted); }
+  .fd-cn-list :global(.fd-cn-btns) { display: flex; flex-wrap: wrap; gap: 6px; }
+  .fd-cn-list :global(button) { padding: 0.4rem 0.7rem; border-radius: 99px; border: 1px solid var(--line-strong); font: 600 0.78rem var(--font-ui); color: var(--ink); }
+  .fd-cn-list :global(button:first-child) { background: var(--surface-2); }
+  .fd-cn-skip { justify-self: start; padding: 0.4rem 0.7rem; border-radius: 99px; font: 600 0.78rem var(--font-ui); color: var(--ink-2); border: 1px dashed var(--line-strong); }
+  .fd-cn-skip:disabled { opacity: 0.5; cursor: not-allowed; }
+  .fd-cn-card { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; padding: 12px; border-radius: 18px; background: #17121d; border: 1px solid #33283f; }
+  .fd-cn-av { width: 54px; height: 54px; border-radius: 16px; background: radial-gradient(circle at 38% 34%, #ff9e7a, #7b4dff 55%, #9fe3c0); }
+  .fd-cn-card-name { font: 800 1.1rem var(--font-display); color: #f5f0ea; }
+  .fd-cn-card-name span { font: 500 0.78rem var(--font-ui); color: #b8aec4; margin-left: 4px; }
+  .fd-cn-card-links { font-size: 0.85rem; color: #d8cfe2; }
+  .fd-cn-group { justify-self: start; padding: 0.6rem 1rem; border-radius: 99px; border: 1px solid #c7b6ff; font: 700 var(--fs-sm) var(--font-ui); color: var(--ink); }
+  .fd-cn-group:disabled { border-color: var(--line); color: var(--muted); cursor: not-allowed; }
+  @media (max-width: 1000px) { .fd-cn { grid-template-columns: 1fr; } }
+  @media (max-width: 560px) {
+    .fd-cn-row, .fd-cn-lists { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fd-cn-halo, .fd-cn-svg :global(.fd-cn-link--pending), .fd-cn-svg :global(.fd-cn-link--linked), .fd-cn-svg :global(.fd-cn-node) { animation: none; }
+  }
+</style>
