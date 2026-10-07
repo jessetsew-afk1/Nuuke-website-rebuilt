@@ -199,7 +199,7 @@ const navItems = ['Technology', 'Community', 'Buyers', 'Company'];
         t.setAttribute('aria-selected', String(on));
         t.tabIndex = on ? 0 : -1;
         if (on) {
-          url.textContent = 'heirloom · concept prototype ' + (t.dataset.path || '/');
+          url.textContent = 'heirloom · prototype ' + (t.dataset.path || '/');
           if (focus) t.focus();
         }
       });

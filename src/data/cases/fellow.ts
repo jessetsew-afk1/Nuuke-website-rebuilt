@@ -98,7 +98,7 @@ export const shots: Shot[] = [
   {
     title: 'End card',
     dur: 4,
-    caption: 'Stagg EKG. Concept, not commissioned by Fellow.',
+    caption: 'Stagg EKG by Fellow.',
     camera: '50 mm, pull back to hero wide',
     action: 'Lights settle; the end card fades up.',
     sound: 'Single warm two-note chime, music out',
@@ -189,7 +189,7 @@ export const storyFrames: string[] = [
     `${defs}${['#1c1c1c', '#edebe6', '#b87333', '#7e93a3'].map((c, i) => kettle({ x: 52 + i * 72, y: 132, s: 0.5, fill: c, stroke: i === 1 ? '#bdb6aa' : INK, grip: i === 3 ? '#5c4033' : undefined })).join('')}${arrow('M40 158 L280 158')}`,
     'turns on beat',
   ),
-  frame(10, `${defs}<text x="160" y="88" text-anchor="middle" font-family="Montserrat, sans-serif" font-weight="900" font-size="22" fill="${INK}">Stagg EKG</text><text x="160" y="110" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="${DIM}">Concept, not commissioned by Fellow</text><line x1="120" x2="200" y1="124" y2="124" stroke="${WARM}" stroke-width="1.5"/>`, 'end card'),
+  frame(10, `${defs}<text x="160" y="88" text-anchor="middle" font-family="Montserrat, sans-serif" font-weight="900" font-size="22" fill="${INK}">Stagg EKG</text><text x="160" y="110" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="${DIM}">Stagg EKG by Fellow</text><line x1="120" x2="200" y1="124" y2="124" stroke="${WARM}" stroke-width="1.5"/>`, 'end card'),
 ];
 
 // ---------- Sound beats (one per shot) ----------

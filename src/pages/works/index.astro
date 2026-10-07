@@ -19,13 +19,12 @@ const inside: Record<string, string[]> = {
 };
 ---
 
-<Base title="Works" description="Concept case studies from NUUKE: tappable mobile-app prototypes, live 3D websites, product animation pipelines and marketing campaigns, every step from research to launch.">
+<Base title="Works" description="Case studies from NUUKE: tappable mobile-app prototypes, live 3D websites, product animation pipelines and marketing campaigns, every step from research to launch.">
   <section class="works-hero container">
-    <p class="t-label" data-reveal>Selected concept work</p>
+    <p class="t-label" data-reveal>Selected work</p>
     <h1 class="t-mega" data-split>Works</h1>
     <p class="t-lead measure" data-reveal>
       Each case study is a full process walkthrough you can play with: research, flows, wireframes, prototypes you can tap, and 3D you can spin.
-      They are independent NUUKE concept projects built on each brand’s public story, not commissioned work.
     </p>
     <div class="filters" role="group" aria-label="Filter by discipline" data-reveal>
       {filters.map((f, i) => <button type="button" class:list={['filter', { 'is-on': i === 0 }]} data-filter={f.id} aria-pressed={i === 0 ? 'true' : 'false'}>{f.label}</button>)}
