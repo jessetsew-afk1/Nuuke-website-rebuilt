@@ -10,6 +10,11 @@ export const site = {
   phoneHref: 'tel:+13076556344',
   email: 'hello@nuuke.us',
   address: '100 N Center St, Casper, WY 82601',
+  /** Every office, shown in the footer and on the contact page. */
+  offices: [
+    { city: 'Casper, WY', street: '100 N Center St', locality: 'Casper', region: 'WY', postal: '82601' },
+    { city: 'Alpharetta, GA', street: '8000 Avalon Blvd', locality: 'Alpharetta', region: 'GA', postal: '30008' },
+  ],
   footerLine: 'Good work speaks. Ours doesn’t shut up.',
   reviews: [
     { name: 'Bark', href: 'https://www.bark.com/en/us/company/nuuke/wJ9GnR/?show_reviews=true&review_source=share_link' },

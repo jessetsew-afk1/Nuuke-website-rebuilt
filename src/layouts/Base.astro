@@ -30,6 +30,8 @@ const org = {
   url: site.url,
   logo: `${site.url}/apple-touch-icon.png`,
   telephone: site.phone,
+  email: site.email,
+  address: site.offices.map((o) => ({ '@type': 'PostalAddress', streetAddress: o.street, addressLocality: o.locality, addressRegion: o.region, postalCode: o.postal, addressCountry: 'US' })),
 };
 ---
 

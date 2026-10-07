@@ -1,6 +1,6 @@
 ---
 // Shared shell for every case study: brand-tinted page, hero, concept notice,
-// a sticky chapter rail that tracks reading progress, sources and the next project.
+// a sticky chapter rail that tracks reading progress and the next project.
 import Base from './Base.astro';
 import ProjectCover from '../components/ProjectCover.astro';
 import { nextOf, type Project } from '../data/projects';
@@ -14,7 +14,8 @@ interface Props {
   sources: Source[];
   meta: { label: string; value: string }[];
 }
-const { project: p, chapters, sources, meta } = Astro.props;
+// `sources` stays in the props so each case keeps its research references; it is not rendered.
+const { project: p, chapters, meta } = Astro.props;
 const next = nextOf(p.slug);
 ---
 
@@ -51,7 +52,7 @@ const next = nextOf(p.slug);
           }
         </dl>
         <aside class="concept-note" data-reveal>
-          <strong>Concept project.</strong> NUUKE created this as an independent exploration. It was not commissioned by, and is not affiliated with, {p.brand}. Brand facts come from public sources listed at the end; the research, flows, wireframes, prototypes and 3D are our own work. No results are claimed.
+          <strong>Concept project.</strong> NUUKE created this as an independent exploration. It was not commissioned by, and is not affiliated with, {p.brand}. Brand facts come from the brand’s public materials and press coverage; the research, flows, wireframes, prototypes and 3D are our own work. No results are claimed.
         </aside>
       </div>
     </header>
@@ -77,13 +78,6 @@ const next = nextOf(p.slug);
       <slot />
     </div>
 
-    <!-- SOURCES -->
-    <section class="section-tight container sources" aria-labelledby="sources-title">
-      <h2 id="sources-title" class="t-label">Sources for brand facts</h2>
-      <ul role="list">
-        {sources.map((s) => <li><a href={s.url} target="_blank" rel="noopener">{s.label} ↗</a></li>)}
-      </ul>
-    </section>
 
     <!-- NEXT -->
     <a class="next" href={`/works/${next.slug}`} style={`--n:${next.accent}`}>
@@ -191,9 +185,6 @@ const next = nextOf(p.slug);
   @media (max-width: 1279px) { .rail { display: none; } }
   @media (min-width: 1280px) { .case-body :global(.container) { padding-left: max(var(--gutter), 76px); } }
 
-  .sources ul { list-style: none; padding: 0; margin-top: var(--s-4); display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-5); font-size: var(--fs-sm); }
-  .sources a { color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
-  .sources a:hover { color: var(--ink); }
 
   .next {
     position: relative;

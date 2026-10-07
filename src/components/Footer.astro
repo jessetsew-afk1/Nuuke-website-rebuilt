@@ -29,7 +29,7 @@ const year = new Date().getFullYear();
       <ul role="list">
         <li><a href={site.phoneHref}>{site.phone}</a></li>
         <li><a href={`mailto:${site.email}`}>{site.email}</a></li>
-        <li class="t-small">{site.address}</li>
+        {site.offices.map((o) => <li class="t-small">{o.street}, {o.locality}, {o.region} {o.postal}</li>)}
         {site.reviews.map((r) => <li><a href={r.href} target="_blank" rel="noopener">Reviews on {r.name} ↗</a></li>)}
       </ul>
     </div>

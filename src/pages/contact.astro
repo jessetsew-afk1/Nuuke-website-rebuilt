@@ -24,6 +24,7 @@ const endpoint = import.meta.env.PUBLIC_FORM_ENDPOINT ?? '';
       <dl class="ct-info" data-stagger="0.08">
         <div><dt class="t-label">Call</dt><dd><a href={site.phoneHref}>{site.phone}</a></dd></div>
         <div><dt class="t-label">Email</dt><dd><a href={`mailto:${site.email}`}>{site.email}</a></dd></div>
+        <div><dt class="t-label">Offices</dt><dd class="ct-offices">{site.offices.map((o) => <span>{o.street}<br />{o.locality}, {o.region} {o.postal}</span>)}</dd></div>
         <div><dt class="t-label">Reviews</dt><dd>{site.reviews.map((r) => <a href={r.href} target="_blank" rel="noopener">{r.name} ↗</a>)}</dd></div>
       </dl>
     </div>
@@ -111,6 +112,8 @@ const endpoint = import.meta.env.PUBLIC_FORM_ENDPOINT ?? '';
   .ct-info { display: grid; gap: var(--s-4); margin-top: var(--s-5); }
   .ct-info dd { margin-top: var(--s-1); font-size: var(--fs-lg); display: flex; gap: var(--s-4); }
   .ct-info a:hover { color: var(--accent); }
+  .ct-offices { flex-wrap: wrap; font-size: 1rem !important; color: var(--ink-2); line-height: 1.45; }
+  .ct-offices span { min-width: 12rem; }
   .ct-form { display: grid; gap: var(--s-5); padding: var(--s-7); }
   .ct-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
   .field { display: grid; gap: var(--s-2); border: 0; padding: 0; min-width: 0; }
