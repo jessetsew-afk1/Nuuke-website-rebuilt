@@ -93,11 +93,12 @@ const gov = {
   win: new Float32Array(WIN), // rendered-frame intervals (ms)
   n: 0, // samples since the last tier change
   goodFor: 0, // ms of consecutive comfortable frames
-  upWait: 20000, // ms of headroom needed before probing a richer tier
+  upWait: 8000, // ms of headroom needed before probing a richer tier
+  baseCeiling: 0,
+  readyAt: Infinity, // verdicts start a moment after the page has finished loading
   probeFrom: -1, // tier we stepped up from (a probe in progress), -1 = none
   probeUntil: 0,
   fails: [0, 0, 0, 0, 0], // failed probes INTO each tier
-  holdUntil: 0, // no verdicts before this time (heavy one-off work in progress)
   bad: 0, // slow verdicts in a row
   frameMs: 0, // smoothed main-thread ms per tick (diagnostics)
   changes: 0,
@@ -120,7 +121,12 @@ function setTier(t: number) {
 function initGovernor(gl: WebGLRenderingContext | WebGL2RenderingContext) {
   if (gov.inited) return;
   gov.inited = true;
-  gov.ceiling = isLiteDevice() ? 2 : 0;
+  gov.ceiling = gov.baseCeiling = isLiteDevice() ? 2 : 0;
+  // Page start-up (script evaluation, first compiles, fonts) says nothing about the steady frame
+  // rate: no verdicts until a second after the load event.
+  const loaded = () => (gov.readyAt = performance.now() + 1000);
+  if (document.readyState === 'complete') loaded();
+  else window.addEventListener('load', loaded, { once: true });
   const forced = qsNum('q');
   if (forced !== null) {
     gov.pinned = true;
@@ -129,14 +135,9 @@ function initGovernor(gl: WebGLRenderingContext | WebGL2RenderingContext) {
   } else gov.tier = startTier(gl, gov.ceiling);
 }
 
-/** Pause verdicts for a while, e.g. while a scene is being built in idle-time chunks. */
-export function holdGovernor(ms: number) {
-  gov.holdUntil = Math.max(gov.holdUntil, performance.now() + ms);
-}
-
 /** Feed one rendered-frame interval (only between two consecutive rendered ticks). */
 function govSample(ms: number, now: number) {
-  if (gov.pinned || now < gov.holdUntil) return;
+  if (gov.pinned || now < gov.readyAt) return;
   if (ms > 200) return; // a pause or a one-off stall, not a trend
   gov.win[gov.n % WIN] = Math.min(ms, 50);
   gov.n++;
@@ -154,7 +155,7 @@ function govSample(ms: number, now: number) {
     if (mean > 18.2 || late > 2) {
       const into = gov.tier;
       gov.fails[into]++;
-      gov.upWait = Math.min(240000, gov.upWait * 2);
+      gov.upWait = Math.min(120000, gov.upWait * 2);
       gov.probeFrom = -1;
       // Three failed probes into a tier: stay out of it for this visit.
       if (gov.fails[into] >= 3) gov.ceiling = Math.max(gov.ceiling, into + 1);
@@ -179,6 +180,118 @@ function govSample(ms: number, now: number) {
     gov.probeUntil = now + 3000;
     setTier(gov.tier - 1);
   }
+}
+
+// ---------------------------------------------------------------- background work
+// One-off heavy work (texture bakes, shader priming, texture uploads) never runs in big
+// blocks. It asks for a slot with bgSlot() and gets one at most once per frame, right after a
+// frame has been submitted, and only when recent frames were on time and the visitor is not
+// scrolling and no heavy moment (the launch) is playing. Each slot comes with a pixel budget
+// for GPU work that adapts to the frame after it: halved when that frame came late, grown
+// slowly while frames stay on time. Frames made late by background work are not counted by
+// the governor, so start-up work can never push the page down a tier.
+// When nothing is on time (a GPU that cannot reach 60 fps yet), work still trickles on at the
+// smallest budget a few times a second; urgent mode (the content is about to be needed)
+// grants a slot every frame regardless.
+
+type BgWaiter = { prio: number; seq: number; resolve: (px: number) => void };
+const BG_MIN = 16384;
+const BG_MAX = 1 << 20;
+const bg = {
+  waiters: [] as BgWaiter[],
+  seq: 0,
+  budget: 65536,
+  cap: BG_MAX, // budget ceiling learned from late frames
+  check: false, // the next rendered frame shows how the last unit went
+  lastGrant: -1e9,
+  lastTs: -1, // rAF timestamp of the last grant (one per frame)
+  lastScroll: -1e9,
+  busyUntil: 0,
+  urgent: 0,
+  onTime: 0, // rendered frames on time in a row
+  lastTick: -1e9,
+  done: 0,
+  timer: 0,
+};
+if (typeof window !== 'undefined') {
+  const mark = () => (bg.lastScroll = performance.now());
+  ['scroll', 'wheel', 'touchmove'].forEach((e) => window.addEventListener(e, mark, { passive: true }));
+}
+
+/** Wait for a good moment for one unit of background work; resolves with a pixel budget. */
+export function bgSlot(prio = 1): Promise<number> {
+  return new Promise((resolve) => {
+    bg.waiters.push({ prio, seq: bg.seq++, resolve });
+    if (!bg.timer) bg.timer = window.setInterval(bgFallback, 100);
+  });
+}
+/** Heavy foreground moment (e.g. the launch): no background work for `ms`, unless urgent. */
+export function bgBusy(ms: number) {
+  bg.busyUntil = Math.max(bg.busyUntil, performance.now() + ms);
+}
+/** Count of urgent requesters: while > 0 a unit runs every frame. */
+export function bgUrgent(on: boolean) {
+  bg.urgent = Math.max(0, bg.urgent + (on ? 1 : -1));
+}
+const bgPending = () => bg.waiters.length;
+
+function bgGrant(now: number, ts: number, px: number) {
+  let k = 0;
+  for (let i = 1; i < bg.waiters.length; i++) {
+    const a = bg.waiters[i];
+    const b = bg.waiters[k];
+    if (a.prio < b.prio || (a.prio === b.prio && a.seq < b.seq)) k = i;
+  }
+  const w = bg.waiters.splice(k, 1)[0];
+  bg.lastGrant = now;
+  bg.lastTs = ts;
+  bg.check = true;
+  bg.done++;
+  w.resolve(px);
+  if (!bg.waiters.length) {
+    window.clearInterval(bg.timer);
+    bg.timer = 0;
+    // Queue drained: stop holding back on richer tiers because of earlier trouble.
+    window.setTimeout(() => {
+      if (bg.waiters.length) return;
+      gov.upWait = Math.min(gov.upWait, 4000);
+      gov.fails.fill(0);
+      gov.ceiling = gov.baseCeiling;
+    }, 500);
+  }
+}
+
+/** Called by every stage tick after its frame was submitted. */
+function bgPump(now: number, ts: number) {
+  bg.lastTick = now;
+  if (!bg.waiters.length || ts === bg.lastTs) return;
+  if (bg.urgent) return bgGrant(now, ts, Math.max(bg.budget, 65536));
+  const calm = now - bg.lastScroll > 700 && now > bg.busyUntil;
+  if (calm && bg.onTime >= 3) return bgGrant(now, ts, bg.budget);
+  // Trickle: keep going slowly even when frames are never on time.
+  if (calm && now - bg.lastGrant > 350) bgGrant(now, ts, BG_MIN);
+}
+/** No stage has ticked for a second (nothing on screen draws): grant from a timer instead. */
+function bgFallback() {
+  const now = performance.now();
+  if (now - bg.lastTick < 1000 || !bg.waiters.length) return;
+  if (bg.urgent || (now - bg.lastScroll > 700 && now > bg.busyUntil && now - bg.lastGrant > 60)) bgGrant(now, -1 - now, bg.budget);
+}
+/** A rendered-frame interval: adapt the budget. Returns true when the frame was made late by background work. */
+function bgFrame(ms: number) {
+  const late = ms > 21;
+  bg.onTime = late ? 0 : bg.onTime + 1;
+  if (!bg.check) return false;
+  bg.check = false;
+  if (late) {
+    // Remember roughly where it starts to hurt, so the budget does not keep probing past it.
+    bg.cap = Math.max(BG_MIN, bg.budget * 0.7);
+    bg.budget = Math.max(BG_MIN, bg.budget * 0.5);
+  } else {
+    bg.budget = Math.min(bg.cap, bg.budget * 1.2);
+    bg.cap = Math.min(BG_MAX, bg.cap * 1.02);
+  }
+  return late;
 }
 
 /** Current quality and a subscription to changes (called immediately with the current value). */
@@ -264,7 +377,7 @@ const stepHooks: ((ts: number) => void)[] = [];
 let stepTs = 0;
 if (debug)
   Object.assign(window, {
-    __nuukeGL: { gov, quality, stages: debugStages, setTier, gpu: () => gpuName },
+    __nuukeGL: { gov, quality, stages: debugStages, setTier, gpu: () => gpuName, bg: () => ({ pending: bgPending(), budget: bg.budget, done: bg.done }) },
     __nuukeStep: (n = 1) => {
       for (let i = 0; i < n; i++) {
         stepTs += FRAME_MS;
@@ -341,7 +454,7 @@ function startOverlay() {
     box.textContent =
       `fps ${Math.max(0, mainFps).toFixed(0)} (display ${rafFps.toFixed(0)})  frame avg ${avg.toFixed(1)} p95 ${p95.toFixed(1)} ms\n` +
       `tier ${q.tier}${gov.pinned ? ' (pinned)' : ''}  maxPR ${q.maxPR}  dpr ${window.devicePixelRatio}  view ${window.innerWidth}x${window.innerHeight}\n` +
-      `long tasks ${longTasks}${longTasks ? ` (max ${longMax.toFixed(0)} ms)` : ''}  tier changes ${gov.changes}\n` +
+      `long tasks ${longTasks}${longTasks ? ` (max ${longMax.toFixed(0)} ms)` : ''}  tier changes ${gov.changes}  background ${bgPending() ? `${bgPending()} waiting` : 'idle'} (${bg.done} done)\n` +
       `gpu ${gpuName || '?'}\n` +
       (rows.length ? `rendering:\n${rows.join('\n')}` : 'rendering: none');
   }, 500);
@@ -480,7 +593,11 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
         dbg.tris = renderer.info.render.triangles;
         if (renderedPrev) dbg.iv[dbg.ivN++ % dbg.iv.length] = ts - prevRenderTs;
       }
-      if (renderedPrev && fps >= 60) govSample(ts - prevRenderTs, now);
+      if (renderedPrev) {
+        const iv = ts - prevRenderTs;
+        const oneOff = bgFrame(iv);
+        if (fps >= 60 && !oneOff) govSample(iv, now);
+      }
       prevRenderTs = ts;
       renderedPrev = true;
     } else renderedPrev = false;
@@ -489,6 +606,7 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
     const jsMs = performance.now() - t0;
     gov.frameMs += (jsMs - gov.frameMs) * 0.05;
     dbg.js += (jsMs - dbg.js) * 0.1;
+    bgPump(performance.now(), ts);
     if (again && !stepMode) raf = requestAnimationFrame(tick);
   };
   if (stepMode) stepHooks.push((ts) => tick(ts));

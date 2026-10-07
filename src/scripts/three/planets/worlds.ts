@@ -3,7 +3,7 @@
 // terminator, ocean glints, a separately drifting cloud deck and a fresnel atmosphere.
 import { THREE, makePhone, svgTexture } from '../core';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import { Baker, idle } from './bake';
+import { Baker } from './bake';
 import { OUT, RING, SPHERE } from './glsl';
 
 export type Quality = { phone: boolean; tex: number; seg: number; particles: number };
@@ -28,6 +28,8 @@ uniform vec3 uAccent;
 uniform float uEps;
 uniform float uBumpK;
 `;
+// Both surface textures in one pass (two render targets): the height field, the costliest
+// part, is evaluated once for both instead of once per texture. Same output as two passes.
 const BAKE_MAIN = /* glsl */ `
 float height(vec3 p);
 float relief(float h);
@@ -37,17 +39,14 @@ void main() {
   float h = height(p);
   vec3 alb; float spec; float night; float cloud;
   surface(p, h, alb, spec, night, cloud);
-  if (uPass < 0.5) {
-    gl_FragColor = vec4(pow(clamp(alb, 0.0, 1.0), vec3(1.0 / 2.2)), clamp(spec, 0.0, 1.0));
-  } else {
-    vec3 e = eastOf(p);
-    vec3 n = cross(p, e);
-    float r0 = relief(h);
-    float he = relief(height(normalize(p + e * uEps)));
-    float hn = relief(height(normalize(p + n * uEps)));
-    vec2 s = vec2(he - r0, hn - r0) / uEps * uBumpK;
-    gl_FragColor = vec4(clamp(0.5 + 0.5 * s, 0.0, 1.0), clamp(night, 0.0, 1.0), clamp(cloud, 0.0, 1.0));
-  }
+  gOut0 = vec4(pow(clamp(alb, 0.0, 1.0), vec3(1.0 / 2.2)), clamp(spec, 0.0, 1.0));
+  vec3 e = eastOf(p);
+  vec3 n = cross(p, e);
+  float r0 = relief(h);
+  float he = relief(height(normalize(p + e * uEps)));
+  float hn = relief(height(normalize(p + n * uEps)));
+  vec2 s = vec2(he - r0, hn - r0) / uEps * uBumpK;
+  gOut1 = vec4(clamp(0.5 + 0.5 * s, 0.0, 1.0), clamp(night, 0.0, 1.0), clamp(cloud, 0.0, 1.0));
 }`;
 
 /** Mobile: a living ocean world, rose deserts, ice caps, city lights along the coasts. */
@@ -427,8 +426,7 @@ function bakeSurface(baker: Baker, kind: Kind, accent: THREE.Color, q: Quality, 
     uBumpK: { value: bumpK },
   });
   const body = `${BAKE_HEAD}\n${SRC[kind]}\n${BAKE_MAIN}`;
-  const a = baker.bake(body, w, h, u(0));
-  const b = baker.bake(body, w, h, u(1));
+  const [a, b] = baker.bakeMulti(body, w, h, 2, u(0));
   return { a, b };
 }
 
@@ -459,7 +457,6 @@ async function makeSurface(baker: Baker, q: Quality, o: SurfaceOpts, ring?: { in
   tilt.add(spin);
 
   const { a, b } = bakeSurface(baker, o.kind, o.accent, q, o.seed, o.bumpK);
-  await idle();
 
   const defines: Record<string, string> = {};
   if (o.clouds) defines.CLOUDS = '';

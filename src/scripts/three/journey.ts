@@ -5,7 +5,7 @@
 // -1..1 of the viewport, scale, opacity; data-m* override on phones). The film section flies
 // the camera up to the porthole, a warp jump precedes the finale and the finale lands the
 // rocket in the "n" of the logo.
-import { createStage, getQuality, isLiteDevice, onQuality, THREE } from './core';
+import { bgBusy, bgSlot, bgUrgent, createStage, getQuality, isLiteDevice, onQuality, THREE } from './core';
 import { makeRocket } from './rocket';
 import * as sfx from '../sfx';
 import { makeEnv } from './fx/env';
@@ -80,6 +80,17 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
 
   const dome = makeDome(renderer);
   scene.add(dome.mesh);
+  // The deep-space nebula is only seen from space. With the launch pad it is baked in small
+  // background slots while the visitor is still on the pad (finished at once at lift-off if
+  // it has not got there yet); straight into space it is baked right away.
+  let nebulaDone = false;
+  let nebulaUrgent = false;
+  if (withPad) {
+    (async () => {
+      while (!nebulaDone) nebulaDone = dome.bakeStrip(await bgSlot(0));
+      if (nebulaUrgent) bgUrgent((nebulaUrgent = false));
+    })();
+  } else while (!nebulaDone) nebulaDone = dome.bakeStrip(1 << 22);
   const STARS_N = lite ? 1100 : 2600;
   const DUST_N = lite ? 46 : 110;
   const stars = makeStars(STARS_N);
@@ -919,6 +930,9 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
     du2.uFlash.value = 0;
     post.bloom.strength = (mode === 'pad' || mode === 'launch' ? 0.55 : 0.48) + warpK * 0.15;
 
+    // No background work (bakes, shader priming) during the big moments.
+    if (mode === 'launch' || mode === 'arrive' || warpK > 0 || flash > 0.05) bgBusy(400);
+
     // ===== Render policy =====
     // The rocket is out of sight and nothing moves fast: the backdrop only drifts, so a few
     // frames a second look identical. Hidden behind an opaque section: hold the last frame.
@@ -985,6 +999,7 @@ export function initJourney(canvas: HTMLCanvasElement, opts: { pad?: boolean; sh
         if (mode !== 'pad') return res();
         launchResolve = res;
         mode = 'launch';
+        if (!nebulaDone && !nebulaUrgent) bgUrgent((nebulaUrgent = true));
         seq = 0;
         sfx.ignition(IGNITION);
         missionT0 = performance.now() / 1000 + IGNITION;

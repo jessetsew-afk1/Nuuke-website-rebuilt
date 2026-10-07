@@ -20,7 +20,16 @@ import { marketingStudio as m } from '../../data/site';
   </a>
 </div>
 
+<script>
+  // The strip's looping animations (one repaints a glow every frame) only run while it is on screen.
+  document.querySelectorAll<HTMLElement>('.mk-strip').forEach((el) => {
+    el.classList.add('is-off');
+    new IntersectionObserver((es) => el.classList.toggle('is-off', !(es[0]?.isIntersecting ?? false))).observe(el);
+  });
+</script>
+
 <style>
+  .mk-strip.is-off .mk-flip, .mk-strip.is-off .mk-dot { animation-play-state: paused; }
   .mk-strip { position: relative; z-index: 1; padding-block: var(--s-6) 0; perspective: 900px; }
   .mk-flip {
     position: relative;

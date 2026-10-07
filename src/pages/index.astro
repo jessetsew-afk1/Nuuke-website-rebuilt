@@ -347,10 +347,29 @@ const stages = [
   const video = document.querySelector<HTMLVideoElement>('[data-film-video]')!;
   const filmBtn = document.querySelector<HTMLButtonElement>('[data-film-toggle]')!;
   let userPaused = false;
+  // AV1 is the smaller file, but where the device cannot decode it in hardware it costs a lot
+  // of CPU next to the 3D scene: then the H.264 copy of the same film plays instead.
+  let codecPick: Promise<void> | null = null;
+  const pickCodec = () =>
+    (codecPick ??= (async () => {
+      const av1 = video.querySelector<HTMLSourceElement>('source[type*="av01"]');
+      const mc = (navigator as Navigator & { mediaCapabilities?: { decodingInfo: (c: unknown) => Promise<{ supported: boolean; powerEfficient: boolean }> } }).mediaCapabilities;
+      if (!av1 || !mc) return;
+      try {
+        const r = await mc.decodingInfo({ type: 'file', video: { contentType: av1.type, width: 1280, height: 720, bitrate: 230000, framerate: 30 } });
+        if (!r.supported || !r.powerEfficient) av1.remove();
+      } catch {
+        /* keep both sources */
+      }
+    })());
   const setFilm = (play: boolean) => {
     if (play) {
-      video.preload = 'auto';
-      video.play().catch(() => {});
+      pickCodec().then(() => {
+        if (video.paused && filmBtn.getAttribute('aria-pressed') === 'true') {
+          video.preload = 'auto';
+          video.play().catch(() => {});
+        }
+      });
     } else video.pause();
     filmBtn.textContent = play ? 'Pause film' : 'Play film';
     filmBtn.setAttribute('aria-pressed', String(play));
@@ -358,10 +377,12 @@ const stages = [
   // Start buffering the film (about 1 MB) a couple of screens before the visitor gets there,
   // so it does not start loading and decoding right as the porthole opens.
   whenNear(filmSec, () => {
-    if (video.preload !== 'auto') {
-      video.preload = 'auto';
-      video.load();
-    }
+    pickCodec().then(() => {
+      if (video.preload !== 'auto') {
+        video.preload = 'auto';
+        video.load();
+      }
+    });
   }, '200% 0px');
   filmBtn.addEventListener('click', () => {
     userPaused = !video.paused;

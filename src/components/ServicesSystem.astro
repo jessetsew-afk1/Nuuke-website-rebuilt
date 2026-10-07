@@ -194,15 +194,15 @@ const lines = [
       build();
     };
     whenNear(root, begin, '300% 0px');
-    const html = document.documentElement;
+    // The set-up itself only runs in calm moments (see bgSlot in core.ts): on time frames, no
+    // scrolling, not during the launch. So it can start early, even while the visitor is still
+    // on the launch pad, and be long finished by the time the section comes up.
     const idleStart = () => {
-      // not while the launch sequence is playing
-      if (html.classList.contains('is-loading')) return void setTimeout(idleStart, 1000);
       const ric = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
       if (ric) ric(begin, { timeout: 3000 });
       else setTimeout(begin, 200);
     };
-    const afterLoad = () => setTimeout(idleStart, 2500);
+    const afterLoad = () => setTimeout(idleStart, 1000);
     if (document.readyState === 'complete') afterLoad();
     else window.addEventListener('load', afterLoad, { once: true });
 

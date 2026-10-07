@@ -37,7 +37,16 @@ const set = [...partners, ...partners, ...partners];
   </div>
 </section>
 
+<script>
+  // The logo marquee only runs while it is on screen.
+  document.querySelectorAll<HTMLElement>('.pt').forEach((el) => {
+    el.classList.add('is-off');
+    new IntersectionObserver((es) => el.classList.toggle('is-off', !(es[0]?.isIntersecting ?? false))).observe(el);
+  });
+</script>
+
 <style>
+  .pt.is-off .pt-track { animation-play-state: paused; }
   .pt { position: relative; z-index: 1; padding-block: var(--s-7) var(--s-6); margin-top: var(--s-6); }
   .pt-head { margin-bottom: var(--s-5); }
   .pt-viewport {

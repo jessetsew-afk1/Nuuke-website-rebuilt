@@ -172,7 +172,7 @@ export type Pipeline = {
    */
   compileAsync: () => Promise<void>;
   /** Draw each material once into a tiny target, waiting for an idle period in between. */
-  primeObjects: (wait: () => Promise<void>) => Promise<void>;
+  primeObjects: (wait: () => Promise<unknown>) => Promise<void>;
   /** Draw the scene once into the HDR target (uploads geometry and textures), off screen. */
   prime: () => void;
   /** Run the bloom chain once (links its shaders), off screen. */
@@ -302,11 +302,13 @@ export function makePipeline(renderer: THREE.WebGLRenderer, scene: THREE.Scene, 
       tiny.dispose();
     },
     prime: () => {
-      sync();
+      // A tiny target: uploads every geometry and texture without the cost of a full frame.
+      const tiny = new THREE.WebGLRenderTarget(16, 16, { type: THREE.HalfFloatType });
       const prev = renderer.getRenderTarget();
-      renderer.setRenderTarget(rt);
+      renderer.setRenderTarget(tiny);
       renderer.render(scene, camera);
       renderer.setRenderTarget(prev);
+      tiny.dispose();
     },
     primeBloom: () => {
       sync();

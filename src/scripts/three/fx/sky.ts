@@ -88,7 +88,8 @@ void main() {
 }`;
 
 export function makeDome(renderer: THREE.WebGLRenderer) {
-  // Bake the nebula once (2048 x 1024, no mipmaps so the longitude seam stays invisible).
+  // Bake the nebula once (2048 x 1024, no mipmaps so the longitude seam stays invisible), in
+  // strips: bakeStrip(px) draws about px pixels and returns true once the whole map is done.
   const nebula = new THREE.WebGLRenderTarget(2048, 1024, { depthBuffer: false, generateMipmaps: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, wrapS: THREE.RepeatWrapping });
   const bakeMat = new THREE.ShaderMaterial({
     vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
@@ -99,14 +100,29 @@ export function makeDome(renderer: THREE.WebGLRenderer) {
   const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), bakeMat);
   quad.frustumCulled = false;
   const bakeScene = new THREE.Scene().add(quad);
-  const prev = renderer.getRenderTarget();
-  const tm = renderer.toneMapping;
-  renderer.setRenderTarget(nebula);
-  renderer.render(bakeScene, new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1));
-  renderer.setRenderTarget(prev);
-  renderer.toneMapping = tm;
-  bakeMat.dispose();
-  quad.geometry.dispose();
+  const bakeCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  let row = 0;
+  const bakeStrip = (px: number) => {
+    if (row >= nebula.height) return true;
+    const rows = Math.max(8, Math.min(nebula.height - row, Math.floor(px / nebula.width)));
+    nebula.scissor.set(0, row, nebula.width, rows);
+    nebula.scissorTest = true;
+    const prev = renderer.getRenderTarget();
+    const ac = renderer.autoClear;
+    renderer.autoClear = false;
+    renderer.setRenderTarget(nebula);
+    renderer.render(bakeScene, bakeCam);
+    renderer.setRenderTarget(prev);
+    renderer.autoClear = ac;
+    nebula.scissorTest = false;
+    row += rows;
+    if (row >= nebula.height) {
+      bakeMat.dispose();
+      quad.geometry.dispose();
+      return true;
+    }
+    return false;
+  };
 
   const mat = new THREE.ShaderMaterial({
     vertexShader: DOME_VERT,
@@ -127,7 +143,7 @@ export function makeDome(renderer: THREE.WebGLRenderer) {
   const mesh = new THREE.Mesh(new THREE.SphereGeometry(10, 48, 24), mat);
   mesh.frustumCulled = false;
   mesh.renderOrder = -100;
-  return { mesh, mat, dispose: () => (nebula.dispose(), mat.dispose(), mesh.geometry.dispose()) };
+  return { mesh, mat, bakeStrip, dispose: () => (nebula.dispose(), mat.dispose(), mesh.geometry.dispose()) };
 }
 
 // ---------- Stars: wrap in a box around the camera, streak along their motion ----------

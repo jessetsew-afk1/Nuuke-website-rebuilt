@@ -1,10 +1,10 @@
 // Services as a solar system: the NUUKE star at the centre, one world per service.
 // Scroll progress (0..1) flies a cinematic camera from an overview to each world in turn.
 // Heavy lifting lives in ./planets/*: GPU-baked surfaces, the sun, deep space and belts.
-import { buildRoomEnv, createStage, holdGovernor, isLiteDevice, onQuality, THREE } from './core';
+import { bgSlot, bgUrgent, buildRoomEnv, createStage, isLiteDevice, onQuality, THREE } from './core';
 import { makeRocket } from './rocket';
 import { makePipeline } from './fx/pipeline';
-import { Baker, idle } from './planets/bake';
+import { Baker } from './planets/bake';
 import { makeSun } from './planets/sun';
 import { makeBelt, makeNearDust, makeSpace } from './planets/space';
 import { makeAI, makeAnimation, makeMarketing, makeMobile, sparkleMaterial, type Quality, type World } from './planets/worlds';
@@ -49,17 +49,30 @@ const smoother = (x: number) => {
 };
 
 export async function initServices(canvas: HTMLCanvasElement, colors: string[]): Promise<ServicesScene> {
-  // The system is built in small steps, each in its own idle period (it starts long before the
-  // section is reached), so it never stalls scrolling. Frame-time verdicts pause meanwhile.
+  // The system is built in small steps, one per background-work slot (see bgSlot in core.ts):
+  // at most one per frame, only while frames are on time and nobody is scrolling, so building
+  // it (long before the section is reached) never makes the page stutter.
   const timing = /[?&]perf\b/.test(location.search);
   let chunkT = performance.now();
   const step = async (label = '') => {
     // ?perf: each chunk's main-thread time shows up as a performance measure ("ss <label>")
     if (timing) performance.measure(`ss ${label}`, { start: chunkT, end: performance.now() });
-    holdGovernor(400);
-    await idle();
+    const px = await bgSlot(1);
     chunkT = performance.now();
+    return px;
   };
+  // Close to the section and still not ready (a fast scroller or a busy machine): finish now,
+  // a unit every frame, regardless of headroom.
+  let urgent = false;
+  let ready = false;
+  const nearObs = new IntersectionObserver(
+    (es) => {
+      const on = !ready && (es[0]?.isIntersecting ?? false);
+      if (on !== urgent) bgUrgent((urgent = on));
+    },
+    { rootMargin: '150% 0px' },
+  );
+  nearObs.observe(canvas.closest('[data-ss]') ?? canvas);
   const phone = isLiteDevice();
   const stage = createStage(canvas, { fov: 38, z: 40, alpha: false, env: false });
   const { scene, camera, renderer } = stage;
@@ -339,6 +352,9 @@ export async function initServices(canvas: HTMLCanvasElement, colors: string[]):
   await step('prime scene');
   post.primeBloom();
   await step('prime bloom');
+  ready = true;
+  nearObs.disconnect();
+  if (urgent) bgUrgent((urgent = false));
   stage.setRender(post.render);
   stage.invalidate();
   stage.onFrame((t) => frame(t));
