@@ -95,6 +95,11 @@ const lines = [
           hw = !/swiftshader|llvmpipe|softpipe|software|basic render/i.test(name);
         }
       } catch (e) {}
+      // Two graphics driver resets in the last few days: static version (see glLostCount()).
+      try {
+        var lost = JSON.parse(localStorage.getItem('nuuke:gl-lost') || 'null');
+        if (lost && Date.now() - lost.t < 3 * 864e5 && lost.n >= 2) hw = false;
+      } catch (e) {}
       window.__nuukeHW = hw; // reused by hasHardwareGL(): no second probe context
     }
     if (!hw || matchMedia('(prefers-reduced-motion: reduce)').matches) {

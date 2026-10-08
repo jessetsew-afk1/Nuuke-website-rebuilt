@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { glLostCount, noteGlLost } from '../gl-support';
 
 export { THREE };
 
@@ -121,7 +122,8 @@ function setTier(t: number) {
 function initGovernor(gl: WebGLRenderingContext | WebGL2RenderingContext) {
   if (gov.inited) return;
   gov.inited = true;
-  gov.ceiling = gov.baseCeiling = isLiteDevice() ? 2 : 0;
+  // After a graphics driver reset on this device, stay on the lighter tiers.
+  gov.ceiling = gov.baseCeiling = isLiteDevice() || glLostCount() > 0 ? 2 : 0;
   // Page start-up (script evaluation, first compiles, fonts) says nothing about the steady frame
   // rate: no verdicts until a second after the load event.
   const loaded = () => (gov.readyAt = performance.now() + 1000);
@@ -196,7 +198,10 @@ function govSample(ms: number, now: number) {
 
 type BgWaiter = { prio: number; seq: number; resolve: (px: number) => void };
 const BG_MIN = 16384;
-const BG_MAX = 1 << 20;
+// Hard ceiling per unit. Frame timing only shows GPU cost a frame or two later, so a budget
+// grown on timing alone can hand an old GPU a draw long enough for Windows to reset the driver
+// (seen as flicker, then a hang). 256k pixels is the strip size that has always been safe.
+const BG_MAX = 1 << 18;
 const bg = {
   waiters: [] as BgWaiter[],
   seq: 0,
@@ -251,12 +256,11 @@ function bgGrant(now: number, ts: number, px: number) {
   if (!bg.waiters.length) {
     window.clearInterval(bg.timer);
     bg.timer = 0;
-    // Queue drained: stop holding back on richer tiers because of earlier trouble.
+    // Queue drained: look again for a richer tier soon, but keep the record of tiers that
+    // already failed so the page does not keep switching quality (each switch rebuilds targets).
     window.setTimeout(() => {
       if (bg.waiters.length) return;
-      gov.upWait = Math.min(gov.upWait, 4000);
-      gov.fails.fill(0);
-      gov.ceiling = gov.baseCeiling;
+      gov.upWait = Math.min(gov.upWait, 8000);
     }, 500);
   }
 }
@@ -265,7 +269,7 @@ function bgGrant(now: number, ts: number, px: number) {
 function bgPump(now: number, ts: number) {
   bg.lastTick = now;
   if (!bg.waiters.length || ts === bg.lastTs) return;
-  if (bg.urgent) return bgGrant(now, ts, Math.max(bg.budget, 65536));
+  if (bg.urgent) return bgGrant(now, ts, Math.min(BG_MAX, Math.max(bg.budget, 65536)));
   const calm = now - bg.lastScroll > 700 && now > bg.busyUntil;
   if (calm && bg.onTime >= 3) return bgGrant(now, ts, bg.budget);
   // Trickle: keep going slowly even when frames are never on time.
@@ -460,6 +464,27 @@ function startOverlay() {
   }, 500);
 }
 
+// The browser lost the WebGL context (a GPU driver reset, e.g. Windows TDR). Lost contexts come
+// back with every texture empty, so instead of drawing a broken scene the page reloads once,
+// remembering it: the next load uses lighter quality, a second reset the static version.
+let glLost = false;
+function onGlLost() {
+  if (glLost) return;
+  glLost = true;
+  const reload = () => {
+    noteGlLost();
+    location.reload();
+  };
+  // A hidden tab may lose its context to free memory (phones): no penalty, reload when seen.
+  if (!document.hidden) return reload();
+  const onShow = () => {
+    if (document.hidden) return;
+    document.removeEventListener('visibilitychange', onShow);
+    location.reload();
+  };
+  document.addEventListener('visibilitychange', onShow);
+}
+
 export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?: number; env?: boolean; alpha?: boolean } = {}): Stage {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: opts.alpha ?? true, powerPreference: 'high-performance' });
   // No GPU (software rasteriser) or the visitor prefers less motion → static frames only.
@@ -519,6 +544,7 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
   let fixedT = 0;
   let visible = true;
   let raf = 0;
+  let lost = false; // the WebGL context is gone (see onGlLost)
   let draw = () => renderer.render(scene, camera);
   const render = () => draw();
   let fps = 60;
@@ -549,6 +575,7 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
 
   const tick = (ts: number) => {
     raf = 0;
+    if (lost) return;
     if (!visible || document.hidden) {
       lastTick = -1;
       renderedPrev = false;
@@ -620,8 +647,16 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
     ['pointerdown', 'keydown', 'click'].forEach((ev) => window.addEventListener(ev, wake, { passive: true }));
   }
   const start = () => {
-    if (!raf && !stepMode) raf = requestAnimationFrame(tick);
+    if (!raf && !stepMode && !lost) raf = requestAnimationFrame(tick);
   };
+  const onLost = () => {
+    lost = true;
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0;
+    canvas.style.visibility = 'hidden';
+    onGlLost();
+  };
+  canvas.addEventListener('webglcontextlost', onLost);
   const io = new IntersectionObserver((entries) => {
     visible = entries[0]?.isIntersecting ?? true;
     if (visible) {
@@ -681,6 +716,7 @@ export function createStage(canvas: HTMLCanvasElement, opts: { fov?: number; z?:
       frames.length = 0;
       document.removeEventListener('visibilitychange', onVis);
       window.removeEventListener('pointermove', onMove);
+      canvas.removeEventListener('webglcontextlost', onLost);
       renderer.dispose();
       renderer.forceContextLoss(); // free the context itself, not just its resources
     },

@@ -27,7 +27,9 @@ uniform float smoothWidth;
 uniform vec2 uTap;
 varying vec2 vUv;
 vec4 tap(vec2 uv) {
-  vec4 t = texture2D(tDiffuse, uv);
+  // Finite and non-negative: one NaN or Inf texel (an old driver's bad pixel) would otherwise
+  // be smeared over the whole screen by the blur. max() first: D3D maps max(NaN, 0) to 0.
+  vec4 t = min(max(texture2D(tDiffuse, uv), 0.0), 4096.0);
   float v = dot(t.rgb, vec3(0.299, 0.587, 0.114));
   return t * smoothstep(luminosityThreshold, luminosityThreshold + smoothWidth, v);
 }
@@ -146,7 +148,7 @@ uniform vec2 uRes;
 varying vec2 vUv;
 #include <tonemapping_pars_fragment>
 #include <colorspace_pars_fragment>
-vec3 hdr(vec2 uv) { return texture2D(tDiffuse, uv).rgb + texture2D(tBloom, uv).rgb; }
+vec3 hdr(vec2 uv) { return min(max(texture2D(tDiffuse, uv).rgb, 0.0), 4096.0) + min(max(texture2D(tBloom, uv).rgb, 0.0), 4096.0); }
 vec3 display(vec3 c) { return sRGBTransferOETF(vec4(ACESFilmicToneMapping(c), 1.0)).rgb; }
 `;
 
